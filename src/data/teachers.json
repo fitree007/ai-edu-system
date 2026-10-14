@@ -1,0 +1,1661 @@
+[
+  {
+    "id": "EDU-001",
+    "name": "ซอลีฮะห์ หะยีสะมะแอ",
+    "program": "สาขาวิชาอิสลามศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2540",
+        "degree": "M.Ed.",
+        "major": "Islamic Education",
+        "institution": "International Islamic University Malaysia, Malaysia."
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2532",
+        "degree": "ศศ.บ.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี"
+      }
+    ]
+  },
+  {
+    "id": "EDU-002",
+    "name": "มะซีดิ สาแล",
+    "program": "สาขาวิชาอิสลามศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2014",
+        "degree": "Ph.D.",
+        "major": "Aqidah and Islamic Thinking",
+        "institution": "University of Malaya, Malaysia."
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2007",
+        "degree": "M.IRKHS.",
+        "major": "Usuluddin and Comparative Religion",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "1998",
+        "degree": "B.A.",
+        "major": "Usuluddin",
+        "institution": "Al-Azhar University, Egypt"
+      }
+    ]
+  },
+  {
+    "id": "EDU-003",
+    "name": "มุมีน๊ะห์ บูงอตาหยง",
+    "program": "สาขาวิชาอิสลามศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2552",
+        "degree": "ศศ.ม.",
+        "major": "อิสลามศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี"
+      },
+      {
+        "level": "ประกาศนียบัตรบัณฑิต",
+        "year": "2557",
+        "degree": "ป.บัณฑิต",
+        "major": "การสอนอิสลามศึกษา",
+        "institution": "วิทยาลัยอิสลามยะลา"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2548",
+        "degree": "ศศ.บ",
+        "major": "อุศูลุดดีน",
+        "institution": "วิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-004",
+    "name": "ยะหะยา นิแว",
+    "program": "สาขาวิชาอิสลามศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2555",
+        "degree": "M.Ed",
+        "major": "Education Management",
+        "institution": "State Yogyakarta University, Yogyakarta, Indonesia."
+      },
+      {
+        "level": "ประกาศนียบัตรบัณฑิต",
+        "year": "2547",
+        "degree": "ป.บัณฑิต",
+        "major": "การสอนอิสลามศึกษา",
+        "institution": "วิทยาลัยอิสลามยะลา"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2546",
+        "degree": "ศศ.บ",
+        "major": "อุศูลุดดีน",
+        "institution": "วิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-005",
+    "name": "อับดุลรอฮมาน สามะอาลี",
+    "program": "สาขาวิชาอิสลามศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2018",
+        "degree": "Ph.D.",
+        "major": "Islamic Education",
+        "institution": "State Islamic University Sunan Kalijaga Yogyakarta, Indonesia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2551",
+        "degree": "M.Ed.",
+        "major": "Education for Human Resources Development",
+        "institution": "มหาวิทยาลัยทักษิน"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2001",
+        "degree": "B.A.",
+        "major": "Jurisprudence and Law",
+        "institution": "Al-Azhar University, Egypt"
+      }
+    ]
+  },
+  {
+    "id": "EDU-006",
+    "name": "อับดุลฟัตตาห์  จะปะกียา",
+    "program": "สาขาวิชาอิสลามศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2560",
+        "degree": "ศศ.ม.",
+        "major": "อิสลามศึกษา",
+        "institution": "มหาวิทยาลัยฟาฏอนี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2007",
+        "degree": "B.A.",
+        "major": "Dakwah and Usulluddin",
+        "institution": "Islamic Univesity Madinah, Kingdom of Saud Arabia."
+      }
+    ]
+  },
+  {
+    "id": "EDU-007",
+    "name": "อะหมัดซากี มาหะมะ",
+    "program": "สาขาวิชาอิสลามศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "",
+        "degree": "",
+        "major": "",
+        "institution": ""
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2551",
+        "degree": "ศศ.ม.",
+        "major": "อิสลามศึกษา",
+        "institution": ""
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2548",
+        "degree": "ศศ.บ.",
+        "major": "บริหารการศึกษา",
+        "institution": "มหาวิทยาลัยราชภัฏยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-008",
+    "name": "สาลาฮุดดีน มูซอ",
+    "program": "สาขาวิชาอิสลามศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2012",
+        "degree": "M.A.",
+        "major": "Islamic Education (Curriculum and Instruction for Islamic Studies)",
+        "institution": "AL al-BAYT UNIVERSITY"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2009",
+        "degree": "BA",
+        "major": "SHARI’A (ISLAMIC STUDIES)",
+        "institution": "Jerash Private University"
+      }
+    ]
+  },
+  {
+    "id": "EDU-009",
+    "name": "ฟัตฮี จะปะเกีย",
+    "program": "สาขาวิชาภาษาอาหรับ",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2557",
+        "degree": "Ph.D.",
+        "major": "Arabic Language and Islamic Civilization",
+        "institution": "Sultan Syarif Ali Islamic University, Brunei"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2553",
+        "degree": "M.A.",
+        "major": "Arabic Studies and Islamic Civilization",
+        "institution": "National University of Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2549",
+        "degree": "B.A",
+        "major": "Arabic Language and Literature",
+        "institution": "Mu'tah University, Jordan"
+      }
+    ]
+  },
+  {
+    "id": "EDU-010",
+    "name": "MOSTAFA ABD EL-KADER HAFEZ FATH ALLAH",
+    "program": "สาขาวิชาภาษาอาหรับ",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2021",
+        "degree": "Ph.D.",
+        "major": "Arabic Language and Literature",
+        "institution": "Sultan Zainal Abidin University, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2555",
+        "degree": "ศศ.ม.",
+        "major": "ภาษาอาหรับและวรรณคดี",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2543",
+        "degree": "B.A.",
+        "major": "Arabic Language and Literature",
+        "institution": "Alexandra University,Egypt"
+      }
+    ]
+  },
+  {
+    "id": "EDU-011",
+    "name": "มูหำมัดสอเระ หะยีสะมาแอ",
+    "program": "สาขาวิชาภาษาอาหรับ",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2019",
+        "degree": "Ph.d.",
+        "major": "Teaching Arabic as a Second Language",
+        "institution": "University of Malaya, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2550",
+        "degree": "M.Ed.",
+        "major": "Teaching Arabic as a Second Language",
+        "institution": "University of Malaya, Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2546",
+        "degree": "B.A.",
+        "major": "The Arabic Language Institute for Non-Arabic Speaker",
+        "institution": "Ummu-Alqura University, Kingdom of Saudi Arabia"
+      }
+    ]
+  },
+  {
+    "id": "EDU-012",
+    "name": "ยูหารี มะเซ่ง",
+    "program": "สาขาวิชาภาษาอาหรับ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2556",
+        "degree": "ศศ.ม.",
+        "major": "ภาษาอาหรับและวรรณคดี",
+        "institution": "มหาวิทยาลัยฟาฏอนี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2551",
+        "degree": "B.A.",
+        "major": "Arabic Language and Literature",
+        "institution": "Jerash Private University, Jordan"
+      }
+    ]
+  },
+  {
+    "id": "EDU-013",
+    "name": "สิริวรรณ ขุนดำ",
+    "program": "สาขาวิชาภาษาอาหรับ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2554",
+        "degree": "M.A.",
+        "major": "Islamic Studies (Modern Fiqh)",
+        "institution": "Al-Qadi Eyad University, Morocco"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2550",
+        "degree": "ศศ.บ.",
+        "major": "ภาษาอาหรับ",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-014",
+    "name": "มะวัดดะห์  จะปะกียา",
+    "program": "สาขาวิชาภาษาอาหรับ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2019",
+        "degree": "M.A.",
+        "major": "",
+        "institution": ""
+      }
+    ]
+  },
+  {
+    "id": "EDU-015",
+    "name": "Turkey",
+    "program": "สาขาวิชาภาษาอาหรับ",
+    "degrees": [
+      {
+        "level": "ปริญญาตรี",
+        "year": "2015",
+        "degree": "B.A.",
+        "major": "Islamic studies (Tafsir and Hadits)",
+        "institution": "Kuwait University, Kuwait"
+      }
+    ]
+  },
+  {
+    "id": "EDU-016",
+    "name": "สะอาด อาแซ",
+    "program": "สาขาวิชาวิทยาศาสตร์ทั่วไป",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2548",
+        "degree": "กศ.ม.",
+        "major": "วิทยาศาสตร์ศึกษา",
+        "institution": "มหาวิทยาลัยนเรศวร"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2543",
+        "degree": "วท.บ.",
+        "major": "ชีววิทยาประยุกต์",
+        "institution": "สถาบันราชภัฏยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-017",
+    "name": "อับดุลฆอนี เจะโซะ",
+    "program": "สาขาวิชาวิทยาศาสตร์ทั่วไป",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2548",
+        "degree": "M.Ed",
+        "major": "การวัดและการประเมินผล",
+        "institution": "UPSI Perak Malaysia."
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2543",
+        "degree": "คบ.",
+        "major": "คณิตศาสตร์",
+        "institution": "มหาวิทยาลัยราชภัฏสงขลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-018",
+    "name": "อัรฟัน หะสีแม",
+    "program": "สาขาวิชาวิทยาศาสตร์ทั่วไป",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2557",
+        "degree": "วท.ม.",
+        "major": "เทคโนโลยีพลังง���น",
+        "institution": "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2555",
+        "degree": "วท.บ.",
+        "major": "วิทยาศาสตร์",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-019",
+    "name": "อิบรอเฮม อัลมุสฏอฟา",
+    "program": "สาขาวิชาวิทยาศาสตร์ทั่วไป",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2542",
+        "degree": "ศษ.ม.",
+        "major": "จิตวิทยาการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2538",
+        "degree": "B.Ed.",
+        "major": "Physics",
+        "institution": "King Saud University, K.S.A"
+      }
+    ]
+  },
+  {
+    "id": "EDU-020",
+    "name": "ตุลา  บิ่นล่าเต๊ะ",
+    "program": "สาขาวิชาวิทยาศาสตร์ทั่วไป",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2566",
+        "degree": "ศษ.ม.",
+        "major": "การวิจัยและประเมินผลการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2560",
+        "degree": "",
+        "major": "สถิติ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-021",
+    "name": "อานัส  สามอ",
+    "program": "สาขาวิชาวิทยาศาสตร์ทั่วไป",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2566",
+        "degree": "ค.ม.",
+        "major": "(การสอนวิทยาศาสตร์คณิตศาสตร์ และคอมพิวเตอร์)",
+        "institution": "มหาวิทยาลัยราชภัฏยะลา"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2564",
+        "degree": "วท.บ.",
+        "major": "(วิทยาศาสตร์(ชีววิทยา))",
+        "institution": "Ankara University, Turkey"
+      }
+    ]
+  },
+  {
+    "id": "EDU-022",
+    "name": "ยะโก๊ะ ขาเร็มดาเบะ",
+    "program": "สาขาวิชาเคมี",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2550",
+        "degree": "วท.บ.",
+        "major": "เคมี",
+        "institution": "มหาวิทยาลัยทักษิณ"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2552",
+        "degree": "วท.ม.",
+        "major": "เคมีประยุกต์",
+        "institution": "มหาวิทยาลัยทักษิณ"
+      }
+    ]
+  },
+  {
+    "id": "EDU-023",
+    "name": "อามีนา สาแม",
+    "program": "สาขาวิชาเคมี",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2562",
+        "degree": "ปร.ด",
+        "major": "เทคโนโลยีชีวภาพ",
+        "institution": "มหาวิทยาลัยทักษิณวิทยาเขตพัทลุง จังหวัดพัทลุง"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2552",
+        "degree": "กศ.ม",
+        "major": "เคมี",
+        "institution": "มหาวิทยาลัยทักษิณวิทยาเขตสงขลา จังหวัดสงขลา"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2548",
+        "degree": "วท.บ",
+        "major": "วิทยาศาสตร์ทั่วไป (เคมี-ชีววิทยา)",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์วิทยาเขตหาดใหญ่ จังหวัดสงขลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-024",
+    "name": "มูฮาหมัดอามีน หะยีหามะ",
+    "program": "สาขาวิชาเคมี",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2556",
+        "degree": "วท.ม.",
+        "major": "วิทยาศาสตร์และเทคโนโลยีอาหาร",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2551",
+        "degree": "วท.บ.",
+        "major": "วิทยาศาสตร์และเทคโนโลยีอาหาร",
+        "institution": "มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย"
+      }
+    ]
+  },
+  {
+    "id": "EDU-025",
+    "name": "นายรอมสรรค์ เศะ",
+    "program": "สาขาวิชาเคมี",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2553",
+        "degree": "วท.ม.",
+        "major": "เคมีและเทคโนโลยีการอาหาร",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2547",
+        "degree": "วท.บ.",
+        "major": "เทคโนโลยีการประมง",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-026",
+    "name": "มาหามะรอสลี แมยู",
+    "program": "สาขาวิชาเคมี",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2552",
+        "degree": "กศ.ม",
+        "major": "หลักสูตรและการสอน)",
+        "institution": "มหาวิทยาลัยทักษิณ"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2546",
+        "degree": "ศศ.บ.",
+        "major": "ชะรีอะฮ์( กฎหมายอิสลาม)",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-027",
+    "name": "มารีแย บาเน็ง",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2015",
+        "degree": "MTeach",
+        "major": "Teaching",
+        "institution": "Universiti Brunei Darussalam,Brunei Darussalam"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2555",
+        "degree": "ศศ.บ.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-028",
+    "name": "รอกีเยาะ มะดือเร๊ะ",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2554",
+        "degree": "ศศ.ม.",
+        "major": "การสอนภาษาอังกฤษเป็นภาษานานาชาติ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2547",
+        "degree": "ศศ.บ.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-029",
+    "name": "รูฮานา สาแมง",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2014",
+        "degree": "Ph.D.",
+        "major": "Da’wah Psychology, Islamic Studies",
+        "institution": "Universiti Sains Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2000",
+        "degree": "M.Ed.",
+        "major": "Guidance and Counseling",
+        "institution": "International Islamic University Malaysia , Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "1998",
+        "degree": "IPkHS.",
+        "major": "Quran and Sunnah",
+        "institution": "International Islamic University , Malaysia"
+      }
+    ]
+  },
+  {
+    "id": "EDU-030",
+    "name": "ซุลกอรนัยน์ เบ็ญยา",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2558",
+        "degree": "ศษ.ม.",
+        "major": "หลักสูตรและการสอน",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ประกาศนียบัตรบัณฑิต",
+        "year": "2547",
+        "degree": "ป.วค.",
+        "major": "ประกาศนียบัตรวิชาชีพครู",
+        "institution": "มหาวิทยาลัยสุโขทัยธรรมาธิราช"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2547",
+        "degree": "ศศ.บ.",
+        "major": "ชะรีอะฮ์(กฎหมายอิสลาม)",
+        "institution": "วิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-031",
+    "name": "คอยรียะห์ มะโซะ",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2019",
+        "degree": "M.Ed.",
+        "major": "Teaching English as a Second Language",
+        "institution": "Sultan Idris Education University, Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2017",
+        "degree": "B.Ed.",
+        "major": "Teaching English as a Second Language",
+        "institution": "Sultan Idris Education University, Malaysia"
+      }
+    ]
+  },
+  {
+    "id": "EDU-032",
+    "name": "รอสะดี  สือมะ",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2009",
+        "degree": "M.A.",
+        "major": "Teaching English as International Language",
+        "institution": "Prince of Songkla University"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "1998",
+        "degree": "M.A.",
+        "major": "Arabic (Translation)",
+        "institution": "Aligarh Univ., India"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "1996",
+        "degree": "B.A.",
+        "major": "Islamic Study",
+        "institution": "Abubakr Unv., Karachi"
+      }
+    ]
+  },
+  {
+    "id": "EDU-033",
+    "name": "รอกีเย๊าะ  มะดือเระ",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2554",
+        "degree": "ศศ.ม.",
+        "major": "การสอนภาษาอังกฤษเป็นภาษานานาชาติ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2547",
+        "degree": "ศศ.บ.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-034",
+    "name": "Zine Eddine Mesfaoudi",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "",
+        "degree": "M.Ed.",
+        "major": "Curriculum and Instruction",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "",
+        "degree": "B.A.",
+        "major": "Translation",
+        "institution": "University of Algeria, Algeria"
+      }
+    ]
+  },
+  {
+    "id": "EDU-035",
+    "name": "คอดีเยาะ  เทษา",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2559",
+        "degree": "M.Hum.",
+        "major": "Master in Linguistics",
+        "institution": "Universitas Sebelas Maret, Surakarta, Indonesia"
+      },
+      {
+        "level": "ประกาศนียบัตรบัณฑิต",
+        "year": "2565",
+        "degree": "วิชาชีพครู",
+        "major": "หลักสูตรประกาศนียบัตรบัณฑิตวิชาชีพครู",
+        "institution": "มหาวิทยาลัยฟาฏอนี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2555",
+        "degree": "ศศ.บ.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-036",
+    "name": "คอซีย๊ะห์  ญัลบานี",
+    "program": "สาขาวิชาภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "",
+        "degree": "",
+        "major": "",
+        "institution": ""
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2005",
+        "degree": "M.A. (English)",
+        "major": "Linguistics",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2000",
+        "degree": "BA",
+        "major": "Islamic Studies/ English Minor",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี"
+      }
+    ]
+  },
+  {
+    "id": "EDU-037",
+    "name": "นูรณี บูเกะมาตี",
+    "program": "สาขาวิชาภาษามลายูและเทคโนโลยีการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2557",
+        "degree": "M.Ed",
+        "major": "Malay Language Education",
+        "institution": "Universiti Pendidikan Sultan Idris, Malaysia."
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2551",
+        "degree": "B.A",
+        "major": "Malay Language Education",
+        "institution": "Universiti Pendidikan Sultan Idris, Malaysia."
+      }
+    ]
+  },
+  {
+    "id": "EDU-038",
+    "name": "เภาซัน เจ๊ะแว",
+    "program": "สาขาวิชาภาษามลายูและเทคโนโลยีการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2556",
+        "degree": "Ph.D",
+        "major": "Malay Language and Linguistics",
+        "institution": "Universiti Brunei Darussalam,Brunei Darussalam."
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2547",
+        "degree": "M.Ed",
+        "major": "Language Education",
+        "institution": "State University Of Jakarta, Indonesia."
+      },
+      {
+        "level": "ประกาศนียบัตรบัณฑิต",
+        "year": "2003",
+        "degree": "Diploma",
+        "major": "Indonesian for Special Purpose (ISP)",
+        "institution": "Gadjah Mada University, Indonesia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2545",
+        "degree": "B.A",
+        "major": "Islamic Theology",
+        "institution": "Islamic State University Of Sunan Kalijaga, Yogyakarta, Indonesia."
+      }
+    ]
+  },
+  {
+    "id": "EDU-039",
+    "name": "อดุลย์ ภัยชำนาญ",
+    "program": "สาขาวิชาภาษามลายูและเทคโนโลยีการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2555",
+        "degree": "ศษ.ม.",
+        "major": "เทคโนโลยีและสื่อสารการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี"
+      },
+      {
+        "level": "ประกาศนียบัตรบัณฑิต",
+        "year": "2550",
+        "degree": "ป.บัณฑิต",
+        "major": "การสอนอิสลามศึกษา",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2549",
+        "degree": "ศศ.บ.",
+        "major": "อุศูลุดดีน (หลักการอิสลาม)",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-040",
+    "name": "อมมุลอมมะห์  โต๊ะหลง",
+    "program": "สาขาวิชาภาษามลายูและเทคโนโลยีการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2559",
+        "degree": "M.A.",
+        "major": "Malay Language and Linguistics",
+        "institution": "Universiti Brunei Darussalam,Brunei Darussalam."
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2555",
+        "degree": "ศศ.บ.",
+        "major": "ภาษามลายู",
+        "institution": "มหาวิทยาลัยฟาฏอนี"
+      }
+    ]
+  },
+  {
+    "id": "EDU-041",
+    "name": "เดช  คำเคน",
+    "program": "สาขาวิชาภาษามลายูและเทคโนโลยีการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2564",
+        "degree": "ศษ.ม.",
+        "major": "วิทยาการทางการศึกษาและนวัตกรรมการจัดการเรียนรู้",
+        "institution": "มหาวิทยาลัยฟาฏอนี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2549",
+        "degree": "ศศ.บ.",
+        "major": "ภาษาอาหรับ",
+        "institution": "มหาวิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-042",
+    "name": "มูฮำหมัดศอฟรี บารู",
+    "program": "สาขาวิชาภาษามลายูและเทคโนโลยีการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2566",
+        "degree": "ศษ.ม.",
+        "major": "วิทยาการทางการศึกษาและนวัตกรรมการจัดการเรียนรู้",
+        "institution": "มหาวิทยาลัยฟาฏอนี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2553",
+        "degree": "ศศ.บ.",
+        "major": "การจัดการสารสนเทศ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-043",
+    "name": "ฮูดา ฆอแด๊ะ",
+    "program": "สาขาวิชาการศึกษาปฐมวัย",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก (กำลังศึกษา)",
+        "year": "",
+        "degree": "Ph.D.",
+        "major": "การพััฒนามนุษย์และสังคม",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2019",
+        "degree": "M.Ed.",
+        "major": "Early Childhood Education",
+        "institution": "Sultan Idris Education University,Malaysia."
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2566",
+        "degree": "ศศ.บ.",
+        "major": "การพัฒนาเด็กปฐมวัย",
+        "institution": "มหาวิทยาลัยสุโขทััยธรรมาธิราช"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2559",
+        "degree": "ศษ.บ.",
+        "major": "การสอนอิสลามศึกษา",
+        "institution": "มหาวิทยาลัยฟาฏอนี"
+      }
+    ]
+  },
+  {
+    "id": "EDU-044",
+    "name": "นูรุลฮัค มูซอ",
+    "program": "สาขาวิชาการศึกษาปฐมวัย",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2019",
+        "degree": "M. Ed.",
+        "major": "Early Childhood Education",
+        "institution": "Sultan Idris Education University, Malaysia."
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2015",
+        "degree": "B.A",
+        "major": "Theology",
+        "institution": "Imam Mohammad Ibn Saud Islamic University, Saudi Arabia"
+      }
+    ]
+  },
+  {
+    "id": "EDU-045",
+    "name": "ฟาตีฮะห์ จะปะกียา",
+    "program": "สาขาวิชาการศึกษาปฐมวัย",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2567",
+        "degree": "Ph.D.",
+        "major": "อิสลามศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2008",
+        "degree": "M. Ed.",
+        "major": "The Teaching of Islamic Education",
+        "institution": "International Islamic University Malaysia,"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2006",
+        "degree": "B.IRKHS.",
+        "major": "Comparative Religions",
+        "institution": "International Islamic University Malaysia"
+      }
+    ]
+  },
+  {
+    "id": "EDU-046",
+    "name": "มุสลิม  หะยีสะมะแอ",
+    "program": "สาขาวิชาการศึกษาปฐมวัย",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2566",
+        "degree": "ศศ.ม.",
+        "major": "จิตวิทยา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2562",
+        "degree": "ศษ.บ.",
+        "major": "การสอนอิสลามศึกษา",
+        "institution": "มหาวิทยาลัยฟาฏอนี"
+      }
+    ]
+  },
+  {
+    "id": "EDU-047",
+    "name": "อัสม้า  จะปะเกีย",
+    "program": "สาขาวิชาการศึกษาปฐมวัย",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2566",
+        "degree": "ศศ.ม.",
+        "major": "สาขาวิชาจิตวิทยา",
+        "institution": "มหาวิทยาลังสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2560",
+        "degree": "B.A.",
+        "major": "Islamic Studies",
+        "institution": "Yarmouk University, Jordan"
+      }
+    ]
+  },
+  {
+    "id": "EDU-048",
+    "name": "จิระพันธ์ เดมะ",
+    "program": "สาขาวิชาชีพครู",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2521",
+        "degree": "กศ.ม",
+        "major": "เทคโนโลยีการศึกษา",
+        "institution": "มหาวิทยาลัยศรีนครินทรวิโรฒ ประสานมิตร"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2519",
+        "degree": "ศศ.บ.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี"
+      },
+      {
+        "level": "ประกาศนียบัตร",
+        "year": "2529",
+        "degree": "Post Grad. Dip",
+        "major": "Educational Technology",
+        "institution": "Hiroshima University, Japan"
+      }
+    ]
+  },
+  {
+    "id": "EDU-049",
+    "name": "วุฒิศักดิ์ พิศสุวรรณ",
+    "program": "สาขาวิชาชีพครู",
+    "degrees": [
+      {
+        "level": "ป��ิญญาเอก",
+        "year": "",
+        "degree": "กศ.ด.",
+        "major": "การอุดมศึกษา",
+        "institution": "มหาวิทยาลัยศรีนครินทร์วิโรฒ ประสานมิตร"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "",
+        "degree": "บธ.ม.",
+        "major": "บริหารธุรกิจ",
+        "institution": "มหาวิทยาลัยกรุงเทพ"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "",
+        "degree": "บธ.บ.",
+        "major": "การตลาด",
+        "institution": "มหาวิทยาลัยกรุงเทพ"
+      }
+    ]
+  },
+  {
+    "id": "EDU-050",
+    "name": "มะยูตี ดือรามะ",
+    "program": "สาขาวิชาชีพครู",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2018",
+        "degree": "Ph.D.",
+        "major": "Psychometric and Educational Evaluation",
+        "institution": "University Sains Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2549",
+        "degree": "ศษ.ม.",
+        "major": "การวัดผลและวิจัยทางการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2546",
+        "degree": "ศศ.บ.",
+        "major": "ชะรีอะฮ์(กฎหมายอิสลาม)",
+        "institution": "วิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-051",
+    "name": "อภิรักษ์ วรภัคสกุล",
+    "program": "สาขาวิชาชีพครู",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2018",
+        "degree": "Ph.D.",
+        "major": "Educational Psychology",
+        "institution": "Universiti Sains Malaysia,Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2552",
+        "degree": "ศษ.ม.",
+        "major": "จิตวิทยาการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2540",
+        "degree": "ศศ.บ. (ศึกษาศาสตร์)",
+        "major": "ภาษาฝรั่งเศส",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-052",
+    "name": "อิลฮัม เจะหนุ",
+    "program": "สาขาวิชาชีพครู",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2020",
+        "degree": "Ph.D.",
+        "major": "Education",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2010",
+        "degree": "M.Ed.",
+        "major": "Educational Administration",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2008",
+        "degree": "B.HS.",
+        "major": "Psychology",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      }
+    ]
+  },
+  {
+    "id": "EDU-053",
+    "name": "ซาฟีอี บารู",
+    "program": "สาขาวิชาชีพครู",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "",
+        "degree": "ศษ.ม.",
+        "major": "ศึกษาศาสตร์เพื่อพัฒนาชุมชน",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "",
+        "degree": "ศษ.บ.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-054",
+    "name": "จารุวัจน์ สองเมือง",
+    "program": "สาขาวิชาวิทยาการทางการศึกษาและนวัตกรรมการจัดการเรียนรู้",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2556",
+        "degree": "ศษ.ด",
+        "major": "ภาวะผู้นำและนวัตกรรมทางการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2543",
+        "degree": "ศษ.ม.",
+        "major": "เทคโนโลยีและสื่อสารการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2539",
+        "degree": "ศศ.บ.",
+        "major": "อิสลามศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-055",
+    "name": "อิสมาอีล ราโอบ",
+    "program": "สาขาวิชาวิทยาการทางการศึกษาและนวัตกรรมการจัดการเรียนรู้",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2017",
+        "degree": "Ph.D.",
+        "major": "Statistics & Research Methodology",
+        "institution": "Universiti Sains Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2551",
+        "degree": "ศษ.ม.",
+        "major": "การวัดผลและวิจัยทางการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ประกาศนียบัตร",
+        "year": "2548",
+        "degree": "ปวค.",
+        "major": "ประกาศนียบัตรวิชาชีพครู",
+        "institution": "มหาวิทยาลัยสุโขทัยธรรมาธิราช"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2552",
+        "degree": "ศษ.บ.",
+        "major": "การวัดและประเมินผลการศึกษา",
+        "institution": "มหาวิทยาลัยสุโขทัยธรรมาธิราช"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2547",
+        "degree": "ศศ.บ.",
+        "major": "ชะรีอะฮ์(กฎหมายอิสลาม)",
+        "institution": "วิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-056",
+    "name": "มูฮามัสสกรี มันยูนุ",
+    "program": "สาขาวิชาวิทยาการทางการศึกษาและนวัตกรรมการจัดการเรียนรู้",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2008",
+        "degree": "Ph.D.",
+        "major": "Curriculum Management and Development",
+        "institution": "Universiti Pendidikan Sultan Idris, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2002",
+        "degree": "M.Ed.",
+        "major": "Islamic Education",
+        "institution": "Yarmouk University, Jordan"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "1999",
+        "degree": "B.A.",
+        "major": "Usuluddin",
+        "institution": "Al Balqa' Applied University, Jordan"
+      }
+    ]
+  },
+  {
+    "id": "EDU-057",
+    "name": "อะห์มัด ยี่สุนทรง",
+    "program": "สาขาวิชาการบริหารการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2547",
+        "degree": "ค.ด.",
+        "major": "อุดมศึกษา",
+        "institution": "จุฬาลงกรณ์มหาวิทยาลัย"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2533",
+        "degree": "ศษ.ม.",
+        "major": "ศึกษาศาสตร์เพื่อพัฒนาชุมชน",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2522",
+        "degree": "ศศ.บ.",
+        "major": "รัฐศาสตร์",
+        "institution": "มหาวิทยาลัยรามคำแหง"
+      }
+    ]
+  },
+  {
+    "id": "EDU-058",
+    "name": "มูซักกีด หีมพินิจ",
+    "program": "สาขาวิชาการบริหารการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2018",
+        "degree": "Ph.D",
+        "major": "Educational Administration",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2009",
+        "degree": "M.Ed.",
+        "major": "Educational Administration",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2548",
+        "degree": "ศศ.บ.",
+        "major": "กฎหมายอิสลาม",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-059",
+    "name": "ฟาริด อับดุลลอฮ์หะซัน",
+    "program": "สาขาวิชาการบริหารการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2021",
+        "degree": "Ph.D.",
+        "major": "Educational Leadership",
+        "institution": "Universiti Sultan Zainal Abidin (Unisza), Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2558",
+        "degree": "ศษ.ม",
+        "major": "การบริหารและการ จัดการการศึกษาอิสลาม",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2549",
+        "degree": "ศศ.บ",
+        "major": "กฎหมายอิสลาม",
+        "institution": "วิทยาลัยอิสลามยะลา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-060",
+    "name": "สุไรยา หนิเร่",
+    "program": "สาขาวิชาการบริหารการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2558",
+        "degree": "กศ.ด.",
+        "major": "ภาวะผู้นำทางการบริหารการศึกษา",
+        "institution": "มหาวิทยาลัยทักษิณ"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2551",
+        "degree": "กศ.ม.",
+        "major": "การบริหารการศึกษา",
+        "institution": "มหาวิทยาลัยทักษิณ"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2548",
+        "degree": "วท.บ.",
+        "major": "ฟิสิกส์",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-061",
+    "name": "มูฮัมหมัด อัซซอมาดีย์",
+    "program": "สาขาวิชาการบริหารการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2567",
+        "degree": "ค.ด.",
+        "major": "บริหารการศึกษา",
+        "institution": "จุฬาลงกรณ์มหาวิทยาลัย"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2564",
+        "degree": "ค.ม.",
+        "major": "บริหารการศึกษา",
+        "institution": "จุฬาลงกรณ์มหาวิทยาลัย"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2561",
+        "degree": "วท.บ.",
+        "major": "คณิตศาสตร์สารสนเทศ",
+        "institution": "มหาวิทยาลัยราชภัฎสวนสุนันทา"
+      }
+    ]
+  },
+  {
+    "id": "EDU-062",
+    "name": "มัฮซูม สะตีแม",
+    "program": "ป.โท การสอนภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2018",
+        "degree": "Ph.D.",
+        "major": "English Language Studies",
+        "institution": ""
+      }
+    ]
+  },
+  {
+    "id": "EDU-063",
+    "name": "Malaysia",
+    "program": "ป.โท การสอนภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "1997",
+        "degree": "M.HSc.",
+        "major": "Teaching English as a Second Language",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2536",
+        "degree": "ศศ.บ.",
+        "major": "พัฒนาสังคม",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-064",
+    "name": "Bilkis AKHTER",
+    "program": "ป.โท การสอนภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2017",
+        "degree": "Ph.D.",
+        "major": "English Literary Studies",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ประกาศนียบัตรวิชาชีพชั้นสูง",
+        "year": "2009",
+        "degree": "M.HSc.",
+        "major": "English Literary Studies",
+        "institution": "International Islamic University Malaysia, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2004",
+        "degree": "M.A.",
+        "major": "English",
+        "institution": "National University, Bangladesh"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2002",
+        "degree": "B.A.",
+        "major": "English",
+        "institution": "National University, Bangladesh"
+      }
+    ]
+  },
+  {
+    "id": "EDU-065",
+    "name": "ปรัชญา บินหมัดหนี",
+    "program": "ป.โท การสอนภาษาอังกฤษ",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "2017",
+        "degree": "Ph.D.",
+        "major": "Teaching English as a Second Language",
+        "institution": "Sultan Idris Education University, Malaysia"
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2545",
+        "degree": "กศ.ม.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยทักษิณ"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2539",
+        "degree": "ศษ.บ.",
+        "major": "ภาษาอังกฤษ",
+        "institution": "มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้"
+      }
+    ]
+  },
+  {
+    "id": "EDU-066",
+    "name": "มะรอเซ๊ะ สาแม็ง",
+    "program": "สาขาวิชาการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาเอก",
+        "year": "",
+        "degree": "",
+        "major": "",
+        "institution": ""
+      },
+      {
+        "level": "ปริญญาโท",
+        "year": "2555",
+        "degree": "ศ.ศ.บ",
+        "major": "หลักสูตรและวิธีสอน",
+        "institution": "อาหรับลีก"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2545",
+        "degree": "ศ.ศ.บ",
+        "major": "ครุศาสตรอิสลาม",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  },
+  {
+    "id": "EDU-067",
+    "name": "อับดุลกอนี เต๊ะมะหมัด",
+    "program": "สาขาวิชาการศึกษา",
+    "degrees": [
+      {
+        "level": "ปริญญาโท",
+        "year": "2545",
+        "degree": "ศษ.ม.",
+        "major": "จิตวิ��ยาการศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      },
+      {
+        "level": "ปริญญาตรี",
+        "year": "2537",
+        "degree": "ศศ.บ.",
+        "major": "อิสลามศึกษา",
+        "institution": "มหาวิทยาลัยสงขลานครินทร์"
+      }
+    ]
+  }
+]
