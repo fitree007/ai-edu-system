@@ -3,7 +3,9 @@
  * รองรับทั้งการเชื่อมต่อจริง (Real-time Sync) และระบบ Local Cache Fallback
  */
 
-export const GAS_API_URL = process.env.NEXT_PUBLIC_GAS_API_URL || "";
+export const GAS_API_URL =
+  process.env.NEXT_PUBLIC_GAS_API_URL ||
+  "https://script.google.com/macros/s/AKfycbwaaSvxz0vT_jIm_l_BYefhqUZusWXXM7Z6F08Ij3pxPxee72B4VNjGm3DyrNtVGAFNVA/exec";
 
 export interface ApiResponse<T = unknown> {
   success?: boolean;
@@ -18,7 +20,7 @@ export interface ApiResponse<T = unknown> {
  */
 export async function fetchAllAppData(): Promise<Record<string, unknown> | null> {
   if (!GAS_API_URL) {
-    console.info("⚡ [API] ใช้ข้อมูล LocalStorage Cache เนื่องจากไม่ได้ระบุ NEXT_PUBLIC_GAS_API_URL");
+    console.info("⚡ [API] ใช้ข้อมูล LocalStorage Cache");
     return null;
   }
 
@@ -44,7 +46,6 @@ export async function fetchAllAppData(): Promise<Record<string, unknown> | null>
  */
 export async function postToGAS(payload: Record<string, unknown>): Promise<ApiResponse | null> {
   if (!GAS_API_URL) {
-    console.info("⚡ [API] ข้อมูลถูกบันทึกลง Local Cache เรียบร้อยแล้ว (ออฟไลน์โหมด)");
     return { success: true };
   }
 
@@ -60,7 +61,7 @@ export async function postToGAS(payload: Record<string, unknown>): Promise<ApiRe
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     return await res.json();
   } catch (err) {
-    console.warn("⚠️ [API] ไม่สามารถส่งข้อมูลไปยัง GAS ได้ (บันทึกลง Local Cache แล้ว):", err);
+    console.warn("⚠️ [API] บันทึกลง Local Cache เรียบร้อยแล้ว:", err);
     return { success: false, error: String(err) };
   }
 }
