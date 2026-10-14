@@ -92,6 +92,7 @@ export default function FacultyEducationPortalApp() {
   const [publicHubTab, setPublicHubTab] = useState<"EBOOKS" | "FACULTY">("EBOOKS");
   const [publicSearch, setPublicSearch] = useState("");
   const [publicDeptFilter, setPublicDeptFilter] = useState("ALL");
+  const [publicTeacherFilter, setPublicTeacherFilter] = useState("ALL");
   const [selectedWorkModal, setSelectedWorkModal] = useState<PortfolioWork | null>(null);
   const [selectedTeacherModal, setSelectedTeacherModal] = useState<TeacherInfo | null>(null);
   const [ebookPage, setEbookPage] = useState(1);
@@ -526,10 +527,18 @@ export default function FacultyEducationPortalApp() {
   };
 
   // Filters for Public Hub
+  const availableTeachers = useMemo(() => {
+    if (publicDeptFilter === "ALL") return teachersList;
+    return teachersList.filter((t) => t.program === publicDeptFilter);
+  }, [teachersList, publicDeptFilter]);
+
   const publicWorksFiltered = useMemo(() => {
     return portfolioWorks.filter((w) => {
       if (!w.Is_Public) return false;
       const matchDept = publicDeptFilter === "ALL" || w.Department === publicDeptFilter;
+      const matchTeacher =
+        publicTeacherFilter === "ALL" ||
+        w.Instructor_Name.trim().toLowerCase().includes(publicTeacherFilter.trim().toLowerCase());
       const q = publicSearch.trim().toLowerCase();
       const matchQuery =
         !q ||
@@ -537,22 +546,25 @@ export default function FacultyEducationPortalApp() {
         w.Title.toLowerCase().includes(q) ||
         w.Department.toLowerCase().includes(q) ||
         String(w.Academic_Year).includes(q);
-      return matchDept && matchQuery;
+      return matchDept && matchTeacher && matchQuery;
     });
-  }, [portfolioWorks, publicSearch, publicDeptFilter]);
+  }, [portfolioWorks, publicSearch, publicDeptFilter, publicTeacherFilter]);
 
   const publicTeachersFiltered = useMemo(() => {
     return teachersList.filter((t) => {
       const matchDept = publicDeptFilter === "ALL" || t.program === publicDeptFilter;
+      const matchTeacher =
+        publicTeacherFilter === "ALL" ||
+        t.name.trim().toLowerCase() === publicTeacherFilter.trim().toLowerCase();
       const q = publicSearch.trim().toLowerCase();
       const matchQuery =
         !q ||
         t.name.toLowerCase().includes(q) ||
         t.program.toLowerCase().includes(q) ||
         t.degrees.some((d) => d.major.toLowerCase().includes(q) || d.institution.toLowerCase().includes(q));
-      return matchDept && matchQuery;
+      return matchDept && matchTeacher && matchQuery;
     });
-  }, [teachersList, publicSearch, publicDeptFilter]);
+  }, [teachersList, publicSearch, publicDeptFilter, publicTeacherFilter]);
 
   // Admin Chart Calculations
   const adminChartData = useMemo(() => {
@@ -707,187 +719,192 @@ export default function FacultyEducationPortalApp() {
             </div>
           </div>
 
-          {/* แถวที่ 1: การ์ด 3 ใบ (Digital Card Pass & Dashed Card สไตล์เดียวกับ KBank, TrueMoney, + เพิ่มบัตร ในรูป) */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* บัตร 1: อาจารย์ผู้สอน (เหมือนบัตร KBank Visa สีน้ำเงินเข้ม ในรูป) */}
+          {/* แถวที่ 1: การ์ด 2 ปุ่มหลักเด่นๆ (อาจารย์ผู้สอน & ผู้บริหาร) ตามรูปแนบ 1 */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+            {/* บัตร 1: อาจารย์ผู้สอน (Hero Prominent Card) */}
             <div
               onClick={() => {
                 if (currentUser?.Role === "INSTRUCTOR") setActiveView("INSTRUCTOR");
                 else setLoginModalRole("INSTRUCTOR");
               }}
-              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E3A8A] via-[#172554] to-[#0D1527] p-6 text-white border border-blue-900/60 shadow-xl hover:shadow-2xl hover:scale-[1.015] transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[225px]"
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E3A8A] via-[#172554] to-[#0A101D] p-7 sm:p-8 text-white border-2 border-blue-500/50 hover:border-blue-400 shadow-2xl shadow-blue-950/60 hover:shadow-blue-600/25 transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px]"
             >
-              {/* Radial glow watermark effects */}
-              <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-blue-400/10 pointer-events-none blur-2xl" />
-              <div className="absolute right-10 top-4 w-28 h-28 rounded-full bg-indigo-500/15 pointer-events-none blur-xl" />
+              <div className="absolute -right-10 -bottom-10 w-52 h-52 rounded-full bg-blue-500/15 pointer-events-none blur-3xl" />
+              <div className="absolute right-12 top-6 w-32 h-32 rounded-full bg-indigo-500/20 pointer-events-none blur-2xl" />
 
               <div>
                 <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-extrabold text-lg sm:text-xl tracking-tight text-white font-serif">
-                      สำหรับอาจารย์ผู้สอน
-                    </h3>
-                    <p className="text-xs text-blue-200/80 font-medium mt-0.5">
-                      Faculty Member Portal
-                    </p>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center border border-blue-400/30">
+                      <UserCheck className="w-5 h-5 text-blue-300" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-blue-300">
+                        สำหรับอาจารย์ผู้สอน
+                      </span>
+                      <p className="text-xs text-blue-200/70">Faculty Member Portal</p>
+                    </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-md bg-white text-blue-950 font-black text-[11px] tracking-wider shadow-sm">
+                  <span className="px-3 py-1 rounded-full bg-white text-blue-950 font-black text-xs tracking-wider shadow-md">
                     EDU PASS
                   </span>
                 </div>
 
-                <div className="mt-6 flex items-center gap-2 text-blue-200/70 font-mono text-sm tracking-widest">
-                  <span>••••</span>
-                  <span>••••</span>
-                  <span>••••</span>
-                  <span className="text-white font-bold">2570</span>
+                <div className="mt-5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-white font-serif tracking-tight group-hover:text-blue-100 transition-colors">
+                    1. เข้าสู่ระบบอาจารย์ผู้สอน
+                  </h3>
+                  <p className="text-xs sm:text-sm text-blue-100/80 mt-2 leading-relaxed">
+                    บันทึกและตรวจสอบประวัติข้อมูล 5 หมวดหมู่ • กรอกแบบสำรวจแผน 2570–2574 • อัปโหลดตำรา E-Book เผยแพร่สู่คลังสาธารณะ
+                  </p>
                 </div>
               </div>
 
-              <div className="mt-6 pt-3 border-t border-blue-800/60 flex items-end justify-between">
-                <div>
-                  <p className="text-[11px] text-blue-200/70 font-medium">สรุปประวัติ & แบบสำรวจ</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
-                    5 หมวดหมู่
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-200 bg-white/10 px-3 py-1 rounded-full backdrop-blur-xs group-hover:bg-white/20 transition-colors">
-                    เข้าสู่ระบบ <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <div className="mt-6 pt-4 border-t border-blue-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-blue-200/80 font-mono text-xs">
+                  <span>รหัสบุคลากร:</span>
+                  <span className="font-bold text-white bg-blue-900/60 px-2 py-0.5 rounded border border-blue-700/50">
+                    EDU-001 ~ EDU-067
                   </span>
                 </div>
+                <button
+                  type="button"
+                  className="px-5 py-3 rounded-2xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all group-hover:translate-x-1"
+                >
+                  <span>เข้าสู่ระบบอาจารย์</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
 
-            {/* บัตร 2: ผู้บริหาร / หัวหน้าสาขา (เหมือนบัตร TrueMoney สีส้มสด ในรูป) */}
+            {/* บัตร 2: ผู้บริหาร / หัวหน้าสาขา (Hero Prominent Card) */}
             <div
               onClick={() => {
                 if (currentUser?.Role === "EXECUTIVE") setActiveView("EXECUTIVE");
                 else setLoginModalRole("EXECUTIVE");
               }}
-              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EA580C] via-[#C2410C] to-[#7C2D12] p-6 text-white border border-orange-700/60 shadow-xl hover:shadow-2xl hover:scale-[1.015] transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[225px]"
+              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EA580C] via-[#9A3412] to-[#0A101D] p-7 sm:p-8 text-white border-2 border-orange-500/50 hover:border-orange-400 shadow-2xl shadow-orange-950/60 hover:shadow-orange-600/25 transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px]"
             >
-              <div className="absolute -right-6 -bottom-6 w-40 h-40 rounded-full bg-amber-400/20 pointer-events-none blur-2xl" />
+              <div className="absolute -right-10 -bottom-10 w-52 h-52 rounded-full bg-amber-500/15 pointer-events-none blur-3xl" />
+              <div className="absolute right-12 top-6 w-32 h-32 rounded-full bg-orange-500/20 pointer-events-none blur-2xl" />
 
               <div>
                 <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-extrabold text-lg sm:text-xl tracking-tight text-white font-serif">
-                      สำหรับผู้บริหาร
-                    </h3>
-                    <p className="text-xs text-orange-100/80 font-medium mt-0.5">
-                      Department Executive Portal
-                    </p>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-300 flex items-center justify-center border border-orange-400/30">
+                      <Building2 className="w-5 h-5 text-orange-300" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-orange-200">
+                        สำหรับผู้บริหาร
+                      </span>
+                      <p className="text-xs text-orange-200/70">Department Executive Portal</p>
+                    </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-md bg-white text-orange-900 font-black text-[11px] tracking-wider shadow-sm">
+                  <span className="px-3 py-1 rounded-full bg-white text-orange-950 font-black text-xs tracking-wider shadow-md">
                     EXEC PASS
                   </span>
                 </div>
 
-                <div className="mt-6 flex items-center gap-2 text-orange-200/70 font-mono text-sm tracking-widest">
-                  <span>••••</span>
-                  <span>••••</span>
-                  <span>••••</span>
-                  <span className="text-white font-bold">DEPT</span>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-3 border-t border-orange-700/60 flex items-end justify-between">
-                <div>
-                  <p className="text-[11px] text-orange-200/70 font-medium">สิทธิ์ดูเฉพาะสาขาของตนเอง</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
-                    12 สาขาวิชา
+                <div className="mt-5">
+                  <h3 className="text-2xl sm:text-3xl font-black text-white font-serif tracking-tight group-hover:text-amber-100 transition-colors">
+                    2. เข้าสู่ระบบผู้บริหาร (หัวหน้าสาขา)
+                  </h3>
+                  <p className="text-xs sm:text-sm text-orange-100/80 mt-2 leading-relaxed">
+                    รายงานสรุปและประเมินผลเฉพาะสาขาวิชาของตนเองเท่านั้น (Department Isolation 100%) ครบทั้ง 12 สาขาวิชา
                   </p>
                 </div>
-                <div className="text-right">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-orange-100 bg-black/20 px-3 py-1 rounded-full backdrop-blur-xs group-hover:bg-black/30 transition-colors">
-                    เข้าสู่ระบบ <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-orange-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-orange-200/80 font-mono text-xs">
+                  <span>สิทธิ์การเข้าถึง:</span>
+                  <span className="font-bold text-white bg-orange-950/80 px-2 py-0.5 rounded border border-orange-700/50">
+                    12 สาขาวิชา (แยกอิสระ)
                   </span>
                 </div>
+                <button
+                  type="button"
+                  className="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition-all group-hover:translate-x-1"
+                >
+                  <span>เข้าสู่ระบบผู้บริหาร</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-            </div>
-
-            {/* บัตร 3: กล่องเส้นประ (เหมือนกล่อง "+ เพิ่มบัตร" ในรูป) */}
-            <div
-              onClick={() => setLoginModalRole("ADMIN")}
-              className="group rounded-3xl border-2 border-dashed border-slate-700/80 hover:border-slate-500 bg-[#0E1626]/60 hover:bg-[#131E33] p-6 transition-all duration-300 cursor-pointer flex flex-col items-center justify-center text-center min-h-[225px]"
-            >
-              <div className="w-13 h-13 rounded-2xl bg-[#1A263D] group-hover:bg-slate-700 text-slate-300 group-hover:text-white flex items-center justify-center mb-3 shadow-inner transition-colors">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h4 className="font-bold text-sm sm:text-base text-slate-200 group-hover:text-white">
-                ผู้ดูแลระบบ (Admin Command)
-              </h4>
-              <p className="text-xs text-slate-400 mt-1 max-w-[210px] leading-relaxed">
-                เปิด/ปิดแบบสำรวจ • วิเคราะห์กราฟ 2570–2574 • บริหารสิทธิ์บุคลากร
-              </p>
             </div>
           </section>
 
-          {/* แถวที่ 2: Color-Block KPI Cards (4 สี สไตล์เป๊ะกับในรูปตัวอย่าง) */}
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
-            {/* กล่อง 1: สีม่วงลาเวนเดอร์สด (Purple Block) */}
-            <div className="rounded-3xl bg-[#5B50EC] p-5 sm:p-6 text-white shadow-lg flex flex-col justify-between min-h-[145px]">
-              <p className="text-xs sm:text-sm font-medium text-purple-100">
-                หัวข้อแบบสำรวจอาจารย์
-              </p>
+          {/* แถวที่ 2: สถิติภาพรวม 4 บล็อก (ไม่เด่นมาก สุขุมมินิมอล เน้นมือถือ) ตามรูปแนบ 2 */}
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="rounded-2xl bg-[#121929]/80 border border-slate-800/90 p-4 text-white flex flex-col justify-between min-h-[95px] sm:min-h-[105px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] sm:text-xs text-slate-400 font-medium">หัวข้อแบบสำรวจ</span>
+                <span className="w-2 h-2 rounded-full bg-purple-400" />
+              </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-black tracking-tight">5 ด้าน</p>
-                <p className="text-[11px] sm:text-xs text-purple-200 mt-1 truncate">
-                  การสอน • วิจัย • E-Book • พัฒนาตน
-                </p>
+                <p className="text-xl sm:text-2xl font-black text-white">5 ด้าน</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 truncate">การสอน • วิจัย • E-Book</p>
               </div>
             </div>
 
-            {/* กล่อง 2: สีเหลืองมัสตาร์ดอุ่น (Warm Yellow Block) */}
-            <div className="rounded-3xl bg-[#F9BC38] p-5 sm:p-6 text-slate-950 shadow-lg flex flex-col justify-between min-h-[145px]">
-              <p className="text-xs sm:text-sm font-bold text-slate-800">
-                คณาจารย์ประจำคณะ
-              </p>
+            <div className="rounded-2xl bg-[#121929]/80 border border-slate-800/90 p-4 text-white flex flex-col justify-between min-h-[95px] sm:min-h-[105px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] sm:text-xs text-slate-400 font-medium">คณาจารย์ประจำคณะ</span>
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+              </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-black tracking-tight">67 ท่าน</p>
-                <p className="text-[11px] sm:text-xs text-slate-700 mt-1">
-                  วุฒิการศึกษาและผลงานวิชาการ
-                </p>
+                <p className="text-xl sm:text-2xl font-black text-white">67 ท่าน</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">ครบทั้ง 12 สาขาวิชา</p>
               </div>
             </div>
 
-            {/* กล่อง 3: สีเขียวมิ้นท์สดใส (Mint Green Block) */}
-            <div className="rounded-3xl bg-[#70F0C0] p-5 sm:p-6 text-slate-950 shadow-lg flex flex-col justify-between min-h-[145px]">
-              <p className="text-xs sm:text-sm font-bold text-slate-800">
-                คลัง E-Book สาธารณะ
-              </p>
+            <div className="rounded-2xl bg-[#121929]/80 border border-slate-800/90 p-4 text-white flex flex-col justify-between min-h-[95px] sm:min-h-[105px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] sm:text-xs text-slate-400 font-medium">คลัง E-Book สาธารณะ</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              </div>
               <div>
-                <p className="text-3xl sm:text-4xl font-black tracking-tight">
+                <p className="text-xl sm:text-2xl font-black text-white">
                   {portfolioWorks.filter((w) => w.Is_Public).length} เล่ม
                 </p>
-                <p className="text-[11px] sm:text-xs text-slate-700 mt-1">
-                  เปิดให้อ่าน Flip Reader & ดาวน์โหลด
-                </p>
+                <p className="text-[10px] text-slate-400 mt-0.5">เปิดให้อ่าน Flip Reader ฟรี</p>
               </div>
             </div>
 
-            {/* กล่อง 4: สี Dark Slate ลึก (Dark Card) */}
-            <div className="rounded-3xl bg-[#141C2E] border border-slate-800/90 p-5 sm:p-6 text-white shadow-lg flex flex-col justify-between min-h-[145px]">
+            <div className="rounded-2xl bg-[#121929]/80 border border-slate-800/90 p-4 text-white flex flex-col justify-between min-h-[95px] sm:min-h-[105px]">
               <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm font-medium text-slate-400">สถานะแบบสำรวจ</p>
-                <span className={`inline-block w-2.5 h-2.5 rounded-full ${isSubmissionOpen ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+                <span className="text-[11px] sm:text-xs text-slate-400 font-medium">สถานะแบบสำรวจ</span>
+                <span className={`w-2 h-2 rounded-full ${isSubmissionOpen ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
               </div>
               <div>
-                <p className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                <p className="text-lg sm:text-xl font-bold text-white">
                   {isSubmissionOpen ? "เปิดรับข้อมูล" : "ปิดรับชั่วคราว"}
                 </p>
-                <p className="text-[11px] sm:text-xs text-slate-400 mt-1">
-                  Google Sheet Real-time Sync
-                </p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Google Sheets Real-time</p>
               </div>
             </div>
           </section>
 
-          {/* แถวที่ 3: Bento Asymmetric Grid (เหมือนกล่อง "ตัดเงินถัดไป" และกล่อง "ChatGPT Plus" ในรูปตัวอย่าง) */}
+          {/* แถวที่ 3: แถบผู้ดูแลระบบ (Admin) แบบกระชับ ไม่เด่นเกินไป ตามรูปแนบ 3 */}
+          <div
+            onClick={() => setLoginModalRole("ADMIN")}
+            className="p-3 sm:p-3.5 rounded-2xl bg-[#0E1626]/70 border border-slate-800/90 hover:border-slate-700 hover:bg-[#131E33] flex items-center justify-between text-xs sm:text-sm text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="truncate">
+                <strong className="text-slate-200">ศูนย์ดูแลระบบ (Admin Command):</strong> จัดการสิทธิ์บุคลากร • เปิด/ปิดรับแบบสำรวจ • วิเคราะห์กราฟสรุปภาพรวม 2570–2574
+              </span>
+            </div>
+            <span className="text-xs text-amber-400 font-bold flex items-center gap-1 shrink-0 ml-2">
+              เข้าสู่ระบบแอดมิน <ChevronRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+
+          {/* แถวที่ 4: สรุป 5 หัวข้อ และ แผนปฏิบัติราชการ (โทนมืด มินิมอล เน้นมือถือ) ตามรูปแนบ 4 */}
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* ฝั่งซ้าย (7 คอลัมน์): กล่องดำบรรจุ List ประวัติ 5 หัวข้อ เหมือน Netflix/Spotify/YouTube ในรูป */}
-            <div className="lg:col-span-7 rounded-3xl bg-[#121929] border border-slate-800/90 p-6 text-white shadow-xl flex flex-col justify-between">
+            {/* ฝั่งซ้าย: กล่องสรุปประวัติ 5 หัวข้อ */}
+            <div className="lg:col-span-7 rounded-3xl bg-[#121929] border border-slate-800/90 p-5 sm:p-6 text-white shadow-xl flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-extrabold text-base sm:text-lg text-white font-serif">
@@ -904,11 +921,11 @@ export default function FacultyEducationPortalApp() {
                   </a>
                 </div>
 
-                {/* List Items พร้อมไอคอนสีสันสดใส */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50 hover:bg-[#1D2B47] transition-colors">
+                {/* List Items สะอาดตา เหมาะกับมือถือ */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                      <div className="w-8 h-8 rounded-lg bg-rose-600/30 text-rose-300 border border-rose-500/40 flex items-center justify-center font-bold text-xs">
                         1
                       </div>
                       <div>
@@ -920,14 +937,14 @@ export default function FacultyEducationPortalApp() {
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300 px-2 py-1 rounded-lg bg-black/30">
-                      พ.ศ. 2570–2574
+                    <span className="text-[11px] font-mono font-bold text-slate-400 px-2 py-0.5 rounded bg-black/30 hidden sm:inline-block">
+                      2570–2574
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50 hover:bg-[#1D2B47] transition-colors">
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 flex items-center justify-center font-bold text-xs">
                         2
                       </div>
                       <div>
@@ -939,14 +956,14 @@ export default function FacultyEducationPortalApp() {
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300 px-2 py-1 rounded-lg bg-black/30">
+                    <span className="text-[11px] font-mono font-bold text-slate-400 px-2 py-0.5 rounded bg-black/30 hidden sm:inline-block">
                       E-Book Store
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50 hover:bg-[#1D2B47] transition-colors">
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                      <div className="w-8 h-8 rounded-lg bg-blue-600/30 text-blue-300 border border-blue-500/40 flex items-center justify-center font-bold text-xs">
                         3
                       </div>
                       <div>
@@ -958,14 +975,14 @@ export default function FacultyEducationPortalApp() {
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300 px-2 py-1 rounded-lg bg-black/30">
+                    <span className="text-[11px] font-mono font-bold text-slate-400 px-2 py-0.5 rounded bg-black/30 hidden sm:inline-block">
                       วิจัยคณะ
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50 hover:bg-[#1D2B47] transition-colors">
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                      <div className="w-8 h-8 rounded-lg bg-amber-600/30 text-amber-300 border border-amber-500/40 flex items-center justify-center font-bold text-xs">
                         4
                       </div>
                       <div>
@@ -977,62 +994,57 @@ export default function FacultyEducationPortalApp() {
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-300 px-2 py-1 rounded-lg bg-black/30">
+                    <span className="text-[11px] font-mono font-bold text-slate-400 px-2 py-0.5 rounded bg-black/30 hidden sm:inline-block">
                       ยุทธศาสตร์
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between">
-                <span className="text-xs text-slate-400">
-                  อาจารย์สามารถเข้าสู่ระบบเพื่อตรวจสอบและแก้ไขข้อมูลของท่าน
+              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+                <span className="text-slate-400 truncate mr-2">
+                  อาจารย์สามารถเข้าสู่ระบบเพื่อดูข้อมูลและแก้ไขประวัติของท่าน
                 </span>
                 <button
                   onClick={() => setLoginModalRole("INSTRUCTOR")}
-                  className="text-xs font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+                  className="font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors shrink-0"
                 >
                   เข้าสู่ระบบอาจารย์
                 </button>
               </div>
             </div>
 
-            {/* ฝั่งขวา (5 คอลัมน์): กล่องสีเหลืองอุ่น (Yellow/Amber Banner Card เหมือนกล่อง ChatGPT Plus ในรูป) */}
-            <div className="lg:col-span-5 rounded-3xl bg-[#FDC34E] text-slate-950 p-6 sm:p-7 shadow-xl flex flex-col justify-between relative overflow-hidden">
+            {/* ฝั่งขวา: แผนปฏิบัติราชการ (ปรับเป็นโทนมืดสุขุม ไม่เหลืองจ้า) */}
+            <div className="lg:col-span-5 rounded-3xl bg-[#121929] border border-slate-800/90 p-5 sm:p-6 text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
               <div className="flex items-start justify-between">
-                <div className="space-y-1.5 pr-4">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-900 bg-amber-400/60 px-2.5 py-0.5 rounded-full inline-block">
+                <div className="space-y-1.5 pr-3">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 bg-amber-950/60 border border-amber-800/60 px-2.5 py-0.5 rounded-full inline-block">
                     รอบการจัดทำแผนยุทธศาสตร์
                   </span>
-                  <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950 font-serif pt-1">
+                  <h3 className="text-xl sm:text-2xl font-black text-white font-serif pt-1">
                     แผนปฏิบัติราชการ
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">
-                    แบบสำรวจสำหรับคณาจารย์และหัวหน้าสาขา 12 สาขาวิชา คณะศึกษาศาสตร์ มหาวิทยาลัย
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    แบบสำรวจสำหรับคณาจารย์และหัวหน้าสาขาวิชา 12 สาขาวิชา คณะศึกษาศาสตร์ มหาวิทยาลัย
                   </p>
                 </div>
 
-                {/* กล่องสีขาวมุมขวาบนเหมือน "5 วันที่เหลือ" ในรูป */}
-                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-lg flex flex-col items-center justify-center shrink-0 border border-amber-200">
-                  <span className="text-3xl sm:text-4xl font-black text-slate-950 leading-none">
-                    5
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 mt-1">
-                    ปีการศึกษา
-                  </span>
+                <div className="w-16 h-16 rounded-2xl bg-[#182238] border border-slate-700 shadow-md flex flex-col items-center justify-center shrink-0">
+                  <span className="text-2xl font-black text-amber-300 leading-none">5</span>
+                  <span className="text-[10px] font-bold text-slate-400 mt-0.5">ปีการศึกษา</span>
                 </div>
               </div>
 
-              <div className="mt-6 pt-5 border-t border-amber-600/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="text-xs text-slate-800">
-                  <span className="font-bold">Google Apps Script</span> ซิงค์ข้อมูลอัตโนมัติ
+              <div className="mt-6 pt-4 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-xs text-slate-400">
+                  <span className="text-emerald-400 font-bold">● Google Apps Script</span> ซิงค์ข้อมูล Real-time
                 </div>
                 <button
                   onClick={() => {
                     if (currentUser?.Role === "INSTRUCTOR") setActiveView("INSTRUCTOR");
                     else setLoginModalRole("INSTRUCTOR");
                   }}
-                  className="px-5 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-all text-center"
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all text-center"
                 >
                   กรอกข้อมูลแผน 2570–2574
                 </button>
@@ -1043,28 +1055,31 @@ export default function FacultyEducationPortalApp() {
           {/* ================================================================
               คลังข้อมูลสาธารณะ (PUBLIC REPOSITORY - ไม่ต้องล็อกอิน)
              ================================================================ */}
-          <section className="bg-[#121929] rounded-3xl p-6 sm:p-8 border border-slate-800/90 shadow-xl space-y-6">
+          {/* ================================================================
+              คลังข้อมูลสาธารณะ (PUBLIC REPOSITORY - ไม่ต้องล็อกอิน) ตามรูปแนบ 5
+             ================================================================ */}
+          <section className="bg-[#121929] rounded-3xl p-6 sm:p-8 border border-blue-900/40 shadow-2xl space-y-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-6">
               <div>
                 <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-800/60 px-3 py-1 rounded-full">
                   <Library className="w-3.5 h-3.5 text-amber-400" />
                   <span>Public Knowledge Repository • เปิดเผยสาธารณะสำหรับนักศึกษาและบุคคลทั่วไป</span>
                 </div>
-                <h2 className="text-2xl font-extrabold text-white mt-2 font-serif">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 font-serif">
                   คลังผลงานวิชาการ E-Book และทำเนียบคณาจารย์ คณะศึกษาศาสตร์
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  ค้นหาอาจารย์ประจำหลักสูตร 67 ท่าน เปิดอ่านหนังสือ E-Book พลิกหน้าอ่านได้ทันที หรือดาวน์โหลดไฟล์ PDF
+                  สืบค้นผลงานวิชาการ ตำรา E-Book และข้อมูลคุณวุฒิคณาจารย์ 67 ท่าน (12 สาขาวิชา) เปิดอ่านหรือดาวน์โหลดได้ทันที
                 </p>
               </div>
 
               {/* แท็บสลับ E-Book vs ทำเนียบคุณวุฒิ */}
-              <div className="flex p-1 rounded-2xl bg-[#182238] border border-slate-700/80">
+              <div className="flex p-1 rounded-2xl bg-[#182238] border border-slate-700/80 shrink-0">
                 <button
                   onClick={() => setPublicHubTab("EBOOKS")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                     publicHubTab === "EBOOKS"
-                      ? "bg-white text-slate-950 shadow-xs"
+                      ? "bg-white text-slate-950 shadow-md"
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
@@ -1073,9 +1088,9 @@ export default function FacultyEducationPortalApp() {
                 </button>
                 <button
                   onClick={() => setPublicHubTab("FACULTY")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                     publicHubTab === "FACULTY"
-                      ? "bg-white text-slate-950 shadow-xs"
+                      ? "bg-white text-slate-950 shadow-md"
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
@@ -1085,30 +1100,162 @@ export default function FacultyEducationPortalApp() {
               </div>
             </div>
 
-            {/* แถบค้นหาและตัวกรอง */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={publicSearch}
-                  onChange={(e) => setPublicSearch(e.target.value)}
-                  placeholder="ค้นหาชื่ออาจารย์, ชื่อผลงาน E-Book, สถาบันที่จบ..."
-                  className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-700/80 bg-[#182238] text-white placeholder-slate-400 focus:bg-[#1E2B45] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            {/* แผงควบคุมการค้นหา 3 ช่องทาง (ตามรูปแนบ 5: ค้นหาง่าย มีให้เลือกรายชื่ออาจารย์ หรือจะเลือกเป็นสาขาก็ได้) */}
+            <div className="space-y-3.5 bg-[#182238]/60 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                {/* 1. กล่องพิมพ์ค้นหาอิสระ (4 คอลัมน์) */}
+                <div className="md:col-span-4 relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={publicSearch}
+                    onChange={(e) => setPublicSearch(e.target.value)}
+                    placeholder="พิมพ์คำค้น (ชื่อ, ตำรา, สถาบัน)..."
+                    className="w-full pl-10 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-700/80 bg-[#121929] text-white placeholder-slate-400 focus:bg-[#1A253C] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {publicSearch && (
+                    <button
+                      onClick={() => setPublicSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* 2. ดรอปดาวน์เลือกตามสาขาวิชา (4 คอลัมน์) */}
+                <div className="md:col-span-4 relative">
+                  <select
+                    value={publicDeptFilter}
+                    onChange={(e) => {
+                      setPublicDeptFilter(e.target.value);
+                      setPublicTeacherFilter("ALL");
+                    }}
+                    className="w-full pl-3.5 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-700/80 bg-[#121929] text-white focus:bg-[#1A253C] focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
+                  >
+                    <option value="ALL">🏢 ทุกสาขาวิชา (12 สาขา)</option>
+                    {EDUCATION_PROGRAMS.map((prog) => (
+                      <option key={prog} value={prog}>
+                        {prog}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 3. ดรอปดาวน์เลือกรายชื่ออาจารย์ (4 คอลัมน์) */}
+                <div className="md:col-span-4 relative">
+                  <select
+                    value={publicTeacherFilter}
+                    onChange={(e) => setPublicTeacherFilter(e.target.value)}
+                    className="w-full pl-3.5 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-700/80 bg-[#121929] text-white focus:bg-[#1A253C] focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
+                  >
+                    <option value="ALL">
+                      👨‍🏫 เลือกรายชื่ออาจารย์ ({availableTeachers.length} ท่าน)
+                    </option>
+                    {availableTeachers.map((t) => (
+                      <option key={t.id} value={t.name}>
+                        {t.name} — {t.program.replace(/^สาขาวิชา/, "")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <select
-                value={publicDeptFilter}
-                onChange={(e) => setPublicDeptFilter(e.target.value)}
-                className="px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-700/80 bg-[#182238] text-white focus:bg-[#1E2B45] focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-              >
-                <option value="ALL">ทุกสาขาวิชา (12 หลักสูตร)</option>
-                {EDUCATION_PROGRAMS.map((prog) => (
-                  <option key={prog} value={prog}>
-                    {prog}
-                  </option>
-                ))}
-              </select>
+
+              {/* แถบปุ่มลัดเลือกสาขาวิชาแบบสไลด์บนมือถือ (Quick Pick Filter Chips) */}
+              <div className="pt-2 border-t border-slate-700/50">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none text-xs">
+                  <span className="text-[11px] font-bold text-slate-400 shrink-0 mr-1 flex items-center gap-1">
+                    <Filter className="w-3 h-3" /> สาขา:
+                  </span>
+                  <button
+                    onClick={() => {
+                      setPublicDeptFilter("ALL");
+                      setPublicTeacherFilter("ALL");
+                    }}
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 ${
+                      publicDeptFilter === "ALL"
+                        ? "bg-white text-slate-950 shadow-sm"
+                        : "bg-[#121929] text-slate-400 hover:text-white border border-slate-700"
+                    }`}
+                  >
+                    ทั้งหมด
+                  </button>
+                  {EDUCATION_PROGRAMS.map((prog) => {
+                    const shortName = prog.replace(/^สาขาวิชา/, "");
+                    const isSelected = publicDeptFilter === prog;
+                    return (
+                      <button
+                        key={prog}
+                        onClick={() => {
+                          setPublicDeptFilter(prog);
+                          setPublicTeacherFilter("ALL");
+                        }}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 ${
+                          isSelected
+                            ? "bg-white text-slate-950 font-bold shadow-sm"
+                            : "bg-[#121929] text-slate-400 hover:text-white border border-slate-700"
+                        }`}
+                      >
+                        {shortName}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* แถบแจ้งสถานะการกรอง และปุ่มรีเซ็ตใน 1 คลิก */}
+              {(publicDeptFilter !== "ALL" || publicTeacherFilter !== "ALL" || publicSearch) && (
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-700/40 text-xs text-slate-300">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-slate-400">กำลังกรอง:</span>
+                    {publicDeptFilter !== "ALL" && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 text-[11px]">
+                        สาขา: {publicDeptFilter}
+                        <button
+                          onClick={() => {
+                            setPublicDeptFilter("ALL");
+                            setPublicTeacherFilter("ALL");
+                          }}
+                          className="hover:text-white"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    )}
+                    {publicTeacherFilter !== "ALL" && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 text-[11px]">
+                        อาจารย์: {publicTeacherFilter}
+                        <button
+                          onClick={() => setPublicTeacherFilter("ALL")}
+                          className="hover:text-white"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    )}
+                    {publicSearch && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 text-[11px]">
+                        คำค้น: "{publicSearch}"
+                        <button onClick={() => setPublicSearch("")} className="hover:text-white">
+                          ✕
+                        </button>
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setPublicSearch("");
+                      setPublicDeptFilter("ALL");
+                      setPublicTeacherFilter("ALL");
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-[11px] transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>ล้างตัวกรองทั้งหมด</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* TAB 1: E-Books */}
