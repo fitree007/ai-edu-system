@@ -80,9 +80,106 @@ export interface PortfolioWork {
   Updated_At: string;
 }
 
+// โครงสร้างแบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570–2574 (อาจารย์ คณะศึกษาศาสตร์)
+export interface TeacherSurveyPlan {
+  Survey_ID: string;
+  Staff_ID: string;
+  Full_Name: string;
+  Department: string;
+  Degree_Level: string;
+
+  // หมวด 1: ข้อมูลด้านงานวิจัย
+  research_classroom: number;
+  research_education: number;
+  research_development: number;
+  research_other: number;
+  research_other_specify: string;
+  research_funding_sources: { [fundName: string]: number[] };
+  research_funding_other_specify: string;
+  research_budgets: { [year: string]: string };
+
+  // หมวด 2: ข้อมูลด้านการเรียนการสอน
+  teaching_load: { [sem: string]: string };
+  fieldwork_presence: { [sem: string]: string };
+  fieldwork_agencies: { [sem: string]: string };
+  fieldwork_agency_other_specify: string;
+
+  // หมวด 3: ข้อมูลด้านบริการวิชาการ
+  academic_services_count: { [year: string]: number };
+  target_communities: { [commName: string]: number[] };
+  target_community_other_specify: string;
+  selection_criteria_percentage: string;
+
+  Is_Submitted: boolean;
+  Updated_At: string;
+}
+
 export const GOOGLE_FORM_INSTRUCTOR_URL = "https://forms.gle/Ycbv8WByAnGdNvaA9";
 export const GOOGLE_FORM_EXECUTIVE_URL = "https://forms.gle/uMUJA4XqC33Jiv5p9";
 export const SHEET_TEACHER_HISTORY_URL = "https://docs.google.com/spreadsheets/d/1ylS_eLE-1lCvH482NnYHjmuo9KHB7o_uCMKcUDRDFyw/edit?gid=1839438727#gid=1839438727";
+
+export const SURVEY_YEARS = [2570, 2571, 2572, 2573, 2574];
+export const TEACHING_LOAD_SEMESTERS = ["1/2568", "2/2568", "1/2569", "2/2569"];
+export const FIELDWORK_SEMESTERS = ["1/2568", "2/2568", "1/2569", "2/2569", "1/2570", "2/2570"];
+
+export const RESEARCH_FUND_OPTIONS = [
+  "ทุนคณะศึกษาศาสตร์",
+  "ทุนมหาวิทยาลัยฟาฏอนี",
+  "สำนักงานการวิจัยแห่งชาติ (วช.)",
+  "หน่วยบริหารจัดการทุนด้านการพัฒนากำลังคนและทุนด้านการพัฒนาสถาบันอุดมศึกษาและการสร้างนวัตกรรม (บพค.)",
+  "หน่วยบริหารและจัดการทุนด้านเพิ่มความสามารถการแข่งขันของประเทศ (บพข.)",
+  "หน่วยบริหารและจัดการทุนพัฒนาระดับพื้นที่ (บพท.)",
+  "สำนักงานคณะกรรมการส่งเสริมวิทยาศาสตร์ วิจัยและนวัตกรรม (สกสว.)",
+  "สถาบันวิจัยเพื่อความเป็นเลิศทางวิชาการ/สถาบันวิจัยของมหาวิทยาลัยอื่น ๆ",
+  "หน่วยงานวิจัยหรือองค์กรวิชาชีพด้านการศึกษา",
+  "องค์กรปกครองส่วนท้องถิ่นและหน่วยงานภาคีในพื้นที่",
+  "อื่น ๆ"
+];
+
+export const RESEARCH_BUDGET_RANGES = [
+  "10,000-50,000",
+  "50,001-300,000",
+  "300,001-500,000",
+  "500,001-1,000,000",
+  "1,000,001 ขึ้นไป"
+];
+
+export const TEACHING_LOAD_OPTIONS = [
+  "น้อยกว่า 6 ชั่วโมง/สัปดาห์",
+  "6-9 ชั่วโมง/สัปดาห์",
+  "10-12 ชั่วโมง/สัปดาห์",
+  "13-16 ชั่วโมง/สัปดาห์",
+  "17-20 ชั่วโมง/สัปดาห์",
+  "มากกว่า 20 ชั่วโมง/สัปดาห์"
+];
+
+export const FIELDWORK_AGENCY_OPTIONS = [
+  "โรงเรียนของรัฐ",
+  "โรงเรียนเอกชน",
+  "หน่วยงานทางการศึกษาของรัฐ",
+  "หน่วยงานทางการศึกษาเอกชน",
+  "อื่น ๆ"
+];
+
+export const TARGET_COMMUNITY_OPTIONS = [
+  "โรงเรียนรัฐบาล",
+  "โรงเรียนเอกชน",
+  "โรงเรียนเอกชนสอนศาสนาอิสลาม",
+  "โรงเรียนตาดีกา",
+  "ศูนย์การศึกษาอิสลามประจำมัสยิด",
+  "ครูและบุคลากรทางการศึกษา",
+  "นักเรียนระดับประถมศึกษา",
+  "นักเรียนระดับมัธยมศึกษา",
+  "นักศึกษาและเยาวชน",
+  "ผู้นำชุมชนและผู้นำศาสนา",
+  "ผู้ปกครองและประชาชนทั่วไป",
+  "องค์กรปกครองส่วนท้องถิ่น",
+  "อื่น ๆ"
+];
+
+export const CRITERIA_PERCENTAGE_OPTIONS = [
+  "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"
+];
 
 export const EDUCATION_PROGRAMS = [
   "สาขาวิชาอิสลามศึกษา",
@@ -383,3 +480,89 @@ export const INITIAL_EXECUTIVE_FORMS: ExecutivePlanRecord[] = [
     Updated_At: "2570-02-15",
   },
 ];
+
+export function createDefaultSurvey(teacher: TeacherInfo, isSubmitted = false): TeacherSurveyPlan {
+  const highestDeg = teacher.degrees && teacher.degrees[0];
+  const degText = highestDeg ? `${highestDeg.level} (${highestDeg.degree}) - ${highestDeg.institution}` : "อาจารย์ประจำคณะศึกษาศาสตร์";
+
+  return {
+    Survey_ID: `SRV-${teacher.id}`,
+    Staff_ID: teacher.id,
+    Full_Name: teacher.name,
+    Department: teacher.program,
+    Degree_Level: degText,
+
+    // หมวด 1: ข้อมูลด้านงานวิจัย
+    research_classroom: 2,
+    research_education: 1,
+    research_development: 1,
+    research_other: 0,
+    research_other_specify: "",
+    research_funding_sources: {
+      "ทุนคณะศึกษาศาสตร์": [2570, 2571],
+      "สำนักงานการวิจัยแห่งชาติ (วช.)": [2572, 2573],
+      "ทุนมหาวิทยาลัยฟาฏอนี": [2571],
+    },
+    research_funding_other_specify: "",
+    research_budgets: {
+      "2570": "50,001-300,000",
+      "2571": "300,001-500,000",
+      "2572": "300,001-500,000",
+      "2573": "500,001-1,000,000",
+      "2574": "300,001-500,000",
+    },
+
+    // หมวด 2: ข้อมูลด้านการเรียนการสอน
+    teaching_load: {
+      "1/2568": "10-12 ชั่วโมง/สัปดาห์",
+      "2/2568": "13-16 ชั่วโมง/สัปดาห์",
+      "1/2569": "10-12 ชั่วโมง/สัปดาห์",
+      "2/2569": "13-16 ชั่วโมง/สัปดาห์",
+    },
+    fieldwork_presence: {
+      "1/2568": "มี",
+      "2/2568": "มี",
+      "1/2569": "มี",
+      "2/2569": "มี",
+      "1/2570": "มี",
+      "2/2570": "มี",
+    },
+    fieldwork_agencies: {
+      "1/2568": "โรงเรียนของรัฐ",
+      "2/2568": "โรงเรียนเอกชน",
+      "1/2569": "โรงเรียนของรัฐ",
+      "2/2569": "โรงเรียนเอกชน",
+      "1/2570": "โรงเรียนของรัฐ",
+      "2/2570": "โรงเรียนเอกชน",
+    },
+    fieldwork_agency_other_specify: "",
+
+    // หมวด 3: ข้อมูลด้านบริการวิชาการ
+    academic_services_count: {
+      "2570": 2,
+      "2571": 3,
+      "2572": 2,
+      "2573": 3,
+      "2574": 2,
+    },
+    target_communities: {
+      "โรงเรียนรัฐบาล": [2570, 2571],
+      "โรงเรียนเอกชนสอนศาสนาอิสลาม": [2570, 2571, 2572],
+      "ครูและบุคลากรทางการศึกษา": [2570, 2571, 2572, 2573, 2574],
+      "โรงเรียนตาดีกา": [2572, 2574],
+    },
+    target_community_other_specify: "",
+    selection_criteria_percentage: "70%",
+
+    Is_Submitted: isSubmitted,
+    Updated_At: "2569-12-20",
+  };
+}
+
+// ฐานข้อมูลเริ่มต้นสำหรับแบบสำรวจแผน 2570–2574 (สร้างให้คณาจารย์ทั้ง 67 ท่าน)
+export const INITIAL_TEACHER_SURVEYS: TeacherSurveyPlan[] = INITIAL_TEACHERS.map((teacher, index) => {
+  // ให้ EDU-001 และ EDU-003 ส่งแล้วล่วงหน้า เพื่อเป็นตัวอย่างผลลัพธ์
+  const isSubmitted = index === 0 || index === 2;
+  return createDefaultSurvey(teacher, isSubmitted);
+});
+

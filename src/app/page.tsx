@@ -47,7 +47,14 @@ import {
   Briefcase,
   Sun,
   Moon,
-  Type
+  Type,
+  Sparkles,
+  MapPin,
+  School,
+  HandHelping,
+  Send,
+  FileCheck,
+  CheckCircle
 } from "lucide-react";
 
 import {
@@ -58,6 +65,17 @@ import {
   INITIAL_PORTFOLIO_WORKS,
   INITIAL_INSTRUCTOR_FORMS,
   INITIAL_EXECUTIVE_FORMS,
+  INITIAL_TEACHER_SURVEYS,
+  createDefaultSurvey,
+  SURVEY_YEARS,
+  TEACHING_LOAD_SEMESTERS,
+  FIELDWORK_SEMESTERS,
+  RESEARCH_FUND_OPTIONS,
+  RESEARCH_BUDGET_RANGES,
+  TEACHING_LOAD_OPTIONS,
+  FIELDWORK_AGENCY_OPTIONS,
+  TARGET_COMMUNITY_OPTIONS,
+  CRITERIA_PERCENTAGE_OPTIONS,
   GOOGLE_FORM_INSTRUCTOR_URL,
   GOOGLE_FORM_EXECUTIVE_URL,
   SHEET_TEACHER_HISTORY_URL,
@@ -66,6 +84,7 @@ import {
   type InstructorPlanRecord,
   type ExecutivePlanRecord,
   type PortfolioWork,
+  type TeacherSurveyPlan,
 } from "@/data/seedData";
 
 import { GAS_API_URL } from "@/lib/api";
@@ -91,6 +110,7 @@ export default function FacultyEducationPortalApp() {
   const [staffList, setStaffList] = useState<StaffMember[]>(INITIAL_STAFF);
   const [teachersList] = useState<TeacherInfo[]>(INITIAL_TEACHERS);
   const [instructorForms, setInstructorForms] = useState<InstructorPlanRecord[]>(INITIAL_INSTRUCTOR_FORMS);
+  const [teacherSurveys, setTeacherSurveys] = useState<TeacherSurveyPlan[]>(INITIAL_TEACHER_SURVEYS);
   const [portfolioWorks, setPortfolioWorks] = useState<PortfolioWork[]>(INITIAL_PORTFOLIO_WORKS);
   const [executiveForms, setExecutiveForms] = useState<ExecutivePlanRecord[]>(INITIAL_EXECUTIVE_FORMS);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -106,10 +126,13 @@ export default function FacultyEducationPortalApp() {
   const [ebookPage, setEbookPage] = useState(1);
 
   // Instructor Portal State
-  const [instTab, setInstTab] = useState<"SUMMARY" | "FORM" | "PORTFOLIO" | "PASSWORD">("SUMMARY");
+  const [instTab, setInstTab] = useState<"SURVEY_VIEW" | "SURVEY_FORM" | "SUMMARY" | "PORTFOLIO" | "PASSWORD">("SURVEY_VIEW");
   const [selectedTopicFilter, setSelectedTopicFilter] = useState<string>("ALL");
   const [selectedYearFilter, setSelectedYearFilter] = useState<string>("ALL");
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
+  const [surveyFormState, setSurveyFormState] = useState<TeacherSurveyPlan | null>(null);
+  const [adminEditingStaffId, setAdminEditingStaffId] = useState<string | null>(null);
+  const [adminViewingSurvey, setAdminViewingSurvey] = useState<TeacherSurveyPlan | null>(null);
   
   // Instructor Form Inputs
   const [instFormState, setInstFormState] = useState({
@@ -161,6 +184,9 @@ export default function FacultyEducationPortalApp() {
   const [adminMenu, setAdminMenu] = useState<"DASHBOARD" | "INSTRUCTORS" | "PORTFOLIO" | "EXECUTIVES" | "FACULTY" | "STAFF" | "SETTINGS">("DASHBOARD");
   const [adminYearMode, setAdminYearMode] = useState<"RANGE_2570_2574" | "EVERY_5_YEARS" | "SINGLE_YEAR">("RANGE_2570_2574");
   const [adminSelectedYear, setAdminSelectedYear] = useState<number>(2570);
+  const [adminTeacherSearch, setAdminTeacherSearch] = useState("");
+  const [adminTeacherDeptFilter, setAdminTeacherDeptFilter] = useState("ALL");
+  const [adminTeacherStatusFilter, setAdminTeacherStatusFilter] = useState<"ALL" | "SUBMITTED" | "PENDING">("ALL");
   const [newStaffForm, setNewStaffForm] = useState({
     Staff_ID: "",
     Full_Name: "",
@@ -185,8 +211,11 @@ export default function FacultyEducationPortalApp() {
       const cachedTheme = localStorage.getItem("edu_theme_v3");
       const cachedScale = localStorage.getItem("edu_scale_v3");
 
+      const cachedSurveys = localStorage.getItem("edu_surveys_v1");
+
       if (cachedStaff) setStaffList(JSON.parse(cachedStaff));
       if (cachedInst) setInstructorForms(JSON.parse(cachedInst));
+      if (cachedSurveys) setTeacherSurveys(JSON.parse(cachedSurveys));
       if (cachedWorks) setPortfolioWorks(JSON.parse(cachedWorks));
       if (cachedExec) setExecutiveForms(JSON.parse(cachedExec));
       if (cachedSub !== null) setIsSubmissionOpen(JSON.parse(cachedSub));
@@ -207,13 +236,14 @@ export default function FacultyEducationPortalApp() {
     try {
       localStorage.setItem("edu_staff_v3", JSON.stringify(staffList));
       localStorage.setItem("edu_inst_v3", JSON.stringify(instructorForms));
+      localStorage.setItem("edu_surveys_v1", JSON.stringify(teacherSurveys));
       localStorage.setItem("edu_works_v3", JSON.stringify(portfolioWorks));
       localStorage.setItem("edu_exec_v3", JSON.stringify(executiveForms));
       localStorage.setItem("edu_submission_open", JSON.stringify(isSubmissionOpen));
     } catch (e) {
       console.warn("Failed to persist to localStorage", e);
     }
-  }, [staffList, instructorForms, portfolioWorks, executiveForms, isSubmissionOpen]);
+  }, [staffList, instructorForms, teacherSurveys, portfolioWorks, executiveForms, isSubmissionOpen]);
 
   useEffect(() => {
     try {
@@ -351,18 +381,124 @@ export default function FacultyEducationPortalApp() {
 
   const currentTeacherProfile = useMemo(() => {
     if (!currentUser) return null;
+    const targetStaffId = adminEditingStaffId || currentUser.Staff_ID;
     return teachersList.find(
       (t) =>
-        t.name.trim() === currentUser.Full_Name.trim() ||
-        t.id.toUpperCase() === currentUser.Staff_ID.toUpperCase()
+        t.id.toUpperCase() === targetStaffId.toUpperCase() ||
+        (!adminEditingStaffId && t.name.trim() === currentUser.Full_Name.trim())
     );
-  }, [currentUser, teachersList]);
+  }, [currentUser, teachersList, adminEditingStaffId]);
 
   // ประวัติข้อมูลที่อาจารย์ท่านนี้เคยกรอกไว้ทั้งหมด
   const currentTeacherHistory = useMemo(() => {
     if (!currentUser) return [];
-    return instructorForms.filter((f) => f.Staff_ID === currentUser.Staff_ID);
-  }, [currentUser, instructorForms]);
+    const targetStaffId = adminEditingStaffId || currentUser.Staff_ID;
+    return instructorForms.filter((f) => f.Staff_ID === targetStaffId);
+  }, [currentUser, instructorForms, adminEditingStaffId]);
+
+  // แบบสำรวจแผน 2570–2574 ของอาจารย์ท่านนี้
+  const currentTeacherSurvey = useMemo(() => {
+    if (!currentUser) return null;
+    const targetStaffId = adminEditingStaffId || currentUser.Staff_ID;
+    return teacherSurveys.find(
+      (s) =>
+        s.Staff_ID.trim().toUpperCase() === targetStaffId.trim().toUpperCase() ||
+        (!adminEditingStaffId && s.Full_Name.trim() === currentUser.Full_Name.trim())
+    ) || null;
+  }, [currentUser, teacherSurveys, adminEditingStaffId]);
+
+  // เริ่มกรอกหรือแก้ไขแบบสำรวจ
+  const handleStartSurvey = (targetStaffId?: string) => {
+    const staffId = targetStaffId || adminEditingStaffId || currentUser?.Staff_ID;
+    if (!staffId) return;
+
+    const existing = teacherSurveys.find((s) => s.Staff_ID.trim().toUpperCase() === staffId.trim().toUpperCase());
+    if (existing) {
+      setSurveyFormState(JSON.parse(JSON.stringify(existing)));
+    } else {
+      const teacher = teachersList.find((t) => t.id.trim().toUpperCase() === staffId.trim().toUpperCase()) || {
+        id: staffId,
+        name: currentUser?.Full_Name || staffId,
+        program: currentUser?.Department || "",
+        degrees: [],
+      };
+      setSurveyFormState(createDefaultSurvey(teacher, false));
+    }
+    setInstTab("SURVEY_FORM");
+  };
+
+  // บันทึกแบบสำรวจ
+  const handleSaveSurvey = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!surveyFormState) return;
+
+    const updatedRecord: TeacherSurveyPlan = {
+      ...surveyFormState,
+      Is_Submitted: true,
+      Updated_At: new Date().toISOString().split("T")[0],
+    };
+
+    setTeacherSurveys((prev) => {
+      const idx = prev.findIndex((s) => s.Staff_ID.trim().toUpperCase() === updatedRecord.Staff_ID.trim().toUpperCase());
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = updatedRecord;
+        return copy;
+      }
+      return [updatedRecord, ...prev];
+    });
+
+    postToGAS({
+      action: "upsertTeacherSurvey",
+      survey: updatedRecord,
+    });
+
+    if (adminEditingStaffId) {
+      showToast(`แอดมินบันทึกการแก้ไขแบบสำรวจของ ${updatedRecord.Full_Name} สำเร็จ`);
+      setAdminEditingStaffId(null);
+      setSurveyFormState(null);
+      setActiveView("ADMIN");
+      setAdminMenu("INSTRUCTORS");
+    } else {
+      showToast("บันทึกและส่งข้อมูลแบบสำรวจแผน 2570–2574 เข้าสู่ระบบเรียบร้อยแล้ว");
+      setInstTab("SURVEY_VIEW");
+      setSurveyFormState(null);
+    }
+  };
+
+  // สลับการเลือกปีในแหล่งทุนวิจัย
+  const toggleResearchFundYear = (fundName: string, year: number) => {
+    if (!surveyFormState) return;
+    const currentYears = surveyFormState.research_funding_sources[fundName] || [];
+    const nextYears = currentYears.includes(year)
+      ? currentYears.filter((y) => y !== year)
+      : [...currentYears, year].sort();
+
+    setSurveyFormState({
+      ...surveyFormState,
+      research_funding_sources: {
+        ...surveyFormState.research_funding_sources,
+        [fundName]: nextYears,
+      },
+    });
+  };
+
+  // สลับการเลือกปีในกลุ่มเป้าหมายบริการวิชาการ
+  const toggleTargetCommunityYear = (commName: string, year: number) => {
+    if (!surveyFormState) return;
+    const currentYears = surveyFormState.target_communities[commName] || [];
+    const nextYears = currentYears.includes(year)
+      ? currentYears.filter((y) => y !== year)
+      : [...currentYears, year].sort();
+
+    setSurveyFormState({
+      ...surveyFormState,
+      target_communities: {
+        ...surveyFormState.target_communities,
+        [commName]: nextYears,
+      },
+    });
+  };
 
   // ประวัติข้อมูลที่กรองตามหัวข้อและปีการศึกษา
   const filteredTeacherHistory = useMemo(() => {
@@ -639,6 +775,28 @@ export default function FacultyEducationPortalApp() {
       return matchDept && matchTeacher && matchQuery;
     });
   }, [teachersList, publicSearch, publicDeptFilter, publicTeacherFilter]);
+
+  // Admin Teachers Filtered for Survey Management
+  const adminTeachersFiltered = useMemo(() => {
+    return teachersList.filter((t) => {
+      const matchDept = adminTeacherDeptFilter === "ALL" || t.program === adminTeacherDeptFilter;
+      const survey = teacherSurveys.find((s) => s.Staff_ID.trim().toUpperCase() === t.id.trim().toUpperCase());
+      const isSubmitted = !!survey?.Is_Submitted;
+      const matchStatus =
+        adminTeacherStatusFilter === "ALL" ||
+        (adminTeacherStatusFilter === "SUBMITTED" && isSubmitted) ||
+        (adminTeacherStatusFilter === "PENDING" && !isSubmitted);
+
+      const q = adminTeacherSearch.trim().toLowerCase();
+      const matchQuery =
+        !q ||
+        t.name.toLowerCase().includes(q) ||
+        t.id.toLowerCase().includes(q) ||
+        t.program.toLowerCase().includes(q);
+
+      return matchDept && matchStatus && matchQuery;
+    });
+  }, [teachersList, teacherSurveys, adminTeacherDeptFilter, adminTeacherStatusFilter, adminTeacherSearch]);
 
   // Admin Chart Calculations
   const adminChartData = useMemo(() => {
@@ -1799,91 +1957,155 @@ export default function FacultyEducationPortalApp() {
       )}
 
       {/* ====================================================================
-          VIEW 2: ระบบอาจารย์ผู้สอน (INSTRUCTOR PORTAL)
+          VIEW 2: ระบบอาจารย์ผู้สอน (INSTRUCTOR PORTAL) - macOS Bento Dashboard
          ==================================================================== */}
       {activeView === "INSTRUCTOR" && currentUser && (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-          {/* Header อาจารย์ */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* แบนเนอร์โหมดผู้ดูแลระบบกำลังแก้ไขข้อมูล */}
+          {adminEditingStaffId && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-amber-500/15 border-2 border-amber-500 text-amber-950 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md backdrop-blur-md">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-amber-500 text-purple-950 font-black flex items-center justify-center shrink-0 text-xl shadow-sm">
+                  ✏️
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm sm:text-base font-serif">
+                    โหมดผู้ดูแลระบบ: กำลังแก้ไขแบบสำรวจแผน 2570–2574 ของอาจารย์
+                  </h4>
+                  <p className="text-xs opacity-90">
+                    อาจารย์: <span className="font-bold">{currentTeacherProfile?.name || currentUser.Full_Name}</span> (รหัส {adminEditingStaffId}) • {currentTeacherProfile?.program || currentUser.Department}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setAdminEditingStaffId(null);
+                  setSurveyFormState(null);
+                  setActiveView("ADMIN");
+                  setAdminMenu("INSTRUCTORS");
+                }}
+                className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-all shrink-0"
+              >
+                ยกเลิกและกลับสู่หน้าแอดมิน
+              </button>
+            </div>
+          )}
+
+          {/* Header Bento อาจารย์: สไตล์ macOS Glass & Luxurious Purple */}
+          <div className={`rounded-3xl p-6 sm:p-8 border shadow-sm backdrop-blur-md transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6 ${
+            isDark 
+              ? "bg-[#160D33]/90 border-purple-800/80 shadow-[0_12px_40px_rgba(76,29,149,0.35)]" 
+              : "bg-white/90 border-purple-200/80 shadow-md"
+          }`}>
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-mono font-bold px-3 py-1 rounded-lg bg-slate-900 text-amber-300">
-                  {currentUser.Staff_ID}
-                </span>
-                <span className="text-xs font-bold px-3 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
-                  {currentUser.Department}
+              {/* macOS Traffic Lights */}
+              <div className="flex items-center gap-1.5 mb-3">
+                <span className="w-3 h-3 rounded-full bg-red-400 inline-block"></span>
+                <span className="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
+                <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
+                <span className={`text-[10px] font-mono ml-2 font-bold uppercase tracking-wider ${
+                  isDark ? "text-purple-300/70" : "text-purple-900/60"
+                }`}>
+                  macOS Academic Workspace • คณะศึกษาศาสตร์
                 </span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2 font-serif">
-                {currentUser.Full_Name}
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-mono font-bold px-3 py-1 rounded-lg bg-gradient-to-r from-purple-900 to-indigo-900 text-amber-300 shadow-xs border border-purple-700/50">
+                  {adminEditingStaffId || currentUser.Staff_ID}
+                </span>
+                <span className={`text-xs font-bold px-3 py-1 rounded-lg border ${
+                  isDark 
+                    ? "bg-[#211347] text-purple-200 border-purple-800" 
+                    : "bg-purple-50 text-purple-900 border-purple-200"
+                }`}>
+                  {currentTeacherProfile?.program || currentUser.Department}
+                </span>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>ข้อมูลอาจารย์ตรวจสอบแล้ว</span>
+                </span>
+              </div>
+
+              <h2 className={`text-2xl sm:text-3xl font-extrabold mt-2.5 font-serif ${
+                isDark ? "text-white" : "text-purple-950"
+              }`}>
+                {currentTeacherProfile?.name || currentUser.Full_Name}
               </h2>
 
               {currentTeacherProfile && (
-                <div className="mt-2.5 flex flex-wrap gap-2 text-xs">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                   {currentTeacherProfile.degrees.map((deg, i) => (
-                    <span key={i} className="px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-600">
+                    <span key={i} className={`px-2.5 py-1 rounded-md border font-medium ${
+                      isDark 
+                        ? "bg-[#1E1145] border-purple-800/80 text-purple-200" 
+                        : "bg-purple-50/80 border-purple-200/80 text-purple-900"
+                    }`}>
                       🎓 {deg.level} ({deg.degree}): {deg.institution}
                     </span>
                   ))}
+                  <span className={`text-[11px] font-semibold italic ${
+                    isDark ? "text-purple-400" : "text-purple-600"
+                  }`}>
+                    • ข้อมูลระบุตัวตนและระดับการศึกษาดึงจากระบบอัตโนมัติ (ไม่ต้องกรอกซ้ำ)
+                  </span>
                 </div>
               )}
             </div>
 
-            {/* แถบเมนูย่อยของอาจารย์ */}
+            {/* แถบเมนูย่อยของอาจารย์ (macOS Pill Navigation) */}
             <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setInstTab("SURVEY_VIEW")}
+                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+                  instTab === "SURVEY_VIEW"
+                    ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md shadow-purple-600/30"
+                    : isDark
+                    ? "bg-[#211347] text-purple-200 hover:bg-[#2C195C]"
+                    : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200/60"
+                }`}
+              >
+                <FileCheck className="w-4 h-4" />
+                <span>1. ผลลัพธ์แบบสำรวจ 2570–2574</span>
+              </button>
+
               <button
                 onClick={() => setInstTab("SUMMARY")}
                 className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
                   instTab === "SUMMARY"
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md shadow-purple-600/30"
+                    : isDark
+                    ? "bg-[#211347] text-purple-200 hover:bg-[#2C195C]"
+                    : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200/60"
                 }`}
               >
                 <Layers className="w-4 h-4" />
-                <span>1. สรุปประวัติที่เคยกรอก ({currentTeacherHistory.length})</span>
+                <span>2. ประวัติ 5 หัวข้อเดิม ({currentTeacherHistory.length})</span>
               </button>
-
-              {/* ปุ่มกรอกข้อมูล (จะเปิดให้กดได้เมื่อแอดมินเปิดระบบรับข้อมูล) */}
-              {isSubmissionOpen ? (
-                <button
-                  onClick={() => {
-                    setEditingRecordId(null);
-                    setInstTab("FORM");
-                  }}
-                  className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
-                    instTab === "FORM"
-                      ? "bg-emerald-600 text-white shadow-sm"
-                      : "bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100"
-                  }`}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>2. กรอกแบบสำรวจแผน 2570–2574</span>
-                </button>
-              ) : (
-                <div className="px-3.5 py-2 rounded-2xl bg-slate-100 text-slate-400 text-xs font-bold flex items-center gap-1.5 border border-slate-200 cursor-not-allowed">
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>ระบบปิดรับแบบสำรวจ</span>
-                </div>
-              )}
 
               <button
                 onClick={() => setInstTab("PORTFOLIO")}
                 className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
                   instTab === "PORTFOLIO"
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md shadow-purple-600/30"
+                    : isDark
+                    ? "bg-[#211347] text-purple-200 hover:bg-[#2C195C]"
+                    : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200/60"
                 }`}
               >
                 <Upload className="w-4 h-4" />
-                <span>3. อัปโหลด E-Book</span>
+                <span>3. คลัง E-Book ({portfolioWorks.filter(w => w.Staff_ID === currentUser.Staff_ID).length})</span>
               </button>
 
               <button
                 onClick={() => setInstTab("PASSWORD")}
                 className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
                   instTab === "PASSWORD"
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-md shadow-purple-600/30"
+                    : isDark
+                    ? "bg-[#211347] text-purple-200 hover:bg-[#2C195C]"
+                    : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200/60"
                 }`}
               >
                 <KeyRound className="w-4 h-4" />
@@ -1891,6 +2113,568 @@ export default function FacultyEducationPortalApp() {
               </button>
             </div>
           </div>
+
+          {/* ====================================================================
+              ปุ่มเด่นพิเศษ: แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570-2574
+             ==================================================================== */}
+          <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-[#4C1D95] via-[#6D28D9] to-[#3B0764] text-white shadow-xl shadow-purple-900/25 border border-purple-500/40">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-purple-400/10 blur-3xl pointer-events-none" />
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/20 text-amber-300 uppercase tracking-wider backdrop-blur-xs flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>แบบสำรวจหลักประจำปี 2570–2574</span>
+                  </span>
+                  {isSubmissionOpen ? (
+                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span>แอดมินเปิดระบบรับข้อมูลอยู่ (พร้อมกรอกและแก้ไข)</span>
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-500/30 text-amber-200 border border-amber-400/40 flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-amber-300" />
+                      <span>ปิดรับข้อมูลชั่วคราว (รอแอดมินเปิดระบบ)</span>
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="text-xl sm:text-2xl font-black font-serif tracking-tight text-white">
+                  แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570-2574 (อาจารย์ คณะศึกษาศาสตร์)
+                </h3>
+                <p className="text-xs sm:text-sm text-purple-100/90 max-w-2xl leading-relaxed">
+                  รวบรวมข้อมูลเชิงกลยุทธ์ 3 ด้านหลัก: ด้านงานวิจัย (จำนวน/แหล่งทุน/งบประมาณ), ด้านการเรียนการสอน (โหลดชั่วโมง/กิจกรรมลงพื้นที่) และด้านบริการวิชาการแก่ชุมชน
+                </p>
+
+                {currentTeacherSurvey?.Is_Submitted && (
+                  <p className="text-xs text-amber-300 font-semibold flex items-center gap-1.5 pt-1">
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    <span>ท่านได้ส่งข้อมูลเรียบร้อยแล้ว (อัปเดตล่าสุด: {currentTeacherSurvey.Updated_At}) — สามารถคลิกดูผลลัพธ์หรือแก้ไขข้อมูลได้ตลอดเวลา</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                {currentTeacherSurvey?.Is_Submitted ? (
+                  <>
+                    <button
+                      onClick={() => setInstTab("SURVEY_VIEW")}
+                      className="px-5 py-3 rounded-2xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs sm:text-sm backdrop-blur-md border border-white/30 transition-all flex items-center gap-2 shadow-sm"
+                    >
+                      <Eye className="w-4 h-4 text-amber-300" />
+                      <span>ดูผลลัพธ์แบบสำรวจที่ตอบไว้</span>
+                    </button>
+
+                    {isSubmissionOpen && (
+                      <button
+                        onClick={() => handleStartSurvey()}
+                        className="px-6 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/30 transition-all flex items-center gap-2 hover:scale-105 active:scale-95"
+                      >
+                        <Edit3 className="w-4 h-4 text-purple-950" />
+                        <span>✏️ แก้ไขข้อมูลแบบสำรวจ</span>
+                      </button>
+                    )}
+                  </>
+                ) : isSubmissionOpen ? (
+                  <button
+                    onClick={() => handleStartSurvey()}
+                    className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-purple-950 font-black text-sm shadow-xl shadow-amber-500/40 transition-all flex items-center gap-2 hover:scale-105 active:scale-95 animate-pulse"
+                  >
+                    <Send className="w-4 h-4 text-purple-950" />
+                    <span>📝 คลิกเพื่อเริ่มกรอกแบบสำรวจแผน 2570–2574 ทันที</span>
+                  </button>
+                ) : (
+                  <div className="px-5 py-3 rounded-2xl bg-white/10 text-purple-200 text-xs font-bold border border-white/20 flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-amber-300" />
+                    <span>ระบบปิดรับแบบสำรวจ (แอดมินยังไม่ได้เปิดให้กรอก)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ====================================================================
+              แถบ 4 BENTO STAT CARDS ของอาจารย์
+             ==================================================================== */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className={`p-5 rounded-3xl border shadow-sm transition-all ${
+              isDark ? "bg-[#160D33] border-purple-800/80 text-purple-100" : "bg-white border-purple-200/80 text-purple-950"
+            }`}>
+              <div className="flex items-center justify-between text-xs font-semibold text-purple-500 mb-1">
+                <span>สถานะแบบสำรวจแผน 2570–2574</span>
+                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+              </div>
+              <div className="text-xl sm:text-2xl font-black mt-2 font-serif flex items-center gap-2">
+                {currentTeacherSurvey?.Is_Submitted ? (
+                  <span className="text-emerald-500 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-6 h-6" /> ส่งแล้ว
+                  </span>
+                ) : (
+                  <span className="text-amber-500 flex items-center gap-1.5">
+                    <Clock className="w-6 h-6" /> รอการกรอก
+                  </span>
+                )}
+              </div>
+              <p className={`text-[11px] mt-1 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                {currentTeacherSurvey?.Is_Submitted ? `อัปเดต: ${currentTeacherSurvey.Updated_At}` : "แอดมินเป็นผู้กำหนดการเปิดรับ"}
+              </p>
+            </div>
+
+            <div className={`p-5 rounded-3xl border shadow-sm transition-all ${
+              isDark ? "bg-[#160D33] border-purple-800/80 text-purple-100" : "bg-white border-purple-200/80 text-purple-950"
+            }`}>
+              <div className="flex items-center justify-between text-xs font-semibold text-purple-500 mb-1">
+                <span>งานวิจัยที่คาดว่าจะทำ (2570–2574)</span>
+                <Lightbulb className="w-4 h-4 text-amber-500" />
+              </div>
+              <div className={`text-2xl sm:text-3xl font-black mt-1 font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                {currentTeacherSurvey
+                  ? (Number(currentTeacherSurvey.research_classroom || 0) +
+                     Number(currentTeacherSurvey.research_education || 0) +
+                     Number(currentTeacherSurvey.research_development || 0) +
+                     Number(currentTeacherSurvey.research_other || 0))
+                  : 0}{" "}
+                <span className="text-xs font-normal">เรื่อง</span>
+              </div>
+              <p className={`text-[11px] mt-1 truncate ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                ชั้นเรียน • เพื่อการศึกษา • เพื่อการพัฒนา
+              </p>
+            </div>
+
+            <div className={`p-5 rounded-3xl border shadow-sm transition-all ${
+              isDark ? "bg-[#160D33] border-purple-800/80 text-purple-100" : "bg-white border-purple-200/80 text-purple-950"
+            }`}>
+              <div className="flex items-center justify-between text-xs font-semibold text-purple-500 mb-1">
+                <span>โหลดชั่วโมงสอนล่าสุด (2/2569)</span>
+                <Clock className="w-4 h-4 text-purple-400" />
+              </div>
+              <div className={`text-base sm:text-lg font-bold mt-2 font-serif truncate ${isDark ? "text-white" : "text-purple-950"}`}>
+                {currentTeacherSurvey?.teaching_load?.["2/2569"] || "10-12 ชั่วโมง/สัปดาห์"}
+              </div>
+              <p className={`text-[11px] mt-1 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                กิจกรรมลงพื้นที่: {currentTeacherSurvey?.fieldwork_presence?.["2/2569"] || "มี"}
+              </p>
+            </div>
+
+            <div className={`p-5 rounded-3xl border shadow-sm transition-all ${
+              isDark ? "bg-[#160D33] border-purple-800/80 text-purple-100" : "bg-white border-purple-200/80 text-purple-950"
+            }`}>
+              <div className="flex items-center justify-between text-xs font-semibold text-purple-500 mb-1">
+                <span>กิจกรรมบริการวิชาการ (2570–2574)</span>
+                <HandHelping className="w-4 h-4 text-emerald-500" />
+              </div>
+              <div className={`text-2xl sm:text-3xl font-black mt-1 font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                {currentTeacherSurvey
+                  ? Object.values(currentTeacherSurvey.academic_services_count || {}).reduce((acc, c) => acc + Number(c || 0), 0)
+                  : 0}{" "}
+                <span className="text-xs font-normal">กิจกรรม</span>
+              </div>
+              <p className={`text-[11px] mt-1 truncate ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                เป้าหมาย: {currentTeacherSurvey ? Object.keys(currentTeacherSurvey.target_communities || {}).length : 0} กลุ่ม
+              </p>
+            </div>
+          </div>
+
+          {/* ====================================================================
+              แท็บ 0: ดูผลลัพธ์แบบสำรวจแผน 2570–2574 (SURVEY_VIEW)
+             ==================================================================== */}
+          {instTab === "SURVEY_VIEW" && (
+            <div className="space-y-6">
+              {currentTeacherSurvey?.Is_Submitted ? (
+                <>
+                  {/* แถบหัวเรื่องผลลัพธ์ */}
+                  <div className={`p-6 rounded-3xl border shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>บันทึกและส่งข้อมูลเรียบร้อยแล้ว</span>
+                        </span>
+                        <span className={`text-xs font-mono ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          (อัปเดต: {currentTeacherSurvey.Updated_At})
+                        </span>
+                      </div>
+                      <h3 className={`font-extrabold text-xl sm:text-2xl mt-2 font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                        ผลการตอบแบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570-2574
+                      </h3>
+                      <p className={`text-xs mt-1 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                        ท่านสามารถตรวจสอบข้อมูลที่ตอบไว้ด้านล่างนี้ และสามารถกดปุ่ม "แก้ไขข้อมูล" เพื่อปรับปรุงคำตอบได้ตลอดเวลา
+                      </p>
+                    </div>
+
+                    {isSubmissionOpen && (
+                      <button
+                        onClick={() => handleStartSurvey()}
+                        className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-purple-950 font-black text-xs sm:text-sm shadow-md shadow-amber-500/20 transition-all flex items-center gap-2 shrink-0 active:scale-95"
+                      >
+                        <Edit3 className="w-4 h-4 text-purple-950" />
+                        <span>✏️ แก้ไขข้อมูลแบบสำรวจนี้</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* ข้อมูลผู้สอน (ไม่ต้องกรอก เพราะมีแล้ว) */}
+                  <div className={`p-6 rounded-3xl border shadow-sm transition-all space-y-4 ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div className="flex items-center justify-between border-b pb-3 border-purple-100 dark:border-purple-900/50">
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="w-5 h-5 text-purple-600" />
+                        <h4 className={`font-bold text-base font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          ข้อมูลผู้ตอบแบบสำรวจ (ดึงจากฐานข้อมูลคณะอัตโนมัติ ไม่ต้องกรอกซ้ำ)
+                        </h4>
+                      </div>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-200">
+                        🔒 Auto-Filled
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                      <div className={`p-4 rounded-2xl border ${
+                        isDark ? "bg-[#1E1145] border-purple-800/80 text-purple-100" : "bg-purple-50/50 border-purple-100 text-purple-950"
+                      }`}>
+                        <span className="text-purple-500 font-bold block mb-1">ชื่อ-สกุล ผู้สอน</span>
+                        <p className="text-sm font-bold font-serif">{currentTeacherSurvey.Full_Name}</p>
+                        <span className="text-[11px] font-mono text-purple-400 mt-1 block">รหัส: {currentTeacherSurvey.Staff_ID}</span>
+                      </div>
+
+                      <div className={`p-4 rounded-2xl border ${
+                        isDark ? "bg-[#1E1145] border-purple-800/80 text-purple-100" : "bg-purple-50/50 border-purple-100 text-purple-950"
+                      }`}>
+                        <span className="text-purple-500 font-bold block mb-1">สังกัดหน่วยงาน</span>
+                        <p className="text-sm font-bold font-serif">{currentTeacherSurvey.Department}</p>
+                        <span className="text-[11px] text-purple-400 mt-1 block">คณะศึกษาศาสตร์ มหาวิทยาลัยฟาฏอนี</span>
+                      </div>
+
+                      <div className={`p-4 rounded-2xl border ${
+                        isDark ? "bg-[#1E1145] border-purple-800/80 text-purple-100" : "bg-purple-50/50 border-purple-100 text-purple-950"
+                      }`}>
+                        <span className="text-purple-500 font-bold block mb-1">ระดับการศึกษา / คุณวุฒิ</span>
+                        <p className="text-xs font-semibold leading-relaxed">{currentTeacherSurvey.Degree_Level}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* หมวดที่ 1: ข้อมูลด้านงานวิจัย */}
+                  <div className={`p-6 sm:p-7 rounded-3xl border shadow-sm transition-all space-y-6 ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div className="flex items-center gap-2.5 border-b pb-3 border-purple-100 dark:border-purple-900/50">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                        <Lightbulb className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className={`font-bold text-lg font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          หมวดที่ 1: ข้อมูลด้านงานวิจัย (พ.ศ. 2570–2574)
+                        </h4>
+                        <p className={`text-xs ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          จำนวนโครงการวิจัย, แหล่งทุนที่คาดว่าจะเสนอ และประมาณการงบประมาณ
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 1.1 จำนวนงานวิจัย */}
+                    <div className="space-y-3">
+                      <h5 className={`font-bold text-sm ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                        1. จำนวนงานวิจัยที่ท่านคาดว่าจะทำในปีการศึกษา 2570-2574:
+                      </h5>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className={`p-3.5 rounded-2xl border text-center ${
+                          isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/60 border-purple-100"
+                        }`}>
+                          <span className="text-[11px] font-semibold text-purple-500 block">วิจัยในชั้นเรียน</span>
+                          <span className={`text-2xl font-black font-serif mt-1 block ${isDark ? "text-white" : "text-purple-950"}`}>
+                            {currentTeacherSurvey.research_classroom} <span className="text-xs font-normal">เรื่อง</span>
+                          </span>
+                        </div>
+                        <div className={`p-3.5 rounded-2xl border text-center ${
+                          isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/60 border-purple-100"
+                        }`}>
+                          <span className="text-[11px] font-semibold text-purple-500 block">วิจัยเพื่อการศึกษา</span>
+                          <span className={`text-2xl font-black font-serif mt-1 block ${isDark ? "text-white" : "text-purple-950"}`}>
+                            {currentTeacherSurvey.research_education} <span className="text-xs font-normal">เรื่อง</span>
+                          </span>
+                        </div>
+                        <div className={`p-3.5 rounded-2xl border text-center ${
+                          isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/60 border-purple-100"
+                        }`}>
+                          <span className="text-[11px] font-semibold text-purple-500 block">วิจัยเพื่อการพัฒนา</span>
+                          <span className={`text-2xl font-black font-serif mt-1 block ${isDark ? "text-white" : "text-purple-950"}`}>
+                            {currentTeacherSurvey.research_development} <span className="text-xs font-normal">เรื่อง</span>
+                          </span>
+                        </div>
+                        <div className={`p-3.5 rounded-2xl border text-center ${
+                          isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/60 border-purple-100"
+                        }`}>
+                          <span className="text-[11px] font-semibold text-purple-500 block">อื่นๆ</span>
+                          <span className={`text-2xl font-black font-serif mt-1 block ${isDark ? "text-white" : "text-purple-950"}`}>
+                            {currentTeacherSurvey.research_other} <span className="text-xs font-normal">เรื่อง</span>
+                          </span>
+                          {currentTeacherSurvey.research_other_specify && (
+                            <span className="text-[10px] text-purple-400 block truncate mt-0.5">({currentTeacherSurvey.research_other_specify})</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 1.2 แหล่งทุนวิจัย */}
+                    <div className="space-y-3">
+                      <h5 className={`font-bold text-sm ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                        2. แหล่งทุนที่ท่านคาดว่าจะเสนอทุนโครงการวิจัยระหว่างปีการศึกษา 2570-2574:
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                        {Object.entries(currentTeacherSurvey.research_funding_sources || {})
+                          .filter(([_, years]) => Array.isArray(years) && years.length > 0)
+                          .map(([fundName, years]) => (
+                            <div key={fundName} className={`p-3 rounded-2xl border flex items-center justify-between gap-3 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/40 border-purple-100"
+                            }`}>
+                              <span className={`text-xs font-bold leading-tight ${isDark ? "text-purple-100" : "text-purple-950"}`}>
+                                • {fundName}
+                              </span>
+                              <div className="flex flex-wrap gap-1 shrink-0">
+                                {years.map((y) => (
+                                  <span key={y} className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-xs">
+                                    พ.ศ. {y}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                      {currentTeacherSurvey.research_funding_other_specify && (
+                        <p className="text-xs text-purple-400 italic">แหล่งทุนอื่นๆ: {currentTeacherSurvey.research_funding_other_specify}</p>
+                      )}
+                    </div>
+
+                    {/* 1.3 งบประมาณโครงการวิจัย */}
+                    <div className="space-y-3">
+                      <h5 className={`font-bold text-sm ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                        3. งบประมาณที่ท่านคาดว่าจะได้จากโครงการวิจัยระหว่างปีการศึกษา 2570-2574:
+                      </h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
+                        {SURVEY_YEARS.map((y) => (
+                          <div key={y} className={`p-3 rounded-2xl border text-center ${
+                            isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/50 border-purple-100"
+                          }`}>
+                            <span className="text-xs font-bold text-purple-500 block mb-1">ปี พ.ศ. {y}</span>
+                            <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-purple-200/80 text-purple-950 block">
+                              {currentTeacherSurvey.research_budgets?.[String(y)] || "50,001-300,000"}
+                            </span>
+                            <span className="text-[10px] text-slate-400 block mt-1">บาท</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* หมวดที่ 2: ข้อมูลด้านการเรียนการสอน */}
+                  <div className={`p-6 sm:p-7 rounded-3xl border shadow-sm transition-all space-y-6 ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div className="flex items-center gap-2.5 border-b pb-3 border-purple-100 dark:border-purple-900/50">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className={`font-bold text-lg font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          หมวดที่ 2: ข้อมูลด้านการเรียนการสอน
+                        </h4>
+                        <p className={`text-xs ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          จำนวนโหลดชั่วโมงสอน และกิจกรรมให้นักศึกษาลงพื้นที่พร้อมหน่วยงานเป้าหมาย
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 2.1 โหลดชั่วโมงสอน */}
+                    <div className="space-y-3">
+                      <h5 className={`font-bold text-sm ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                        1. จำนวนโหลดชั่วโมงที่ท่านสอนระหว่างปีการศึกษา 2568-2569:
+                      </h5>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {TEACHING_LOAD_SEMESTERS.map((sem) => (
+                          <div key={sem} className={`p-3.5 rounded-2xl border text-center ${
+                            isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/50 border-purple-100"
+                          }`}>
+                            <span className="text-xs font-bold text-purple-500 block mb-1">ภาคการศึกษา {sem}</span>
+                            <span className={`text-xs font-black px-2 py-1 rounded-md block ${
+                              isDark ? "bg-purple-900/80 text-purple-100" : "bg-purple-100 text-purple-900"
+                            }`}>
+                              {currentTeacherSurvey.teaching_load?.[sem] || "10-12 ชั่วโมง/สัปดาห์"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 2.2 และ 2.3 กิจกรรมลงพื้นที่ & หน่วยงาน */}
+                    <div className="space-y-3">
+                      <h5 className={`font-bold text-sm ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                        2 & 3. รายวิชาของท่านมีกิจกรรมให้นักศึกษาลงพื้นที่หรือไม่ และหน่วยงานที่จัดกิจกรรม:
+                      </h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {FIELDWORK_SEMESTERS.map((sem) => {
+                          const hasField = currentTeacherSurvey.fieldwork_presence?.[sem] === "มี";
+                          const agency = currentTeacherSurvey.fieldwork_agencies?.[sem] || "-";
+
+                          return (
+                            <div key={sem} className={`p-3.5 rounded-2xl border space-y-1.5 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/40 border-purple-100"
+                            }`}>
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-bold text-purple-500">ภาคเรียน {sem}</span>
+                                <span className={`font-bold px-2 py-0.5 rounded-md ${
+                                  hasField ? "bg-emerald-500/20 text-emerald-600" : "bg-slate-200 text-slate-600"
+                                }`}>
+                                  {hasField ? "มีลงพื้นที่" : "ไม่มี"}
+                                </span>
+                              </div>
+                              <p className={`text-xs font-medium ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                                📍 หน่วยงาน: <span className="font-bold">{agency}</span>
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* หมวดที่ 3: ข้อมูลด้านบริการวิชาการ */}
+                  <div className={`p-6 sm:p-7 rounded-3xl border shadow-sm transition-all space-y-6 ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div className="flex items-center gap-2.5 border-b pb-3 border-purple-100 dark:border-purple-900/50">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                        <HandHelping className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className={`font-bold text-lg font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          หมวดที่ 3: ข้อมูลด้านบริการวิชาการ (พ.ศ. 2570–2574)
+                        </h4>
+                        <p className={`text-xs ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          จำนวนกิจกรรม, ชุมชนหรือกลุ่มเป้าหมาย และเกณฑ์การคัดเลือก
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 4. จำนวนกิจกรรม */}
+                    <div className="space-y-3">
+                      <h5 className={`font-bold text-sm ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                        4. จำนวนกิจกรรมที่ท่านคาดว่าจะดำเนินการการบริการวิชาการระหว่างปีการศึกษา 2570-2574:
+                      </h5>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                        {SURVEY_YEARS.map((y) => (
+                          <div key={y} className={`p-3 rounded-2xl border text-center ${
+                            isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/50 border-purple-100"
+                          }`}>
+                            <span className="text-xs font-bold text-purple-500 block mb-1">ปี พ.ศ. {y}</span>
+                            <span className={`text-2xl font-black font-serif block ${isDark ? "text-white" : "text-purple-950"}`}>
+                              {currentTeacherSurvey.academic_services_count?.[String(y)] || 2}{" "}
+                              <span className="text-xs font-normal">กิจกรรม</span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 5. ชุมชนหรือกลุ่มเป้าหมาย */}
+                    <div className="space-y-3">
+                      <h5 className={`font-bold text-sm ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                        5. ชุมชนหรือกลุ่มเป้าหมายที่คาดหวังสำหรับการบริการวิชาการในปีการศึกษา 2570-2574:
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                        {Object.entries(currentTeacherSurvey.target_communities || {})
+                          .filter(([_, years]) => Array.isArray(years) && years.length > 0)
+                          .map(([commName, years]) => (
+                            <div key={commName} className={`p-3 rounded-2xl border flex items-center justify-between gap-3 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/40 border-purple-100"
+                            }`}>
+                              <span className={`text-xs font-bold leading-tight ${isDark ? "text-purple-100" : "text-purple-950"}`}>
+                                👥 {commName}
+                              </span>
+                              <div className="flex flex-wrap gap-1 shrink-0">
+                                {years.map((y) => (
+                                  <span key={y} className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs">
+                                    พ.ศ. {y}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                      {currentTeacherSurvey.target_community_other_specify && (
+                        <p className="text-xs text-purple-400 italic">กลุ่มเป้าหมายอื่นๆ: {currentTeacherSurvey.target_community_other_specify}</p>
+                      )}
+                    </div>
+
+                    {/* 6. หลักเกณฑ์ในการคัดเลือก */}
+                    <div className={`p-4 rounded-2xl border flex items-center justify-between gap-4 ${
+                      isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/60 border-purple-200/80"
+                    }`}>
+                      <div>
+                        <h5 className={`font-bold text-sm ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                          6. หลักเกณฑ์ในการคัดเลือกชุมชนหรือกลุ่มเป้าหมาย:
+                        </h5>
+                        <p className={`text-xs ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          สัดส่วนความสำคัญและความพร้อมของพื้นที่
+                        </p>
+                      </div>
+                      <span className="text-lg font-black px-4 py-1.5 rounded-xl bg-purple-600 text-white shadow-sm">
+                        {currentTeacherSurvey.selection_criteria_percentage || "70%"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* ปุ่มปรับปรุงข้อมูลด้านล่าง */}
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    {isSubmissionOpen && (
+                      <button
+                        onClick={() => handleStartSurvey()}
+                        className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-700 via-violet-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black text-sm shadow-xl shadow-purple-900/30 transition-all flex items-center gap-2 active:scale-95"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        <span>✏️ ต้องการปรับปรุงหรือแก้ไขคำตอบแบบสำรวจ</span>
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                /* กรณีอาจารย์ยังไม่ได้ส่งแบบสำรวจ */
+                <div className={`p-10 rounded-3xl border text-center space-y-4 shadow-sm transition-all ${
+                  isDark ? "bg-[#160D33] border-purple-800/80 text-purple-100" : "bg-white border-purple-200/80 text-purple-950"
+                }`}>
+                  <div className="w-16 h-16 rounded-3xl bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 flex items-center justify-center mx-auto shadow-inner">
+                    <FileText className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold font-serif">
+                    ยังไม่ได้บันทึกแบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570-2574
+                  </h3>
+                  <p className={`text-sm max-w-lg mx-auto leading-relaxed ${isDark ? "text-purple-300/70" : "text-slate-600"}`}>
+                    แบบสำรวจนี้จัดทำขึ้นเพื่อรวบรวมข้อมูลสำหรับจัดทำแผนยุทธศาสตร์ 5 ปีของคณะศึกษาศาสตร์ ข้อมูลผู้สอนและระดับการศึกษาจะถูกเติมให้ท่านโดยอัตโนมัติ
+                  </p>
+                  {isSubmissionOpen ? (
+                    <div className="pt-2">
+                      <button
+                        onClick={() => handleStartSurvey()}
+                        className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-700 via-violet-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black text-sm shadow-xl shadow-purple-900/30 transition-all inline-flex items-center gap-2 active:scale-95"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span>📝 คลิกเพื่อเริ่มกรอกแบบสำรวจแผน 2570–2574 ทันที</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs font-bold text-amber-500 pt-2 flex items-center justify-center gap-1.5">
+                      <Lock className="w-4 h-4" />
+                      <span>ขณะนี้ระบบปิดรับแบบสำรวจชั่วคราว (รอเจ้าหน้าที่แอดมินเปิดระบบรับข้อมูล)</span>
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ====================================================================
               แท็บ 1: สรุปข้อมูลประวัติที่อาจารย์เคยกรอกไว้ แยกตาม 5 หัวข้อ
@@ -2064,244 +2848,825 @@ export default function FacultyEducationPortalApp() {
           )}
 
           {/* ====================================================================
-              แท็บ 2: แบบสำรวจจัดทำแผน 2570–2574
+              แท็บ: แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผน 2570–2574 (SURVEY_FORM)
              ==================================================================== */}
-          {instTab === "FORM" && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <form
-                onSubmit={handleSaveInstructorForm}
-                className="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5"
-              >
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <div>
-                    <h3 className="font-extrabold text-xl text-slate-900 font-serif">
-                      {editingRecordId ? "✏️ แก้ไขข้อมูลแบบสำรวจเดิม" : "📝 แบบสำรวจจัดทำแผน พ.ศ. 2570–2574"}
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      เนื้อหาอ้างอิงตามแบบสำรวจของคณะศึกษาศาสตร์ (สามารถเปิดดูฟอร์มต้นฉบับได้ที่ด้านบน)
-                    </p>
-                  </div>
-                  {editingRecordId && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingRecordId(null);
-                        setInstTab("SUMMARY");
-                      }}
-                      className="text-xs text-red-600 font-bold hover:underline"
-                    >
-                      ยกเลิกแก้ไข
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      ปีการศึกษา (พ.ศ.)
-                    </label>
-                    <select
-                      value={instFormState.Academic_Year}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Academic_Year: Number(e.target.value) })
-                      }
-                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50 font-bold"
-                    >
-                      {[2570, 2571, 2572, 2573, 2574, 2569, 2568].map((y) => (
-                        <option key={y} value={y}>
-                          พ.ศ. {y}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      รหัสวิชา
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="เช่น ED101"
-                      value={instFormState.Course_Code}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Course_Code: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50 font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      ชื่อรายวิชา
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="ระบุชื่อวิชาที่รับผิดชอบ..."
-                      value={instFormState.Course_Name}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Course_Name: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50"
-                    />
-                  </div>
-                </div>
-
-                {/* หมวด 1: การสอน */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                    <BookOpen className="w-4 h-4 text-slate-900" />
-                    <span>หมวดที่ 1: การจัดการเรียนการสอน & ผลลัพธ์ผู้เรียน</span>
-                  </h4>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">
-                      รูปแบบการจัดการเรียนการสอน (Active Learning / นวัตกรรมการสอน)
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="เช่น โครงงานเป็นฐาน (PBL), การสะท้อนคิด (Reflective Thinking)..."
-                      value={instFormState.Teaching_Method}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Teaching_Method: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">
-                      เป้าหมายผลสัมฤทธิ์ KPI ของผู้เรียนในรายวิชา
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="เช่น นักศึกษาร้อยละ 85 มีผลสัมฤทธิ์ระดับ B ขึ้นไป..."
-                      value={instFormState.Target_KPI}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Target_KPI: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white"
-                    />
-                  </div>
-                </div>
-
-                {/* หมวด 2 & 3: วิจัย และ สื่อ E-Book */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Lightbulb className="w-4 h-4 text-amber-600" />
-                      <span>หมวดที่ 2: แผนงานวิจัย & บทความ</span>
-                    </h4>
-                    <textarea
-                      rows={3}
-                      placeholder="ระบุแผนการตีพิมพ์บทความวิจัย หรือสิทธิบัตร..."
-                      value={instFormState.Research_Output}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Research_Output: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white"
-                    />
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <BookMarked className="w-4 h-4 text-emerald-600" />
-                      <span>หมวดที่ 3: แผนผลิตสื่อ & หนังสือ E-Book</span>
-                    </h4>
-                    <textarea
-                      rows={3}
-                      placeholder="ระบุแผนการจัดทำตำรา เอกสารสอน หรือหนังสือ E-Book..."
-                      value={instFormState.Ebook_Planned}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Ebook_Planned: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white"
-                    />
-                  </div>
-                </div>
-
-                {/* หมวด 4 & 5: พัฒนาตนเอง และ งบประมาณ */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Compass className="w-4 h-4 text-blue-600" />
-                      <span>หมวดที่ 4: พัฒนาตนเอง / บริการวิชาการ</span>
-                    </h4>
-                    <textarea
-                      rows={2}
-                      placeholder="เช่น อบรมวิชาชีพครู หรือบริการวิชาการแก่โรงเรียนในพื้นที่..."
-                      value={instFormState.Self_Development}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Self_Development: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white"
-                    />
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <DollarSign className="w-4 h-4 text-slate-700" />
-                      <span>หมวดที่ 5: งบประมาณที่ขอรับการสนับสนุน</span>
-                    </h4>
-                    <textarea
-                      rows={2}
-                      placeholder="ระบุรายการครุภัณฑ์ งบประมาณสนับสนุนที่ต้องการจากคณะ..."
-                      value={instFormState.Budget_Requested}
-                      onChange={(e) =>
-                        setInstFormState({ ...instFormState, Budget_Requested: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <a
-                    href={GOOGLE_FORM_INSTRUCTOR_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 font-semibold"
-                  >
-                    <span>เปิดแบบสำรวจ Google Form ต้นฉบับ</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+          {instTab === "SURVEY_FORM" && (
+            <div className="space-y-6">
+              {!isSubmissionOpen && !adminEditingStaffId ? (
+                <div className={`p-8 rounded-3xl border text-center space-y-3 ${
+                  isDark ? "bg-[#160D33] border-purple-800 text-purple-100" : "bg-white border-purple-200 text-purple-950"
+                }`}>
+                  <Lock className="w-10 h-10 text-amber-400 mx-auto" />
+                  <h3 className="text-xl font-bold font-serif">ระบบปิดรับแบบสำรวจชั่วคราว</h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    ขณะนี้ฝ่ายแผนงานคณะศึกษาศาสตร์ได้ปิดรับการส่งหรือแก้ไขแบบสำรวจ หากต้องการสอบถามหรือแก้ไขเป็นกรณีพิเศษ กรุณาติดต่อเจ้าหน้าที่แอดมิน
+                  </p>
                   <button
-                    type="submit"
-                    className="px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all"
+                    onClick={() => setInstTab("SURVEY_VIEW")}
+                    className="px-5 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-xs shadow-md"
                   >
-                    {editingRecordId ? "บันทึกการแก้ไข" : "บันทึกข้อมูลแผนเข้าสู่ระบบ"}
+                    กลับสู่หน้าผลลัพธ์
                   </button>
                 </div>
-              </form>
-
-              {/* คอลัมน์ขวา: คำแนะนำและลิงก์ประวัติ */}
-              <div className="lg:col-span-4 space-y-5">
-                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-                  <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                    <HelpCircle className="w-4 h-4 text-slate-600" />
-                    <span>คำแนะนำในการกรอกข้อมูล</span>
-                  </h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    ข้อมูลที่คุณบันทึกจะถูกจัดเก็บลงในฐานข้อมูลกลางของคณะ และจะนำไปประมวลผลเป็นแผนพัฒนา พ.ศ. 2570–2574
-                  </p>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    คุณสามารถกลับมาแก้ไขข้อมูลได้ตลอดเวลา โดยระบบจะทำการอัปเดตแบบเรียลไทม์
-                  </p>
-                </div>
-
-                <div className="bg-amber-50/70 p-6 rounded-3xl border border-amber-200/80 space-y-3 text-xs">
-                  <span className="font-bold text-amber-900 block">📊 ต้องการดูประวัติเดิมใน Google Sheet?</span>
-                  <p className="text-amber-800">
-                    สามารถเปิดดูตารางการตอบกลับทั้งหมดของคณาจารย์ในคณะได้ที่ลิงก์ชีตกลาง
-                  </p>
-                  <a
-                    href={SHEET_TEACHER_HISTORY_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-amber-300 text-amber-900 font-bold"
+              ) : !surveyFormState ? (
+                <div className="text-center py-10">
+                  <button
+                    onClick={() => handleStartSurvey()}
+                    className="px-6 py-3 rounded-2xl bg-purple-600 text-white font-bold"
                   >
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                    <span>เปิด Google Sheet ประวัติเดิม</span>
-                  </a>
+                    โหลดข้อมูลแบบสำรวจ
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <form onSubmit={handleSaveSurvey} className="space-y-6">
+                  {/* หัวแบบสำรวจ */}
+                  <div className={`p-6 sm:p-8 rounded-3xl border shadow-sm transition-all ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    {adminEditingStaffId && (
+                      <div className="mb-4 p-3.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-bold flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>โหมดเจ้าหน้าที่: แอดมินกำลังแก้ไขข้อมูลแบบสำรวจให้อาจารย์ ({surveyFormState.Full_Name})</span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-700">
+                          แบบสำรวจหลัก 2570–2574
+                        </span>
+                        <h3 className={`text-xl sm:text-2xl font-black mt-2 font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570-2574 (อาจารย์ คณะศึกษาศาสตร์)
+                        </h3>
+                        <p className={`text-xs mt-1 leading-relaxed ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          ข้อมูลนี้จะถูกนำไปใช้ประมวลผลเป็นแผนปฏิบัติราชการ 5 ปีของคณะศึกษาศาสตร์ เมื่อกรอกแล้วสามารถดูผลลัพธ์และแก้ไขได้ตลอดเวลา
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAdminEditingStaffId(null);
+                            setInstTab("SURVEY_VIEW");
+                          }}
+                          className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                            isDark ? "border-purple-800 text-purple-200 hover:bg-[#211347]" : "border-purple-200 text-slate-600 hover:bg-purple-50"
+                          }`}
+                        >
+                          ยกเลิก
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black text-xs shadow-md transition-all active:scale-95"
+                        >
+                          🚀 ส่งข้อมูลเข้าสู่ระบบ
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ส่วนที่ 0: ข้อมูลผู้สอน (ไม่ต้องกรอก เพราะมีแล้ว) */}
+                  <div className={`p-6 sm:p-7 rounded-3xl border shadow-sm transition-all space-y-4 ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div className="flex items-center justify-between border-b pb-3 border-purple-100 dark:border-purple-900/50">
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="w-5 h-5 text-purple-600" />
+                        <h4 className={`font-bold text-base font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          ข้อมูลทั่วไปของผู้ตอบแบบสำรวจ (ดึงจากระบบอัตโนมัติ ไม่ต้องกรอกซ้ำ)
+                        </h4>
+                      </div>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-200">
+                        🔒 Auto-Filled
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                      <div className={`p-4 rounded-2xl border ${
+                        isDark ? "bg-[#1E1145] border-purple-800/80 text-purple-100" : "bg-purple-50/50 border-purple-100 text-purple-950"
+                      }`}>
+                        <span className="text-purple-500 font-bold block mb-1">ชื่อ-สกุล</span>
+                        <input
+                          type="text"
+                          readOnly
+                          value={surveyFormState.Full_Name}
+                          className="w-full bg-transparent font-bold font-serif text-sm focus:outline-none"
+                        />
+                        <span className="text-[11px] font-mono text-purple-400 mt-1 block">รหัส: {surveyFormState.Staff_ID}</span>
+                      </div>
+
+                      <div className={`p-4 rounded-2xl border ${
+                        isDark ? "bg-[#1E1145] border-purple-800/80 text-purple-100" : "bg-purple-50/50 border-purple-100 text-purple-950"
+                      }`}>
+                        <span className="text-purple-500 font-bold block mb-1">สังกัดหน่วยงาน</span>
+                        <input
+                          type="text"
+                          readOnly
+                          value={surveyFormState.Department}
+                          className="w-full bg-transparent font-bold font-serif text-sm focus:outline-none"
+                        />
+                        <span className="text-[11px] text-purple-400 mt-1 block">คณะศึกษาศาสตร์</span>
+                      </div>
+
+                      <div className={`p-4 rounded-2xl border ${
+                        isDark ? "bg-[#1E1145] border-purple-800/80 text-purple-100" : "bg-purple-50/50 border-purple-100 text-purple-950"
+                      }`}>
+                        <span className="text-purple-500 font-bold block mb-1">ระดับการศึกษา / คุณวุฒิ</span>
+                        <input
+                          type="text"
+                          readOnly
+                          value={surveyFormState.Degree_Level}
+                          className="w-full bg-transparent font-medium text-xs focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* หมวดที่ 1: ข้อมูลด้านงานวิจัย */}
+                  <div className={`p-6 sm:p-7 rounded-3xl border shadow-sm transition-all space-y-6 ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div className="flex items-center gap-2.5 border-b pb-3 border-purple-100 dark:border-purple-900/50">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                        <Lightbulb className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className={`font-bold text-lg font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          หมวดที่ 1: ข้อมูลด้านงานวิจัย
+                        </h4>
+                        <p className={`text-xs ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          จำนวนโครงการวิจัย แหล่งทุนที่คาดว่าจะเสนอ และงบประมาณ (พ.ศ. 2570–2574)
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 1.1 จำนวนงานวิจัย */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className={`block text-sm font-bold ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                          1. จำนวนงานวิจัยที่ท่านคาดว่าจะทำในปีการศึกษา 2570-2574:
+                        </label>
+                        <p className={`text-xs mt-0.5 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          สามารถกรอกจำนวนได้ 1-5 หรือหากมีมากกว่านี้สามารถกรอกได้
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        {[
+                          { key: "research_classroom", label: "โครงการวิจัยในชั้นเรียน" },
+                          { key: "research_education", label: "โครงการวิจัยเพื่อการศึกษา" },
+                          { key: "research_development", label: "โครงการวิจัยเพื่อการพัฒนา" },
+                          { key: "research_other", label: "อื่นๆ" },
+                        ].map((item) => {
+                          const val = Number(surveyFormState[item.key as keyof TeacherSurveyPlan] || 0);
+
+                          return (
+                            <div key={item.key} className={`p-4 rounded-2xl border space-y-2.5 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/40 border-purple-100"
+                            }`}>
+                              <span className={`font-bold text-sm block ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                                • {item.label}
+                              </span>
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSurveyFormState({
+                                      ...surveyFormState,
+                                      [item.key]: Math.max(0, val - 1),
+                                    })
+                                  }
+                                  className={`w-8 h-8 rounded-xl font-bold flex items-center justify-center border transition-colors ${
+                                    isDark ? "bg-[#160D33] border-purple-700 text-purple-200 hover:bg-purple-900/60" : "bg-white border-purple-200 text-purple-900 hover:bg-purple-50"
+                                  }`}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={val}
+                                  onChange={(e) =>
+                                    setSurveyFormState({
+                                      ...surveyFormState,
+                                      [item.key]: Number(e.target.value),
+                                    })
+                                  }
+                                  className={`w-16 h-8 text-center font-bold text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                                    isDark ? "bg-[#160D33] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                                  }`}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSurveyFormState({
+                                      ...surveyFormState,
+                                      [item.key]: val + 1,
+                                    })
+                                  }
+                                  className={`w-8 h-8 rounded-xl font-bold flex items-center justify-center border transition-colors ${
+                                    isDark ? "bg-[#160D33] border-purple-700 text-purple-200 hover:bg-purple-900/60" : "bg-white border-purple-200 text-purple-900 hover:bg-purple-50"
+                                  }`}
+                                >
+                                  +
+                                </button>
+                                <span className={`text-xs ml-1 ${isDark ? "text-purple-300" : "text-purple-800"}`}>เรื่อง</span>
+
+                                {/* Quick selection pills */}
+                                <div className="flex items-center gap-1 ml-auto">
+                                  {[1, 2, 3, 5].map((q) => (
+                                    <button
+                                      key={q}
+                                      type="button"
+                                      onClick={() =>
+                                        setSurveyFormState({
+                                          ...surveyFormState,
+                                          [item.key]: q,
+                                        })
+                                      }
+                                      className={`px-2 py-0.5 text-[11px] font-bold rounded-md border transition-colors ${
+                                        val === q
+                                          ? "bg-purple-600 text-white border-purple-600"
+                                          : isDark
+                                          ? "bg-[#160D33] border-purple-800 text-purple-300 hover:bg-purple-900/40"
+                                          : "bg-white border-purple-200 text-purple-700 hover:bg-purple-100"
+                                      }`}
+                                    >
+                                      {q}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {item.key === "research_other" && (
+                                <input
+                                  type="text"
+                                  placeholder="ระบุประเภทงานวิจัยอื่นๆ (ถ้ามี)..."
+                                  value={surveyFormState.research_other_specify || ""}
+                                  onChange={(e) =>
+                                    setSurveyFormState({
+                                      ...surveyFormState,
+                                      research_other_specify: e.target.value,
+                                    })
+                                  }
+                                  className={`w-full px-3 py-1.5 text-xs rounded-xl border focus:outline-none focus:ring-1 focus:ring-purple-500 mt-1 ${
+                                    isDark ? "bg-[#160D33] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                                  }`}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 1.2 แหล่งทุนวิจัย */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className={`block text-sm font-bold ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                          2. แหล่งทุนที่ท่านคาดว่าจะเสนอทุนโครงการวิจัยระหว่างปีการศึกษา 2570-2574:
+                        </label>
+                        <p className={`text-xs mt-0.5 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          คลิกเลือกปี พ.ศ. ที่คาดว่าจะเสนอทุน (สามารถเลือกหลายปีได้ในแต่ละแหล่งทุน)
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        {RESEARCH_FUND_OPTIONS.map((fund) => {
+                          const activeYears = surveyFormState.research_funding_sources[fund] || [];
+
+                          return (
+                            <div key={fund} className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/40 border-purple-100"
+                            }`}>
+                              <span className={`text-xs font-bold sm:max-w-md ${isDark ? "text-purple-100" : "text-purple-950"}`}>
+                                • {fund}
+                              </span>
+
+                              <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                                {SURVEY_YEARS.map((y) => {
+                                  const isChecked = activeYears.includes(y);
+
+                                  return (
+                                    <button
+                                      key={y}
+                                      type="button"
+                                      onClick={() => toggleResearchFundYear(fund, y)}
+                                      className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all ${
+                                        isChecked
+                                          ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white border-purple-600 shadow-sm"
+                                          : isDark
+                                          ? "bg-[#160D33] border-purple-800 text-purple-300 hover:bg-[#281557]"
+                                          : "bg-white border-purple-200 text-purple-900 hover:bg-purple-100"
+                                      }`}
+                                    >
+                                      พ.ศ. {y}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        <div className="pt-1">
+                          <input
+                            type="text"
+                            placeholder="ระบุแหล่งทุนอื่นๆ เพิ่มเติม (ถ้ามี)..."
+                            value={surveyFormState.research_funding_other_specify || ""}
+                            onChange={(e) =>
+                              setSurveyFormState({
+                                ...surveyFormState,
+                                research_funding_other_specify: e.target.value,
+                              })
+                            }
+                            className={`w-full px-3.5 py-2 text-xs rounded-xl border focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                              isDark ? "bg-[#1E1145] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 1.3 งบประมาณวิจัย */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className={`block text-sm font-bold ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                          3. งบประมาณที่ท่านคาดว่าจะได้จากโครงการวิจัยระหว่างปีการศึกษา 2570-2574:
+                        </label>
+                        <p className={`text-xs mt-0.5 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          เลือกช่วงงบประมาณในแต่ละปีการศึกษา (2570–2574)
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs">
+                        {SURVEY_YEARS.map((y) => {
+                          const currentVal = surveyFormState.research_budgets?.[String(y)] || RESEARCH_BUDGET_RANGES[1];
+
+                          return (
+                            <div key={y} className={`p-3.5 rounded-2xl border space-y-2 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/50 border-purple-100"
+                            }`}>
+                              <span className="font-bold text-xs text-purple-500 block">ปี พ.ศ. {y}</span>
+                              <select
+                                value={currentVal}
+                                onChange={(e) =>
+                                  setSurveyFormState({
+                                    ...surveyFormState,
+                                    research_budgets: {
+                                      ...surveyFormState.research_budgets,
+                                      [String(y)]: e.target.value,
+                                    },
+                                  })
+                                }
+                                className={`w-full px-2.5 py-2 rounded-xl text-xs font-bold border focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                                  isDark ? "bg-[#160D33] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                                }`}
+                              >
+                                {RESEARCH_BUDGET_RANGES.map((rng) => (
+                                  <option key={rng} value={rng}>
+                                    {rng}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* หมวดที่ 2: ข้อมูลด้านการเรียนการสอน */}
+                  <div className={`p-6 sm:p-7 rounded-3xl border shadow-sm transition-all space-y-6 ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div className="flex items-center gap-2.5 border-b pb-3 border-purple-100 dark:border-purple-900/50">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className={`font-bold text-lg font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          หมวดที่ 2: ข้อมูลด้านการเรียนการสอน
+                        </h4>
+                        <p className={`text-xs ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          จำนวนโหลดชั่วโมงสอน และกิจกรรมให้นักศึกษาลงพื้นที่พร้อมหน่วยงานเป้าหมาย
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 2.1 โหลดชั่วโมงสอน */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className={`block text-sm font-bold ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                          1. จำนวนโหลดชั่วโมงที่ท่านสอนระหว่างปีการศึกษา 2568-2569:
+                        </label>
+                        <p className={`text-xs mt-0.5 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          ระบุภาระการสอนในแต่ละภาคเรียน (1/2568, 2/2568, 1/2569, 2/2569)
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        {TEACHING_LOAD_SEMESTERS.map((sem) => {
+                          const currentVal = surveyFormState.teaching_load?.[sem] || TEACHING_LOAD_OPTIONS[2];
+
+                          return (
+                            <div key={sem} className={`p-3.5 rounded-2xl border space-y-2 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/50 border-purple-100"
+                            }`}>
+                              <span className="font-bold text-xs text-purple-500 block">ภาคเรียน {sem}</span>
+                              <select
+                                value={currentVal}
+                                onChange={(e) =>
+                                  setSurveyFormState({
+                                    ...surveyFormState,
+                                    teaching_load: {
+                                      ...surveyFormState.teaching_load,
+                                      [sem]: e.target.value,
+                                    },
+                                  })
+                                }
+                                className={`w-full px-2.5 py-2 rounded-xl text-xs font-bold border focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                                  isDark ? "bg-[#160D33] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                                }`}
+                              >
+                                {TEACHING_LOAD_OPTIONS.map((opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 2.2 และ 2.3 การลงพื้นที่และหน่วยงาน */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className={`block text-sm font-bold ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                          2 & 3. รายวิชาของท่านมีกิจกรรมให้นักศึกษาลงพื้นที่หรือไม่ และหน่วยงานที่จัดกิจกรรม:
+                        </label>
+                        <p className={`text-xs mt-0.5 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          ระบุความประสงค์ในแต่ละภาคเรียน (1/2568, 2/2568, 1/2569, 2/2569, 1/2570, 2/2570)
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 text-xs">
+                        {FIELDWORK_SEMESTERS.map((sem) => {
+                          const hasField = surveyFormState.fieldwork_presence?.[sem] === "มี";
+                          const currentAgency = surveyFormState.fieldwork_agencies?.[sem] || FIELDWORK_AGENCY_OPTIONS[0];
+
+                          return (
+                            <div key={sem} className={`p-4 rounded-2xl border space-y-3 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/40 border-purple-100"
+                            }`}>
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-sm text-purple-500">ภาคเรียน {sem}</span>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setSurveyFormState({
+                                        ...surveyFormState,
+                                        fieldwork_presence: {
+                                          ...surveyFormState.fieldwork_presence,
+                                          [sem]: "มี",
+                                        },
+                                      })
+                                    }
+                                    className={`px-3 py-1 rounded-lg text-xs font-bold border transition-colors ${
+                                      hasField
+                                        ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                                        : isDark
+                                        ? "bg-[#160D33] border-purple-800 text-slate-400"
+                                        : "bg-white border-purple-200 text-slate-600"
+                                    }`}
+                                  >
+                                    มี
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setSurveyFormState({
+                                        ...surveyFormState,
+                                        fieldwork_presence: {
+                                          ...surveyFormState.fieldwork_presence,
+                                          [sem]: "ไม่มี",
+                                        },
+                                      })
+                                    }
+                                    className={`px-3 py-1 rounded-lg text-xs font-bold border transition-colors ${
+                                      !hasField
+                                        ? "bg-slate-700 text-white border-slate-700 shadow-xs"
+                                        : isDark
+                                        ? "bg-[#160D33] border-purple-800 text-slate-400"
+                                        : "bg-white border-purple-200 text-slate-600"
+                                    }`}
+                                  >
+                                    ไม่มี
+                                  </button>
+                                </div>
+                              </div>
+
+                              {hasField ? (
+                                <div className="space-y-1">
+                                  <span className="text-[11px] font-bold text-slate-400 block">หน่วยงานที่จัดกิจกรรม:</span>
+                                  <select
+                                    value={currentAgency}
+                                    onChange={(e) =>
+                                      setSurveyFormState({
+                                        ...surveyFormState,
+                                        fieldwork_agencies: {
+                                          ...surveyFormState.fieldwork_agencies,
+                                          [sem]: e.target.value,
+                                        },
+                                      })
+                                    }
+                                    className={`w-full px-2.5 py-1.5 rounded-xl text-xs font-bold border focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                                      isDark ? "bg-[#160D33] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                                    }`}
+                                  >
+                                    {FIELDWORK_AGENCY_OPTIONS.map((agency) => (
+                                      <option key={agency} value={agency}>
+                                        {agency}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-slate-400 italic">ไม่มีกิจกรรมลงพื้นที่ในภาคเรียนนี้</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="pt-1">
+                        <input
+                          type="text"
+                          placeholder="ระบุหน่วยงานอื่นๆ เพิ่มเติม (ถ้ามี)..."
+                          value={surveyFormState.fieldwork_agency_other_specify || ""}
+                          onChange={(e) =>
+                            setSurveyFormState({
+                              ...surveyFormState,
+                              fieldwork_agency_other_specify: e.target.value,
+                            })
+                          }
+                          className={`w-full px-3.5 py-2 text-xs rounded-xl border focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                            isDark ? "bg-[#1E1145] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* หมวดที่ 3: ข้อมูลด้านบริการวิชาการ */}
+                  <div className={`p-6 sm:p-7 rounded-3xl border shadow-sm transition-all space-y-6 ${
+                    isDark ? "bg-[#160D33] border-purple-800/80" : "bg-white border-purple-200/80"
+                  }`}>
+                    <div className="flex items-center gap-2.5 border-b pb-3 border-purple-100 dark:border-purple-900/50">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                        <HandHelping className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className={`font-bold text-lg font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                          หมวดที่ 3: ข้อมูลด้านบริการวิชาการ
+                        </h4>
+                        <p className={`text-xs ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          จำนวนกิจกรรม ชุมชนหรือกลุ่มเป้าหมาย และเกณฑ์การคัดเลือก (พ.ศ. 2570–2574)
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 4. จำนวนกิจกรรม */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className={`block text-sm font-bold ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                          4. จำนวนกิจกรรมที่ท่านคาดว่าจะดำเนินการการบริการวิชาการระหว่างปีการศึกษา 2570-2574:
+                        </label>
+                        <p className={`text-xs mt-0.5 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          เลือกตอบ 1-5 หรือระบุจำนวนตามที่วางแผนไว้ในแต่ละปี
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+                        {SURVEY_YEARS.map((y) => {
+                          const val = Number(surveyFormState.academic_services_count?.[String(y)] || 2);
+
+                          return (
+                            <div key={y} className={`p-3.5 rounded-2xl border text-center space-y-2 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/50 border-purple-100"
+                            }`}>
+                              <span className="font-bold text-xs text-purple-500 block">ปี พ.ศ. {y}</span>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSurveyFormState({
+                                      ...surveyFormState,
+                                      academic_services_count: {
+                                        ...surveyFormState.academic_services_count,
+                                        [String(y)]: Math.max(0, val - 1),
+                                      },
+                                    })
+                                  }
+                                  className={`w-7 h-7 rounded-lg font-bold flex items-center justify-center border ${
+                                    isDark ? "bg-[#160D33] border-purple-700 text-purple-200" : "bg-white border-purple-200 text-purple-900"
+                                  }`}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={val}
+                                  onChange={(e) =>
+                                    setSurveyFormState({
+                                      ...surveyFormState,
+                                      academic_services_count: {
+                                        ...surveyFormState.academic_services_count,
+                                        [String(y)]: Number(e.target.value),
+                                      },
+                                    })
+                                  }
+                                  className={`w-12 h-7 text-center font-bold rounded-lg border ${
+                                    isDark ? "bg-[#160D33] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                                  }`}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSurveyFormState({
+                                      ...surveyFormState,
+                                      academic_services_count: {
+                                        ...surveyFormState.academic_services_count,
+                                        [String(y)]: val + 1,
+                                      },
+                                    })
+                                  }
+                                  className={`w-7 h-7 rounded-lg font-bold flex items-center justify-center border ${
+                                    isDark ? "bg-[#160D33] border-purple-700 text-purple-200" : "bg-white border-purple-200 text-purple-900"
+                                  }`}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 5. ชุมชนหรือกลุ่มเป้าหมาย */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className={`block text-sm font-bold ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                          5. ชุมชนหรือกลุ่มเป้าหมายที่คาดหวังสำหรับการบริการวิชาการในปีการศึกษา 2570-2574:
+                        </label>
+                        <p className={`text-xs mt-0.5 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          คลิกเลือกปี พ.ศ. (2570–2574) สำหรับกลุ่มเป้าหมายที่คาดว่าจะดำเนินการ
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        {TARGET_COMMUNITY_OPTIONS.map((comm) => {
+                          const activeYears = surveyFormState.target_communities[comm] || [];
+
+                          return (
+                            <div key={comm} className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/40 border-purple-100"
+                            }`}>
+                              <span className={`text-xs font-bold sm:max-w-md ${isDark ? "text-purple-100" : "text-purple-950"}`}>
+                                👥 {comm}
+                              </span>
+
+                              <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                                {SURVEY_YEARS.map((y) => {
+                                  const isChecked = activeYears.includes(y);
+
+                                  return (
+                                    <button
+                                      key={y}
+                                      type="button"
+                                      onClick={() => toggleTargetCommunityYear(comm, y)}
+                                      className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all ${
+                                        isChecked
+                                          ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-500 shadow-sm"
+                                          : isDark
+                                          ? "bg-[#160D33] border-purple-800 text-purple-300 hover:bg-[#281557]"
+                                          : "bg-white border-purple-200 text-purple-900 hover:bg-purple-100"
+                                      }`}
+                                    >
+                                      พ.ศ. {y}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        <div className="pt-1">
+                          <input
+                            type="text"
+                            placeholder="ระบุกลุ่มเป้าหมายอื่นๆ เพิ่มเติม (ถ้ามี)..."
+                            value={surveyFormState.target_community_other_specify || ""}
+                            onChange={(e) =>
+                              setSurveyFormState({
+                                ...surveyFormState,
+                                target_community_other_specify: e.target.value,
+                              })
+                            }
+                            className={`w-full px-3.5 py-2 text-xs rounded-xl border focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                              isDark ? "bg-[#1E1145] border-purple-700 text-white" : "bg-white border-purple-200 text-purple-950"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 6. หลักเกณฑ์ในการคัดเลือก */}
+                    <div className="space-y-3">
+                      <div>
+                        <label className={`block text-sm font-bold ${isDark ? "text-purple-200" : "text-purple-950"}`}>
+                          6. หลักเกณฑ์ในการคัดเลือกชุมชนหรือกลุ่มเป้าหมาย:
+                        </label>
+                        <p className={`text-xs mt-0.5 ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                          เลือกสัดส่วนเปอร์เซ็นต์ (10% - 100%)
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {CRITERIA_PERCENTAGE_OPTIONS.map((pct) => {
+                          const isSelected = surveyFormState.selection_criteria_percentage === pct;
+
+                          return (
+                            <button
+                              key={pct}
+                              type="button"
+                              onClick={() =>
+                                setSurveyFormState({
+                                  ...surveyFormState,
+                                  selection_criteria_percentage: pct,
+                                })
+                              }
+                              className={`px-4 py-2 rounded-xl text-xs font-black border transition-all ${
+                                isSelected
+                                  ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white border-purple-600 shadow-md scale-105"
+                                  : isDark
+                                  ? "bg-[#1E1145] border-purple-800 text-purple-200 hover:bg-[#281557]"
+                                  : "bg-white border-purple-200 text-purple-900 hover:bg-purple-100"
+                              }`}
+                            >
+                              {pct}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* แถบปุ่มส่งข้อมูลด้านล่าง */}
+                  <div className={`p-6 rounded-3xl border shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+                    isDark ? "bg-[#160D33] border-purple-800" : "bg-white border-purple-200"
+                  }`}>
+                    <div>
+                      <p className={`text-xs font-bold ${isDark ? "text-purple-200" : "text-purple-900"}`}>
+                        พร้อมส่งข้อมูลแบบสำรวจเข้าสู่ระบบกลางแล้วหรือไม่?
+                      </p>
+                      <p className={`text-[11px] ${isDark ? "text-purple-300/70" : "text-slate-500"}`}>
+                        หลังจากส่งแล้ว ท่านจะสามารถกลับมาดูผลลัพธ์และแก้ไขข้อมูลได้ตลอดเวลา
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAdminEditingStaffId(null);
+                          setInstTab("SURVEY_VIEW");
+                        }}
+                        className={`px-5 py-3 rounded-2xl border text-xs font-bold transition-all ${
+                          isDark ? "border-purple-800 text-purple-200 hover:bg-[#211347]" : "border-purple-200 text-slate-600 hover:bg-purple-50"
+                        }`}
+                      >
+                        ยกเลิก / ดูผลลัพธ์เดิม
+                      </button>
+
+                      <button
+                        type="submit"
+                        className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-700 via-violet-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black text-sm shadow-xl shadow-purple-900/30 transition-all flex items-center gap-2 hover:scale-105 active:scale-95"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span>🚀 ส่งข้อมูลแบบสำรวจเข้าสู่ระบบ</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
             </div>
           )}
 
@@ -3047,35 +4412,271 @@ export default function FacultyEducationPortalApp() {
               </>
             )}
 
-            {/* เมนูอื่นๆ ของแอดมิน */}
             {adminMenu === "INSTRUCTORS" && (
-              <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-                <h2 className="text-xl font-bold text-slate-900 font-serif">รายการข้อมูลแผน 2570–2574 ของอาจารย์ผู้สอน</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs sm:text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500">
-                        <th className="py-3 px-2">ปี พ.ศ.</th>
-                        <th className="py-3 px-2">รหัส/ชื่ออาจารย์</th>
-                        <th className="py-3 px-2">สาขาวิชา</th>
-                        <th className="py-3 px-2">รายวิชา</th>
-                        <th className="py-3 px-2">วิธีสอน</th>
-                        <th className="py-3 px-2">สื่อ E-Book</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {instructorForms.map((f) => (
-                        <tr key={f.Record_ID}>
-                          <td className="py-3 px-2 font-bold text-slate-900">{f.Academic_Year}</td>
-                          <td className="py-3 px-2 font-semibold">{f.Staff_ID} • {f.Full_Name}</td>
-                          <td className="py-3 px-2">{f.Department}</td>
-                          <td className="py-3 px-2">{f.Course_Code} {f.Course_Name}</td>
-                          <td className="py-3 px-2 text-slate-600">{f.Teaching_Method}</td>
-                          <td className="py-3 px-2 text-slate-600">{f.Ebook_Planned || "-"}</td>
+              <div className="space-y-6">
+                {/* Header & Status Card */}
+                <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[11px] font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded-full border border-purple-200">
+                      อาจารย์ คณะศึกษาศาสตร์ (67 ท่าน)
+                    </span>
+                    <h2 className="text-2xl font-bold mt-1 text-slate-900 font-serif">
+                      แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570–2574
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      แอดมินสามารถตรวจสอบสถานะการส่ง ดูผลลัพธ์แบบละเอียด และกดแก้ไขข้อมูลของอาจารย์แต่ละท่านได้โดยตรง
+                    </p>
+                  </div>
+
+                  {/* สวิตช์เปิด/ปิดรับข้อมูลด่วน */}
+                  <div className={`p-4 rounded-2xl border flex items-center justify-between gap-4 shrink-0 ${
+                    isSubmissionOpen ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"
+                  }`}>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">สถานะระบบการรับข้อมูล</p>
+                      <p className={`text-sm font-extrabold ${isSubmissionOpen ? "text-emerald-700" : "text-amber-800"}`}>
+                        {isSubmissionOpen ? "🟢 เปิดให้อาจารย์กรอกอยู่" : "🔒 ปิดรับข้อมูลชั่วคราว"}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const next = !isSubmissionOpen;
+                        setIsSubmissionOpen(next);
+                        showToast(next ? "เปิดรับการกรอกแบบสำรวจแล้ว" : "ปิดรับการกรอกแบบสำรวจชั่วคราวแล้ว");
+                      }}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                        isSubmissionOpen
+                          ? "bg-red-600 hover:bg-red-700 text-white"
+                          : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      }`}
+                    >
+                      {isSubmissionOpen ? "สั่งปิดระบบ" : "สั่งเปิดระบบ"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* สถิติ Bento สรุปการส่งแบบสำรวจ */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                      <GraduationCap className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 font-medium">อาจารย์ทั้งหมดในระบบ</p>
+                      <p className="text-2xl font-black text-slate-900">{teachersList.length} <span className="text-xs font-normal text-slate-500">ท่าน</span></p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 font-medium">ส่งแบบสำรวจแล้ว</p>
+                      <p className="text-2xl font-black text-emerald-700">
+                        {teacherSurveys.filter((s) => s.Is_Submitted).length}{" "}
+                        <span className="text-xs font-normal text-slate-500">
+                          ท่าน ({Math.round((teacherSurveys.filter((s) => s.Is_Submitted).length / teachersList.length) * 100)}%)
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                      <Clock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 font-medium">ยังไม่ส่งแบบสำรวจ</p>
+                      <p className="text-2xl font-black text-amber-700">
+                        {teachersList.length - teacherSurveys.filter((s) => s.Is_Submitted).length}{" "}
+                        <span className="text-xs font-normal text-slate-500">ท่าน</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* แถบค้นหาและตัวกรอง */}
+                <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    {/* Search */}
+                    <div className="md:col-span-5 relative">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="ค้นหาชื่ออาจารย์ หรือ รหัสบุคลากร..."
+                        value={adminTeacherSearch}
+                        onChange={(e) => setAdminTeacherSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    {/* Department Filter */}
+                    <div className="md:col-span-4">
+                      <select
+                        value={adminTeacherDeptFilter}
+                        onChange={(e) => setAdminTeacherDeptFilter(e.target.value)}
+                        className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="ALL">🏛️ ทุกสาขาวิชา (12 สาขา)</option>
+                        {EDUCATION_PROGRAMS.map((prog) => (
+                          <option key={prog} value={prog}>
+                            {prog}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="md:col-span-3 flex rounded-2xl bg-slate-100 p-1">
+                      <button
+                        onClick={() => setAdminTeacherStatusFilter("ALL")}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                          adminTeacherStatusFilter === "ALL" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600"
+                        }`}
+                      >
+                        ทั้งหมด
+                      </button>
+                      <button
+                        onClick={() => setAdminTeacherStatusFilter("SUBMITTED")}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                          adminTeacherStatusFilter === "SUBMITTED" ? "bg-emerald-600 text-white shadow-xs" : "text-slate-600"
+                        }`}
+                      >
+                        ส่งแล้ว
+                      </button>
+                      <button
+                        onClick={() => setAdminTeacherStatusFilter("PENDING")}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                          adminTeacherStatusFilter === "PENDING" ? "bg-amber-600 text-white shadow-xs" : "text-slate-600"
+                        }`}
+                      >
+                        ยังไม่ส่ง
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ตาราง Bento อาจารย์ */}
+                  <div className="overflow-x-auto rounded-2xl border border-slate-100">
+                    <table className="w-full text-left text-xs sm:text-sm">
+                      <thead>
+                        <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600">
+                          <th className="py-3 px-3.5">รหัสบุคลากร</th>
+                          <th className="py-3 px-3.5">ชื่อ-สกุล & คุณวุฒิ</th>
+                          <th className="py-3 px-3.5">สาขาวิชา</th>
+                          <th className="py-3 px-3.5">สถานะแบบสำรวจ</th>
+                          <th className="py-3 px-3.5">งานวิจัยที่คาดว่าจะทำ</th>
+                          <th className="py-3 px-3.5 text-right">ดำเนินการ (Actions)</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {adminTeachersFiltered.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-12 text-center text-slate-400">
+                              ไม่พบข้อมูลอาจารย์ที่ตรงกับเงื่อนไขการค้นหา
+                            </td>
+                          </tr>
+                        ) : (
+                          adminTeachersFiltered.map((teacher) => {
+                            const survey = teacherSurveys.find(
+                              (s) => s.Staff_ID.trim().toUpperCase() === teacher.id.trim().toUpperCase()
+                            );
+                            const isSubmitted = !!survey?.Is_Submitted;
+                            const totalResearch = survey
+                              ? survey.research_classroom + survey.research_education + survey.research_development + survey.research_other_count
+                              : 0;
+
+                            return (
+                              <tr key={teacher.id} className="hover:bg-purple-50/40 transition-colors">
+                                <td className="py-3.5 px-3.5 font-mono font-bold text-slate-900">
+                                  {teacher.id}
+                                </td>
+                                <td className="py-3.5 px-3.5">
+                                  <p className="font-bold text-slate-900">{teacher.name}</p>
+                                  <p className="text-[11px] text-slate-500 truncate max-w-xs">
+                                    {teacher.degrees[0]?.level} {teacher.degrees[0]?.degree}
+                                  </p>
+                                </td>
+                                <td className="py-3.5 px-3.5 text-slate-700">
+                                  <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-medium">
+                                    {teacher.program}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-3.5">
+                                  {isSubmitted ? (
+                                    <div>
+                                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                        <span>ส่งแล้ว</span>
+                                      </span>
+                                      <span className="block text-[10px] text-slate-400 mt-0.5">
+                                        {survey?.Updated_At}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold border border-amber-200">
+                                      <Clock className="w-3 h-3 text-amber-600" />
+                                      <span>ยังไม่ส่ง</span>
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-3.5">
+                                  {isSubmitted ? (
+                                    <div className="text-xs">
+                                      <span className="font-extrabold text-purple-900">{totalResearch}</span> โครงการ
+                                      <span className="text-[10px] text-slate-500 block">
+                                        (ชั้นเรียน: {survey?.research_classroom}, พัฒนา: {survey?.research_development})
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-400 text-xs">-</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-3.5 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {isSubmitted && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setAdminViewingSurvey(survey || null)}
+                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200 transition-all shadow-xs"
+                                        title="ดูผลสำรวจฉบับเต็ม"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        <span>ดูผลลัพธ์</span>
+                                      </button>
+                                    )}
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setAdminEditingStaffId(teacher.id);
+                                        handleStartSurvey(teacher.id);
+                                        setActiveView("INSTRUCTOR");
+                                      }}
+                                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                                        isSubmitted
+                                          ? "bg-slate-900 hover:bg-slate-800 text-white"
+                                          : "bg-amber-400 hover:bg-amber-500 text-purple-950"
+                                      }`}
+                                      title={isSubmitted ? "แอดมินแก้ไขข้อมูล" : "แอดมินกรอกข้อมูลแทน"}
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                      <span>{isSubmitted ? "แอดมินแก้ไขข้อมูล" : "แอดมินกรอกแทน"}</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-2">
+                    <span>แสดง {adminTeachersFiltered.length} จากทั้งหมด {teachersList.length} ท่าน</span>
+                    <span>คลิก "แอดมินแก้ไขข้อมูล" เพื่อปรับปรุงคำตอบของอาจารย์ได้ตลอดเวลา</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -3522,6 +5123,282 @@ export default function FacultyEducationPortalApp() {
                   <span>ค้นหาผลงาน E-Book ของอาจารย์ท่านนี้</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Survey View Modal */}
+      {adminViewingSurvey && (
+        <div className="fixed inset-0 z-50 bg-[#0C061F]/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+          <div className={`rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 border shadow-2xl space-y-6 transition-colors my-auto ${
+            isDark 
+              ? "bg-[#160D33] border-purple-800/80 text-purple-100 shadow-[0_20px_50px_rgba(76,29,149,0.35)]" 
+              : "bg-white border-purple-200 text-purple-950 shadow-2xl"
+          }`}>
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b pb-4 border-purple-100 dark:border-purple-800/60">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-700">
+                    ADMIN SURVEY VIEWER
+                  </span>
+                  {adminViewingSurvey.Is_Submitted ? (
+                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-400/30">
+                      🟢 ส่งแล้วเมื่อ {adminViewingSurvey.Updated_At}
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-400/30">
+                      ⏳ ยังไม่ส่ง
+                    </span>
+                  )}
+                </div>
+                <h3 className={`text-xl sm:text-2xl font-black font-serif ${isDark ? "text-white" : "text-purple-950"}`}>
+                  ผลลัพธ์แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570–2574
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-purple-300/70">
+                  คณะศึกษาศาสตร์ มหาวิทยาลัยฟาฏอนี
+                </p>
+              </div>
+
+              <button
+                onClick={() => setAdminViewingSurvey(null)}
+                className={`p-2 rounded-full transition-colors ${
+                  isDark ? "hover:bg-purple-900/50 text-purple-400 hover:text-white" : "hover:bg-purple-100 text-slate-400 hover:text-purple-900"
+                }`}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* ข้อมูลประจำตัวอาจารย์ (Auto-filled) */}
+            <div className={`p-4 sm:p-5 rounded-2xl border ${
+              isDark ? "bg-[#1E1145] border-purple-800/80" : "bg-purple-50/60 border-purple-100"
+            }`}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div>
+                  <span className="text-purple-500 font-bold block mb-0.5">ชื่อ-สกุลอาจารย์ผู้สอน</span>
+                  <p className="font-extrabold text-sm text-slate-900 dark:text-white">{adminViewingSurvey.Full_Name}</p>
+                  <p className="font-mono text-[11px] text-purple-600 dark:text-purple-300">รหัส {adminViewingSurvey.Staff_ID}</p>
+                </div>
+                <div>
+                  <span className="text-purple-500 font-bold block mb-0.5">สังกัดหน่วยงาน</span>
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">{adminViewingSurvey.Department}</p>
+                  <p className="text-[11px] text-slate-500">คณะศึกษาศาสตร์</p>
+                </div>
+                <div>
+                  <span className="text-purple-500 font-bold block mb-0.5">ระดับการศึกษา / คุณวุฒิ</span>
+                  <p className="font-bold text-xs text-slate-900 dark:text-white">{adminViewingSurvey.Degree_Level || "-"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* หมวดที่ 1: ข้อมูลด้านงานวิจัย */}
+            <div className={`p-5 rounded-2xl border space-y-4 ${
+              isDark ? "bg-[#1A0E3D] border-purple-800/70" : "bg-white border-purple-200/80 shadow-xs"
+            }`}>
+              <div className="flex items-center gap-2 border-b pb-2 border-purple-100 dark:border-purple-800">
+                <Lightbulb className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <h4 className="font-bold text-base font-serif">หมวดที่ 1: ข้อมูลด้านงานวิจัย (2570–2574)</h4>
+              </div>
+
+              {/* 1.1 จำนวนงานวิจัย */}
+              <div>
+                <span className="text-xs font-bold text-purple-500 block mb-2">1. จำนวนงานวิจัยที่คาดว่าจะทำ:</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                  <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-center">
+                    <span className="text-slate-500 dark:text-purple-300 block text-[11px]">ในชั้นเรียน</span>
+                    <span className="text-lg font-black text-purple-700 dark:text-purple-300">{adminViewingSurvey.research_classroom}</span> โครงการ
+                  </div>
+                  <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-center">
+                    <span className="text-slate-500 dark:text-purple-300 block text-[11px]">เพื่อการศึกษา</span>
+                    <span className="text-lg font-black text-purple-700 dark:text-purple-300">{adminViewingSurvey.research_education}</span> โครงการ
+                  </div>
+                  <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-center">
+                    <span className="text-slate-500 dark:text-purple-300 block text-[11px]">เพื่อการพัฒนา</span>
+                    <span className="text-lg font-black text-purple-700 dark:text-purple-300">{adminViewingSurvey.research_development}</span> โครงการ
+                  </div>
+                  <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-center">
+                    <span className="text-slate-500 dark:text-purple-300 block text-[11px]">อื่นๆ {adminViewingSurvey.research_other_detail ? `(${adminViewingSurvey.research_other_detail})` : ""}</span>
+                    <span className="text-lg font-black text-purple-700 dark:text-purple-300">{adminViewingSurvey.research_other_count}</span> โครงการ
+                  </div>
+                </div>
+              </div>
+
+              {/* 1.2 แหล่งทุนวิจัย */}
+              <div>
+                <span className="text-xs font-bold text-purple-500 block mb-2">2. แหล่งทุนที่คาดว่าจะเสนอและปีที่เลือก:</span>
+                <div className="space-y-2">
+                  {RESEARCH_FUND_OPTIONS.map((fund) => {
+                    const years = adminViewingSurvey.research_funding_sources?.[fund] || [];
+                    if (years.length === 0) return null;
+                    return (
+                      <div key={fund} className="p-2.5 rounded-xl bg-purple-50/40 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <span className="font-semibold text-slate-800 dark:text-purple-200">{fund}</span>
+                        <div className="flex flex-wrap gap-1">
+                          {years.map((y) => (
+                            <span key={y} className="px-2 py-0.5 rounded-md bg-purple-600 text-white font-bold text-[10px]">
+                              พ.ศ. {y}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {Object.values(adminViewingSurvey.research_funding_sources || {}).every((arr) => arr.length === 0) && (
+                    <p className="text-xs text-slate-400 italic">ไม่ได้ระบุแหล่งทุน</p>
+                  )}
+                </div>
+              </div>
+
+              {/* 1.3 งบประมาณที่คาดว่าจะได้ */}
+              <div>
+                <span className="text-xs font-bold text-purple-500 block mb-2">3. งบประมาณที่คาดว่าจะได้จากโครงการวิจัย (รายปี):</span>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                  {SURVEY_YEARS.map((y) => (
+                    <div key={y} className="p-2.5 rounded-xl bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-center">
+                      <span className="text-[11px] font-bold text-purple-500 block">พ.ศ. {y}</span>
+                      <span className="text-xs font-black block mt-1 text-slate-900 dark:text-white">
+                        {adminViewingSurvey.research_budgets?.[String(y)] || "-"}
+                      </span>
+                      <span className="text-[10px] text-slate-400">บาท</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* หมวดที่ 2: ข้อมูลด้านการเรียนการสอน */}
+            <div className={`p-5 rounded-2xl border space-y-4 ${
+              isDark ? "bg-[#1A0E3D] border-purple-800/70" : "bg-white border-purple-200/80 shadow-xs"
+            }`}>
+              <div className="flex items-center gap-2 border-b pb-2 border-purple-100 dark:border-purple-800">
+                <BookOpen className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <h4 className="font-bold text-base font-serif">หมวดที่ 2: ข้อมูลด้านการเรียนการสอน</h4>
+              </div>
+
+              {/* 2.1 โหลดชั่วโมงสอน */}
+              <div>
+                <span className="text-xs font-bold text-purple-500 block mb-2">1. โหลดชั่วโมงสอน (2568–2569):</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  {TEACHING_LOAD_SEMESTERS.map((sem) => (
+                    <div key={sem} className="p-2.5 rounded-xl bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-center">
+                      <span className="text-[11px] font-bold text-purple-500 block">ภาค {sem}</span>
+                      <span className="text-xs font-black block mt-0.5 text-slate-900 dark:text-white">
+                        {adminViewingSurvey.teaching_load?.[sem] || "-"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2.2 และ 2.3 กิจกรรมลงพื้นที่ & หน่วยงาน */}
+              <div>
+                <span className="text-xs font-bold text-purple-500 block mb-2">2 & 3. กิจกรรมลงพื้นที่และหน่วยงานเป้าหมาย (6 ภาคเรียน):</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                  {FIELDWORK_SEMESTERS.map((sem) => {
+                    const hasField = adminViewingSurvey.fieldwork_presence?.[sem] === "มี";
+                    const agency = adminViewingSurvey.fieldwork_agencies?.[sem] || "-";
+                    return (
+                      <div key={sem} className="p-2.5 rounded-xl bg-purple-50/40 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/60 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-purple-500">ภาคเรียน {sem}</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            hasField ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-slate-200 text-slate-600"
+                          }`}>
+                            {hasField ? "มีลงพื้นที่" : "ไม่มี"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-700 dark:text-purple-200">
+                          หน่วยงาน: <span className="font-semibold">{agency}</span>
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* หมวดที่ 3: ข้อมูลด้านบริการวิชาการ */}
+            <div className={`p-5 rounded-2xl border space-y-4 ${
+              isDark ? "bg-[#1A0E3D] border-purple-800/70" : "bg-white border-purple-200/80 shadow-xs"
+            }`}>
+              <div className="flex items-center gap-2 border-b pb-2 border-purple-100 dark:border-purple-800">
+                <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <h4 className="font-bold text-base font-serif">หมวดที่ 3: ข้อมูลด้านบริการวิชาการ</h4>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800">
+                  <span className="text-purple-500 font-bold block mb-1">1. จำนวนกิจกรรมบริการวิชาการ (2570–2574):</span>
+                  <p className="text-xl font-black text-purple-700 dark:text-purple-300">
+                    {adminViewingSurvey.academic_service_count} <span className="text-xs font-normal text-slate-500">กิจกรรม</span>
+                  </p>
+                  {adminViewingSurvey.academic_service_other_detail && (
+                    <p className="text-[11px] text-slate-500 mt-1">({adminViewingSurvey.academic_service_other_detail})</p>
+                  )}
+                </div>
+
+                <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800">
+                  <span className="text-purple-500 font-bold block mb-1">3. หลักเกณฑ์ในการคัดเลือก:</span>
+                  <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                    {adminViewingSurvey.selection_criteria_percentage || "10%"}
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-1">เกณฑ์ขั้นต่ำความพร้อมของกลุ่มเป้าหมาย</p>
+                </div>
+              </div>
+
+              {/* กลุ่มเป้าหมาย */}
+              <div>
+                <span className="text-xs font-bold text-purple-500 block mb-2">2. ชุมชนหรือกลุ่มเป้าหมายและปีที่เลือก:</span>
+                <div className="space-y-1.5">
+                  {TARGET_COMMUNITY_OPTIONS.map((comm) => {
+                    const years = adminViewingSurvey.target_communities?.[comm] || [];
+                    if (years.length === 0) return null;
+                    return (
+                      <div key={comm} className="p-2.5 rounded-xl bg-purple-50/40 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <span className="font-semibold text-slate-800 dark:text-purple-200">{comm}</span>
+                        <div className="flex flex-wrap gap-1">
+                          {years.map((y) => (
+                            <span key={y} className="px-2 py-0.5 rounded-md bg-purple-600 text-white font-bold text-[10px]">
+                              พ.ศ. {y}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {Object.values(adminViewingSurvey.target_communities || {}).every((arr) => arr.length === 0) && (
+                    <p className="text-xs text-slate-400 italic">ไม่ได้ระบุกลุ่มเป้าหมาย</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-purple-100 dark:border-purple-800/60">
+              <button
+                type="button"
+                onClick={() => setAdminViewingSurvey(null)}
+                className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-purple-800 text-xs font-bold hover:bg-slate-100 dark:hover:bg-purple-900/40 transition-colors"
+              >
+                ปิดหน้าต่าง
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const staffId = adminViewingSurvey.Staff_ID;
+                  setAdminViewingSurvey(null);
+                  setAdminEditingStaffId(staffId);
+                  handleStartSurvey(staffId);
+                  setActiveView("INSTRUCTOR");
+                }}
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all hover:scale-105 active:scale-95"
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>✏️ แอดมินแก้ไขข้อมูลชุดนี้</span>
+              </button>
             </div>
           </div>
         </div>
