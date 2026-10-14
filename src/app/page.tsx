@@ -44,7 +44,10 @@ import {
   Lightbulb,
   Compass,
   DollarSign,
-  Briefcase
+  Briefcase,
+  Sun,
+  Moon,
+  Type
 } from "lucide-react";
 
 import {
@@ -75,6 +78,11 @@ export default function FacultyEducationPortalApp() {
   const [loginStaffId, setLoginStaffId] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+
+  // Theme & Accessibility State (Light macOS default + Dark Mode + Font Size Scaler for elderly/mobile)
+  const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
+  const [fontSizeScale, setFontSizeScale] = useState<"normal" | "large" | "xlarge">("normal");
+  const isDark = themeMode === "dark";
 
   // System Settings: เปิด/ปิดการกรอกข้อมูลโดยแอดมิน (Admin Submission Toggle)
   const [isSubmissionOpen, setIsSubmissionOpen] = useState(true);
@@ -166,7 +174,7 @@ export default function FacultyEducationPortalApp() {
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  // LocalStorage SWR Caching
+  // LocalStorage SWR Caching & Accessibility Settings
   useEffect(() => {
     try {
       const cachedStaff = localStorage.getItem("edu_staff_v3");
@@ -174,12 +182,18 @@ export default function FacultyEducationPortalApp() {
       const cachedWorks = localStorage.getItem("edu_works_v3");
       const cachedExec = localStorage.getItem("edu_exec_v3");
       const cachedSub = localStorage.getItem("edu_submission_open");
+      const cachedTheme = localStorage.getItem("edu_theme_v3");
+      const cachedScale = localStorage.getItem("edu_scale_v3");
 
       if (cachedStaff) setStaffList(JSON.parse(cachedStaff));
       if (cachedInst) setInstructorForms(JSON.parse(cachedInst));
       if (cachedWorks) setPortfolioWorks(JSON.parse(cachedWorks));
       if (cachedExec) setExecutiveForms(JSON.parse(cachedExec));
       if (cachedSub !== null) setIsSubmissionOpen(JSON.parse(cachedSub));
+      if (cachedTheme === "dark" || cachedTheme === "light") setThemeMode(cachedTheme);
+      if (cachedScale === "normal" || cachedScale === "large" || cachedScale === "xlarge") {
+        setFontSizeScale(cachedScale);
+      }
     } catch (e) {
       console.warn("LocalStorage cache error:", e);
     }
@@ -200,6 +214,66 @@ export default function FacultyEducationPortalApp() {
       console.warn("Failed to persist to localStorage", e);
     }
   }, [staffList, instructorForms, portfolioWorks, executiveForms, isSubmissionOpen]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("edu_theme_v3", themeMode);
+    } catch (e) {}
+  }, [themeMode]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("edu_scale_v3", fontSizeScale);
+      if (typeof document !== "undefined") {
+        if (fontSizeScale === "xlarge") {
+          document.documentElement.style.fontSize = "19px";
+        } else if (fontSizeScale === "large") {
+          document.documentElement.style.fontSize = "17.5px";
+        } else {
+          document.documentElement.style.fontSize = "15.5px";
+        }
+      }
+    } catch (e) {}
+  }, [fontSizeScale]);
+
+  const handleToggleFontSize = () => {
+    if (fontSizeScale === "normal") {
+      setFontSizeScale("large");
+      showToast("🔤 ปรับขนาดตัวอักษร: ใหญ่ (115%) อ่านสบายตา");
+    } else if (fontSizeScale === "large") {
+      setFontSizeScale("xlarge");
+      showToast("🔤 ปรับขนาดตัวอักษร: ใหญ่พิเศษ (125%) สำหรับผู้สูงอายุ");
+    } else {
+      setFontSizeScale("normal");
+      showToast("🔤 ปรับขนาดตัวอักษร: ปกติ (100%)");
+    }
+  };
+
+  const handleDecreaseFontSize = () => {
+    if (fontSizeScale === "xlarge") {
+      setFontSizeScale("large");
+      showToast("🔤 ปรับขนาดตัวอักษร: ใหญ่ (115%)");
+    } else if (fontSizeScale === "large") {
+      setFontSizeScale("normal");
+      showToast("🔤 ปรับขนาดตัวอักษร: ปกติ (100%)");
+    }
+  };
+
+  const handleIncreaseFontSize = () => {
+    if (fontSizeScale === "normal") {
+      setFontSizeScale("large");
+      showToast("🔤 ปรับขนาดตัวอักษร: ใหญ่ (115%)");
+    } else if (fontSizeScale === "large") {
+      setFontSizeScale("xlarge");
+      showToast("🔤 ปรับขนาดตัวอักษร: ใหญ่พิเศษ (125%)");
+    }
+  };
+
+  const toggleTheme = () => {
+    const next = themeMode === "light" ? "dark" : "light";
+    setThemeMode(next);
+    showToast(next === "light" ? "☀️ ธีมสว่าง สไตล์ macOS เรียบหรู" : "🌙 ธีมมืด (Dark Mode)");
+  };
 
   const syncWithGAS = async () => {
     if (!GAS_API_URL) return;
@@ -604,55 +678,156 @@ export default function FacultyEducationPortalApp() {
   }, [adminYearMode, adminSelectedYear, instructorForms, portfolioWorks]);
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 font-sans selection:bg-blue-600 selection:text-white antialiased">
+    <div className={`min-h-screen font-sans transition-colors duration-300 ${
+      isDark ? "bg-[#0B0F19] text-slate-100" : "bg-[#F5F5F7] text-slate-900"
+    } antialiased`}>
       {/* Toast Alert */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 animate-in fade-in slide-in-from-bottom-5">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <span className="text-sm font-medium tracking-wide">{toastMsg}</span>
         </div>
       )}
 
       {/* ====================================================================
-          HEADER: Dark Mode Modern Academic Style (คณะศึกษาศาสตร์)
+          HEADER: Responsive macOS Light / Dark Mode Header
          ==================================================================== */}
       {activeView !== "ADMIN" && (
-        <header className="sticky top-0 z-30 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800/80">
+        <header className={`sticky top-0 z-30 transition-colors duration-300 ${
+          isDark 
+            ? "bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800/80 text-white" 
+            : "bg-white/80 backdrop-blur-xl border-b border-black/[0.08] text-slate-900 shadow-xs"
+        }`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 h-18 py-3 flex items-center justify-between">
+            {/* Left: macOS Traffic Lights (if Light Mode) + Logo & Title */}
             <div
               onClick={() => setActiveView("HOME")}
               className="flex items-center gap-3.5 cursor-pointer group"
             >
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-700 to-indigo-900 text-amber-300 flex items-center justify-center font-bold shadow-lg group-hover:scale-105 transition-transform border border-blue-500/30">
+              {/* macOS Window Controls Dot Indicator */}
+              <div className="hidden lg:flex items-center gap-1.5 mr-1" title="macOS Style Controls">
+                <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/50 shadow-xs" />
+                <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/50 shadow-xs" />
+                <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/50 shadow-xs" />
+              </div>
+
+              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold shadow-md group-hover:scale-105 transition-transform ${
+                isDark 
+                  ? "bg-gradient-to-br from-blue-700 to-indigo-900 text-amber-300 border border-blue-500/30" 
+                  : "bg-gradient-to-br from-blue-600 to-blue-800 text-white border border-blue-500/20 shadow-blue-500/20"
+              }`}>
                 <GraduationCap className="w-6 h-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-extrabold text-base sm:text-lg tracking-tight text-white font-serif">
+                  <h1 className={`font-extrabold text-base sm:text-lg tracking-tight font-serif ${
+                    isDark ? "text-white" : "text-slate-900"
+                  }`}>
                     คณะศึกษาศาสตร์
                   </h1>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-950/80 text-blue-300 border border-blue-800/60 hidden sm:inline-block">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md hidden sm:inline-block ${
+                    isDark
+                      ? "bg-blue-950/80 text-blue-300 border border-blue-800/60"
+                      : "bg-blue-50 text-blue-700 border border-blue-200/80"
+                  }`}>
                     พ.ศ. 2570–2574
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 font-normal">
-                  ศูนย์บริหารข้อมูลยุทธศาสตร์ คลังผลงาน E-Book & ทำเนียบคณาจารย์ 12 สาขาวิชา
+                <p className={`text-xs font-normal truncate max-w-[220px] sm:max-w-none ${
+                  isDark ? "text-slate-400" : "text-slate-500"
+                }`}>
+                  ระบบสารสนเทศยุทธศาสตร์ คลังผลงาน E-Book & ทำเนียบคณาจารย์ 12 สาขาวิชา
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 sm:gap-4">
+            {/* Right: Accessibility Font Scaler + Theme Toggle + Auth */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* ปุ่มปรับขยายตัวอักษรสำหรับผู้สูงวัย / สายตาสั้น (Desktop & Tablet) */}
+              <div className={`hidden sm:flex items-center rounded-xl p-1 border text-xs ${
+                isDark 
+                  ? "bg-[#141C2E] border-slate-700/80 text-slate-300" 
+                  : "bg-slate-100/90 border-slate-200/90 text-slate-700"
+              }`} title="ปรับขนาดตัวอักษรสำหรับผู้สูงอายุ / สายตาสั้น">
+                <span className="text-[10px] font-bold px-1.5 text-slate-400 flex items-center gap-1">
+                  <Type className="w-3.5 h-3.5" /> อักษร:
+                </span>
+                <button
+                  type="button"
+                  onClick={handleDecreaseFontSize}
+                  disabled={fontSizeScale === "normal"}
+                  className="px-2 py-1 rounded-lg hover:bg-black/10 disabled:opacity-30 font-bold transition-colors"
+                  title="ลดขนาดตัวอักษร"
+                >
+                  ก-
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToggleFontSize}
+                  className={`px-2 py-1 rounded-lg font-bold text-[11px] transition-all ${
+                    fontSizeScale !== "normal" 
+                      ? "bg-blue-600 text-white shadow-xs" 
+                      : "hover:bg-black/10"
+                  }`}
+                  title="คลิกเพื่อสลับขนาดตัวอักษร (ปกติ -> ใหญ่ -> ใหญ่พิเศษ)"
+                >
+                  {fontSizeScale === "normal" ? "ปกติ" : fontSizeScale === "large" ? "ใหญ่ (115%)" : "ใหญ่พิเศษ (125%)"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleIncreaseFontSize}
+                  disabled={fontSizeScale === "xlarge"}
+                  className="px-2 py-1 rounded-lg hover:bg-black/10 disabled:opacity-30 font-bold transition-colors"
+                  title="เพิ่มขนาดตัวอักษร"
+                >
+                  ก+
+                </button>
+              </div>
+
+              {/* ปุ่มสลับธีม ☀️ สว่าง (macOS) / 🌙 มืด (Dark) */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                  isDark
+                    ? "bg-[#141C2E] border-slate-700 text-amber-300 hover:bg-[#1A263D]"
+                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs"
+                }`}
+                title="สลับธีม สว่าง (macOS) / มืด (Dark Mode)"
+              >
+                {isDark ? (
+                  <>
+                    <Sun className="w-4 h-4 text-amber-400" />
+                    <span className="hidden md:inline">ธีมสว่าง (macOS)</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-4 h-4 text-blue-600" />
+                    <span className="hidden md:inline">ธีมมืด</span>
+                  </>
+                )}
+              </button>
+
+              {/* Login / Dashboard Button */}
               {currentUser ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => setActiveView(currentUser.Role)}
-                    className="text-xs sm:text-sm font-bold px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 transition-colors border border-slate-700"
+                    className={`text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition-colors border ${
+                      isDark 
+                        ? "bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700" 
+                        : "bg-slate-900 hover:bg-slate-800 text-white border-slate-900 shadow-sm"
+                    }`}
                   >
                     แดชบอร์ด: {currentUser.Full_Name.split(" ")[0]}
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="p-2 rounded-xl border border-slate-700 text-slate-400 hover:bg-red-950/60 hover:text-red-400 transition-colors"
+                    className={`p-2 rounded-xl border transition-colors ${
+                      isDark 
+                        ? "border-slate-700 text-slate-400 hover:bg-red-950/60 hover:text-red-400" 
+                        : "border-slate-200 text-slate-600 hover:bg-red-50 hover:text-red-600"
+                    }`}
                     title="ออกจากระบบ"
                   >
                     <LogOut className="w-4 h-4" />
@@ -661,39 +836,108 @@ export default function FacultyEducationPortalApp() {
               ) : (
                 <button
                   onClick={() => setLoginModalRole("ADMIN")}
-                  className="flex items-center gap-2 text-xs sm:text-sm font-bold px-4 py-2 rounded-full border border-slate-700 bg-[#141C2E] hover:bg-[#1A263D] text-slate-200 shadow-xs transition-all"
+                  className={`flex items-center gap-1.5 text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl border shadow-xs transition-all ${
+                    isDark 
+                      ? "border-slate-700 bg-[#141C2E] hover:bg-[#1A263D] text-slate-200" 
+                      : "border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+                  }`}
                 >
-                  <ShieldCheck className="w-4 h-4 text-amber-400" />
-                  <span>เจ้าหน้าที่แอดมิน</span>
+                  <ShieldCheck className="w-4 h-4 text-amber-500" />
+                  <span className="hidden sm:inline">เจ้าหน้าที่แอดมิน</span>
+                  <span className="sm:hidden">แอดมิน</span>
                 </button>
               )}
             </div>
+          </div>
+
+          {/* แถบพิเศษสำหรับมือถือ: ปรับขยายตัวอักษร & สลับธีม (Mobile Quick Accessibility Bar) */}
+          <div className={`sm:hidden px-4 py-2 border-t flex items-center justify-between text-xs transition-colors ${
+            isDark 
+              ? "bg-[#0E1524] border-slate-800 text-slate-300" 
+              : "bg-slate-50 border-slate-200/80 text-slate-700"
+          }`}>
+            <div className="flex items-center gap-1">
+              <span className="font-bold text-[11px] text-slate-500 mr-1 flex items-center gap-1">
+                <Type className="w-3.5 h-3.5" /> อักษร:
+              </span>
+              <button
+                type="button"
+                onClick={handleDecreaseFontSize}
+                disabled={fontSizeScale === "normal"}
+                className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs disabled:opacity-30 border ${
+                  isDark ? "bg-[#182238] border-slate-700" : "bg-white border-slate-200 shadow-xs"
+                }`}
+                title="ลดขนาดตัวอักษร"
+              >
+                ก-
+              </button>
+              <button
+                type="button"
+                onClick={handleToggleFontSize}
+                className={`px-2.5 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-colors ${
+                  fontSizeScale !== "normal" 
+                    ? "bg-blue-600 text-white shadow-xs" 
+                    : isDark ? "bg-[#182238] text-slate-300 border border-slate-700" : "bg-white text-slate-700 border border-slate-200"
+                }`}
+                title="สลับขนาดตัวอักษร"
+              >
+                {fontSizeScale === "normal" ? "ปกติ" : fontSizeScale === "large" ? "ใหญ่" : "ใหญ่มาก"}
+              </button>
+              <button
+                type="button"
+                onClick={handleIncreaseFontSize}
+                disabled={fontSizeScale === "xlarge"}
+                className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs disabled:opacity-30 border ${
+                  isDark ? "bg-[#182238] border-slate-700" : "bg-white border-slate-200 shadow-xs"
+                }`}
+                title="เพิ่มขนาดตัวอักษร"
+              >
+                ก+
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border ${
+                isDark ? "bg-[#182238] border-slate-700 text-amber-300" : "bg-white border-slate-200 text-slate-700 shadow-xs"
+              }`}
+            >
+              {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-blue-600" />}
+              <span>{isDark ? "ธีมสว่าง" : "ธีมมืด"}</span>
+            </button>
           </div>
         </header>
       )}
 
       {/* ====================================================================
-          VIEW 1: หน้าหลัก (HOME) - Dark Mode Bento Grid (Neo-Fintech Card Style)
+          VIEW 1: หน้าหลัก (HOME) - macOS Light / Dark Mode Bento Grid
          ==================================================================== */}
       {activeView === "HOME" && (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-7">
-          {/* Top Title & Quick Action Bar (เหมือน "ภาพรวม" และปุ่ม "+ เพิ่ม" ในรูปตัวอย่าง) */}
+          {/* Top Title & Quick Action Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-serif">
+                <h2 className={`text-2xl sm:text-3xl font-black tracking-tight font-serif ${
+                  isDark ? "text-white" : "text-slate-900"
+                }`}>
                   ภาพรวมระบบ
                 </h2>
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                   isSubmissionOpen 
-                    ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/80" 
-                    : "bg-amber-950/80 text-amber-400 border border-amber-800/80"
+                    ? isDark 
+                      ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/80" 
+                      : "bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-xs"
+                    : isDark 
+                      ? "bg-amber-950/80 text-amber-400 border border-amber-800/80" 
+                      : "bg-amber-50 text-amber-800 border border-amber-200 shadow-xs"
                 }`}>
-                  <span className={`w-2 h-2 rounded-full ${isSubmissionOpen ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+                  <span className={`w-2 h-2 rounded-full ${isSubmissionOpen ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
                   {isSubmissionOpen ? "เปิดรับแบบสำรวจ 2570–2574" : "ปิดรับชั่วคราว"}
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              <p className={`text-xs sm:text-sm mt-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                 ระบบสารสนเทศคณะศึกษาศาสตร์ แผนยุทธศาสตร์ พ.ศ. 2570–2574 & คลังผลงานวิชาการ 12 สาขาวิชา
               </p>
             </div>
@@ -703,15 +947,23 @@ export default function FacultyEducationPortalApp() {
                 href={SHEET_TEACHER_HISTORY_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#162032] hover:bg-[#1E2C44] border border-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+                className={`hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-semibold transition-colors ${
+                  isDark 
+                    ? "bg-[#162032] hover:bg-[#1E2C44] border-slate-700 text-slate-200" 
+                    : "bg-white hover:bg-slate-50 border-slate-200/90 text-slate-700 shadow-xs"
+                }`}
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
                 <span>Google Sheet ฐานข้อมูล</span>
               </a>
 
               <button
                 onClick={() => setLoginModalRole("ADMIN")}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white hover:bg-slate-100 text-slate-950 text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95 ${
+                  isDark 
+                    ? "bg-white hover:bg-slate-100 text-slate-950" 
+                    : "bg-slate-900 hover:bg-slate-800 text-white"
+                }`}
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" />
                 <span>ผู้ดูแลระบบ</span>
@@ -727,7 +979,11 @@ export default function FacultyEducationPortalApp() {
                 if (currentUser?.Role === "INSTRUCTOR") setActiveView("INSTRUCTOR");
                 else setLoginModalRole("INSTRUCTOR");
               }}
-              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E3A8A] via-[#172554] to-[#0A101D] p-7 sm:p-8 text-white border-2 border-blue-500/50 hover:border-blue-400 shadow-2xl shadow-blue-950/60 hover:shadow-blue-600/25 transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px]"
+              className={`group relative overflow-hidden rounded-3xl p-7 sm:p-8 text-white border-2 shadow-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px] ${
+                isDark 
+                  ? "bg-gradient-to-br from-[#1E3A8A] via-[#172554] to-[#0A101D] border-blue-500/50 hover:border-blue-400 shadow-blue-950/60 hover:shadow-blue-600/25" 
+                  : "bg-gradient-to-br from-[#1D4ED8] via-[#1E40AF] to-[#1E3A8A] border-blue-300/60 hover:border-blue-200 shadow-xl shadow-blue-600/20 hover:shadow-blue-600/30"
+              }`}
             >
               <div className="absolute -right-10 -bottom-10 w-52 h-52 rounded-full bg-blue-500/15 pointer-events-none blur-3xl" />
               <div className="absolute right-12 top-6 w-32 h-32 rounded-full bg-indigo-500/20 pointer-events-none blur-2xl" />
@@ -735,14 +991,14 @@ export default function FacultyEducationPortalApp() {
               <div>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center border border-blue-400/30">
-                      <UserCheck className="w-5 h-5 text-blue-300" />
+                    <div className="w-10 h-10 rounded-xl bg-white/20 text-blue-100 flex items-center justify-center border border-white/30 backdrop-blur-xs">
+                      <UserCheck className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-blue-300">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-blue-200">
                         สำหรับอาจารย์ผู้สอน
                       </span>
-                      <p className="text-xs text-blue-200/70">Faculty Member Portal</p>
+                      <p className="text-xs text-blue-100/75">Faculty Member Portal</p>
                     </div>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-white text-blue-950 font-black text-xs tracking-wider shadow-md">
@@ -754,22 +1010,26 @@ export default function FacultyEducationPortalApp() {
                   <h3 className="text-2xl sm:text-3xl font-black text-white font-serif tracking-tight group-hover:text-blue-100 transition-colors">
                     1. เข้าสู่ระบบอาจารย์ผู้สอน
                   </h3>
-                  <p className="text-xs sm:text-sm text-blue-100/80 mt-2 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-blue-100/90 mt-2 leading-relaxed">
                     บันทึกและตรวจสอบประวัติข้อมูล 5 หมวดหมู่ • กรอกแบบสำรวจแผน 2570–2574 • อัปโหลดตำรา E-Book เผยแพร่สู่คลังสาธารณะ
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-blue-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-blue-200/80 font-mono text-xs">
+              <div className="mt-6 pt-4 border-t border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-blue-100/90 font-mono text-xs">
                   <span>รหัสบุคลากร:</span>
-                  <span className="font-bold text-white bg-blue-900/60 px-2 py-0.5 rounded border border-blue-700/50">
+                  <span className="font-bold text-white bg-black/25 px-2 py-0.5 rounded border border-white/20">
                     EDU-001 ~ EDU-067
                   </span>
                 </div>
                 <button
                   type="button"
-                  className="px-5 py-3 rounded-2xl bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all group-hover:translate-x-1"
+                  className={`px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all group-hover:translate-x-1 ${
+                    isDark 
+                      ? "bg-blue-500 hover:bg-blue-400 text-white shadow-blue-500/30" 
+                      : "bg-white hover:bg-blue-50 text-blue-900 shadow-black/10 font-black"
+                  }`}
                 >
                   <span>เข้าสู่ระบบอาจารย์</span>
                   <ChevronRight className="w-4 h-4" />
@@ -783,7 +1043,11 @@ export default function FacultyEducationPortalApp() {
                 if (currentUser?.Role === "EXECUTIVE") setActiveView("EXECUTIVE");
                 else setLoginModalRole("EXECUTIVE");
               }}
-              className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#EA580C] via-[#9A3412] to-[#0A101D] p-7 sm:p-8 text-white border-2 border-orange-500/50 hover:border-orange-400 shadow-2xl shadow-orange-950/60 hover:shadow-orange-600/25 transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px]"
+              className={`group relative overflow-hidden rounded-3xl p-7 sm:p-8 text-white border-2 shadow-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px] ${
+                isDark 
+                  ? "bg-gradient-to-br from-[#EA580C] via-[#9A3412] to-[#0A101D] border-orange-500/50 hover:border-orange-400 shadow-orange-950/60 hover:shadow-orange-600/25" 
+                  : "bg-gradient-to-br from-[#EA580C] via-[#C2410C] to-[#9A3412] border-orange-300/60 hover:border-orange-200 shadow-xl shadow-orange-600/20 hover:shadow-orange-600/30"
+              }`}
             >
               <div className="absolute -right-10 -bottom-10 w-52 h-52 rounded-full bg-amber-500/15 pointer-events-none blur-3xl" />
               <div className="absolute right-12 top-6 w-32 h-32 rounded-full bg-orange-500/20 pointer-events-none blur-2xl" />
@@ -791,14 +1055,14 @@ export default function FacultyEducationPortalApp() {
               <div>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-300 flex items-center justify-center border border-orange-400/30">
-                      <Building2 className="w-5 h-5 text-orange-300" />
+                    <div className="w-10 h-10 rounded-xl bg-white/20 text-orange-100 flex items-center justify-center border border-white/30 backdrop-blur-xs">
+                      <Building2 className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <span className="text-[11px] font-bold uppercase tracking-wider text-orange-200">
                         สำหรับผู้บริหาร
                       </span>
-                      <p className="text-xs text-orange-200/70">Department Executive Portal</p>
+                      <p className="text-xs text-orange-100/75">Department Executive Portal</p>
                     </div>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-white text-orange-950 font-black text-xs tracking-wider shadow-md">
@@ -810,22 +1074,26 @@ export default function FacultyEducationPortalApp() {
                   <h3 className="text-2xl sm:text-3xl font-black text-white font-serif tracking-tight group-hover:text-amber-100 transition-colors">
                     2. เข้าสู่ระบบผู้บริหาร (หัวหน้าสาขา)
                   </h3>
-                  <p className="text-xs sm:text-sm text-orange-100/80 mt-2 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-orange-100/90 mt-2 leading-relaxed">
                     รายงานสรุปและประเมินผลเฉพาะสาขาวิชาของตนเองเท่านั้น (Department Isolation 100%) ครบทั้ง 12 สาขาวิชา
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-orange-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-orange-200/80 font-mono text-xs">
+              <div className="mt-6 pt-4 border-t border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-orange-100/90 font-mono text-xs">
                   <span>สิทธิ์การเข้าถึง:</span>
-                  <span className="font-bold text-white bg-orange-950/80 px-2 py-0.5 rounded border border-orange-700/50">
+                  <span className="font-bold text-white bg-black/25 px-2 py-0.5 rounded border border-white/20">
                     12 สาขาวิชา (แยกอิสระ)
                   </span>
                 </div>
                 <button
                   type="button"
-                  className="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition-all group-hover:translate-x-1"
+                  className={`px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all group-hover:translate-x-1 ${
+                    isDark 
+                      ? "bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-500/30 font-black" 
+                      : "bg-white hover:bg-orange-50 text-orange-950 shadow-black/10 font-black"
+                  }`}
                 >
                   <span>เข้าสู่ระบบผู้บริหาร</span>
                   <ChevronRight className="w-4 h-4" />
@@ -836,51 +1104,67 @@ export default function FacultyEducationPortalApp() {
 
           {/* แถวที่ 2: สถิติภาพรวม 4 บล็อก (ไม่เด่นมาก สุขุมมินิมอล เน้นมือถือ) ตามรูปแนบ 2 */}
           <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <div className="rounded-2xl bg-[#121929]/80 border border-slate-800/90 p-4 text-white flex flex-col justify-between min-h-[95px] sm:min-h-[105px]">
+            <div className={`rounded-2xl p-4 flex flex-col justify-between min-h-[95px] sm:min-h-[105px] border transition-colors ${
+              isDark 
+                ? "bg-[#121929]/80 border-slate-800/90 text-white" 
+                : "bg-white/95 border-black/[0.06] shadow-[0_2px_10px_rgba(0,0,0,0.03)] text-slate-800"
+            }`}>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs text-slate-400 font-medium">หัวข้อแบบสำรวจ</span>
-                <span className="w-2 h-2 rounded-full bg-purple-400" />
+                <span className={`text-[11px] sm:text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>หัวข้อแบบสำรวจ</span>
+                <span className="w-2 h-2 rounded-full bg-purple-500" />
               </div>
               <div>
-                <p className="text-xl sm:text-2xl font-black text-white">5 ด้าน</p>
-                <p className="text-[10px] text-slate-400 mt-0.5 truncate">การสอน • วิจัย • E-Book</p>
+                <p className={`text-xl sm:text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>5 ด้าน</p>
+                <p className={`text-[10px] mt-0.5 truncate ${isDark ? "text-slate-400" : "text-slate-500"}`}>การสอน • วิจัย • E-Book</p>
               </div>
             </div>
 
-            <div className="rounded-2xl bg-[#121929]/80 border border-slate-800/90 p-4 text-white flex flex-col justify-between min-h-[95px] sm:min-h-[105px]">
+            <div className={`rounded-2xl p-4 flex flex-col justify-between min-h-[95px] sm:min-h-[105px] border transition-colors ${
+              isDark 
+                ? "bg-[#121929]/80 border-slate-800/90 text-white" 
+                : "bg-white/95 border-black/[0.06] shadow-[0_2px_10px_rgba(0,0,0,0.03)] text-slate-800"
+            }`}>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs text-slate-400 font-medium">คณาจารย์ประจำคณะ</span>
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span className={`text-[11px] sm:text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>คณาจารย์ประจำคณะ</span>
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
               </div>
               <div>
-                <p className="text-xl sm:text-2xl font-black text-white">67 ท่าน</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">ครบทั้ง 12 สาขาวิชา</p>
+                <p className={`text-xl sm:text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>67 ท่าน</p>
+                <p className={`text-[10px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-500"}`}>ครบทั้ง 12 สาขาวิชา</p>
               </div>
             </div>
 
-            <div className="rounded-2xl bg-[#121929]/80 border border-slate-800/90 p-4 text-white flex flex-col justify-between min-h-[95px] sm:min-h-[105px]">
+            <div className={`rounded-2xl p-4 flex flex-col justify-between min-h-[95px] sm:min-h-[105px] border transition-colors ${
+              isDark 
+                ? "bg-[#121929]/80 border-slate-800/90 text-white" 
+                : "bg-white/95 border-black/[0.06] shadow-[0_2px_10px_rgba(0,0,0,0.03)] text-slate-800"
+            }`}>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs text-slate-400 font-medium">คลัง E-Book สาธารณะ</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className={`text-[11px] sm:text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>คลัง E-Book สาธารณะ</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
               </div>
               <div>
-                <p className="text-xl sm:text-2xl font-black text-white">
+                <p className={`text-xl sm:text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
                   {portfolioWorks.filter((w) => w.Is_Public).length} เล่ม
                 </p>
-                <p className="text-[10px] text-slate-400 mt-0.5">เปิดให้อ่าน Flip Reader ฟรี</p>
+                <p className={`text-[10px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-500"}`}>เปิดให้อ่าน Flip Reader ฟรี</p>
               </div>
             </div>
 
-            <div className="rounded-2xl bg-[#121929]/80 border border-slate-800/90 p-4 text-white flex flex-col justify-between min-h-[95px] sm:min-h-[105px]">
+            <div className={`rounded-2xl p-4 flex flex-col justify-between min-h-[95px] sm:min-h-[105px] border transition-colors ${
+              isDark 
+                ? "bg-[#121929]/80 border-slate-800/90 text-white" 
+                : "bg-white/95 border-black/[0.06] shadow-[0_2px_10px_rgba(0,0,0,0.03)] text-slate-800"
+            }`}>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs text-slate-400 font-medium">สถานะแบบสำรวจ</span>
-                <span className={`w-2 h-2 rounded-full ${isSubmissionOpen ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+                <span className={`text-[11px] sm:text-xs font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>สถานะแบบสำรวจ</span>
+                <span className={`w-2 h-2 rounded-full ${isSubmissionOpen ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
               </div>
               <div>
-                <p className="text-lg sm:text-xl font-bold text-white">
+                <p className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                   {isSubmissionOpen ? "เปิดรับข้อมูล" : "ปิดรับชั่วคราว"}
                 </p>
-                <p className="text-[10px] text-slate-400 mt-0.5">Google Sheets Real-time</p>
+                <p className={`text-[10px] mt-0.5 ${isDark ? "text-slate-400" : "text-slate-500"}`}>Google Sheets Real-time</p>
               </div>
             </div>
           </section>
@@ -888,33 +1172,45 @@ export default function FacultyEducationPortalApp() {
           {/* แถวที่ 3: แถบผู้ดูแลระบบ (Admin) แบบกระชับ ไม่เด่นเกินไป ตามรูปแนบ 3 */}
           <div
             onClick={() => setLoginModalRole("ADMIN")}
-            className="p-3 sm:p-3.5 rounded-2xl bg-[#0E1626]/70 border border-slate-800/90 hover:border-slate-700 hover:bg-[#131E33] flex items-center justify-between text-xs sm:text-sm text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
+            className={`p-3 sm:p-3.5 rounded-2xl border flex items-center justify-between text-xs sm:text-sm cursor-pointer transition-all ${
+              isDark 
+                ? "bg-[#0E1626]/70 border-slate-800/90 hover:border-slate-700 hover:bg-[#131E33] text-slate-400 hover:text-slate-200" 
+                : "bg-white/95 border-black/[0.06] hover:bg-slate-50/90 text-slate-600 hover:text-slate-900 shadow-xs"
+            }`}
           >
             <div className="flex items-center gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
               <span className="truncate">
-                <strong className="text-slate-200">ศูนย์ดูแลระบบ (Admin Command):</strong> จัดการสิทธิ์บุคลากร • เปิด/ปิดรับแบบสำรวจ • วิเคราะห์กราฟสรุปภาพรวม 2570–2574
+                <strong className={isDark ? "text-slate-200" : "text-slate-800"}>ศูนย์ดูแลระบบ (Admin Command):</strong> จัดการสิทธิ์บุคลากร • เปิด/ปิดรับแบบสำรวจ • วิเคราะห์กราฟสรุปภาพรวม 2570–2574
               </span>
             </div>
-            <span className="text-xs text-amber-400 font-bold flex items-center gap-1 shrink-0 ml-2">
+            <span className={`text-xs font-bold flex items-center gap-1 shrink-0 ml-2 ${
+              isDark ? "text-amber-400" : "text-amber-600"
+            }`}>
               เข้าสู่ระบบแอดมิน <ChevronRight className="w-3.5 h-3.5" />
             </span>
           </div>
 
-          {/* แถวที่ 4: สรุป 5 หัวข้อ และ แผนปฏิบัติราชการ (โทนมืด มินิมอล เน้นมือถือ) ตามรูปแนบ 4 */}
+          {/* แถวที่ 4: สรุป 5 หัวข้อ และ แผนปฏิบัติราชการ (มินิมอล เน้นมือถือ) ตามรูปแนบ 4 */}
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             {/* ฝั่งซ้าย: กล่องสรุปประวัติ 5 หัวข้อ */}
-            <div className="lg:col-span-7 rounded-3xl bg-[#121929] border border-slate-800/90 p-5 sm:p-6 text-white shadow-xl flex flex-col justify-between">
+            <div className={`lg:col-span-7 rounded-3xl p-5 sm:p-6 border flex flex-col justify-between transition-colors ${
+              isDark 
+                ? "bg-[#121929] border-slate-800/90 text-white shadow-xl" 
+                : "bg-white/95 border-black/[0.06] text-slate-900 shadow-sm"
+            }`}>
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-extrabold text-base sm:text-lg text-white font-serif">
+                  <h3 className={`font-extrabold text-base sm:text-lg font-serif ${isDark ? "text-white" : "text-slate-900"}`}>
                     สรุปประวัติข้อมูล 5 หัวข้อยุทธศาสตร์
                   </h3>
                   <a
                     href={SHEET_TEACHER_HISTORY_URL}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-emerald-400 hover:text-emerald-300 font-bold inline-flex items-center gap-1"
+                    className={`text-xs font-bold inline-flex items-center gap-1 ${
+                      isDark ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-600 hover:text-emerald-700"
+                    }`}
                   >
                     <span>ดูชีตประวัติกลาง</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -923,128 +1219,170 @@ export default function FacultyEducationPortalApp() {
 
                 {/* List Items สะอาดตา เหมาะกับมือถือ */}
                 <div className="space-y-2.5">
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50">
+                  <div className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
+                    isDark ? "bg-[#182238] border-slate-700/50" : "bg-slate-50/80 border-slate-200/80 hover:bg-slate-100/60"
+                  }`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-rose-600/30 text-rose-300 border border-rose-500/40 flex items-center justify-center font-bold text-xs">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs border ${
+                        isDark ? "bg-rose-600/30 text-rose-300 border-rose-500/40" : "bg-rose-100 text-rose-700 border-rose-200"
+                      }`}>
                         1
                       </div>
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-white">
+                        <h4 className={`text-xs sm:text-sm font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                           ด้านการจัดการเรียนรู้ Active Learning
                         </h4>
-                        <p className="text-[11px] text-slate-400">
+                        <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                           สถิติรายวิชา, โครงงานฐานวิจัย (PBL) และผลสัมฤทธิ์
                         </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-slate-400 px-2 py-0.5 rounded bg-black/30 hidden sm:inline-block">
+                    <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded hidden sm:inline-block ${
+                      isDark ? "text-slate-400 bg-black/30" : "text-slate-600 bg-slate-200/70"
+                    }`}>
                       2570–2574
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50">
+                  <div className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
+                    isDark ? "bg-[#182238] border-slate-700/50" : "bg-slate-50/80 border-slate-200/80 hover:bg-slate-100/60"
+                  }`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 flex items-center justify-center font-bold text-xs">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs border ${
+                        isDark ? "bg-emerald-600/30 text-emerald-300 border-emerald-500/40" : "bg-emerald-100 text-emerald-700 border-emerald-200"
+                      }`}>
                         2
                       </div>
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-white">
+                        <h4 className={`text-xs sm:text-sm font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                           ด้านการผลิตตำรา / หนังสือ E-Book
                         </h4>
-                        <p className="text-[11px] text-slate-400">
+                        <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                           แผนการผลิตสื่อตำรา นวัตกรรมดิจิทัลเพื่อการเรียนรู้
                         </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-slate-400 px-2 py-0.5 rounded bg-black/30 hidden sm:inline-block">
+                    <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded hidden sm:inline-block ${
+                      isDark ? "text-slate-400 bg-black/30" : "text-slate-600 bg-slate-200/70"
+                    }`}>
                       E-Book Store
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50">
+                  <div className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
+                    isDark ? "bg-[#182238] border-slate-700/50" : "bg-slate-50/80 border-slate-200/80 hover:bg-slate-100/60"
+                  }`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-600/30 text-blue-300 border border-blue-500/40 flex items-center justify-center font-bold text-xs">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs border ${
+                        isDark ? "bg-blue-600/30 text-blue-300 border-blue-500/40" : "bg-blue-100 text-blue-700 border-blue-200"
+                      }`}>
                         3
                       </div>
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-white">
+                        <h4 className={`text-xs sm:text-sm font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                           ด้านงานวิจัยและการตีพิมพ์วิชาการ
                         </h4>
-                        <p className="text-[11px] text-slate-400">
+                        <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                           ระดับชาติและนานาชาติ TCI Tier 1, Scopus
                         </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-slate-400 px-2 py-0.5 rounded bg-black/30 hidden sm:inline-block">
+                    <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded hidden sm:inline-block ${
+                      isDark ? "text-slate-400 bg-black/30" : "text-slate-600 bg-slate-200/70"
+                    }`}>
                       วิจัยคณะ
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-[#182238] border border-slate-700/50">
+                  <div className={`flex items-center justify-between p-3 rounded-2xl border transition-colors ${
+                    isDark ? "bg-[#182238] border-slate-700/50" : "bg-slate-50/80 border-slate-200/80 hover:bg-slate-100/60"
+                  }`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-amber-600/30 text-amber-300 border border-amber-500/40 flex items-center justify-center font-bold text-xs">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs border ${
+                        isDark ? "bg-amber-600/30 text-amber-300 border-amber-500/40" : "bg-amber-100 text-amber-700 border-amber-200"
+                      }`}>
                         4
                       </div>
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-white">
+                        <h4 className={`text-xs sm:text-sm font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                           ด้านการพัฒนาตนเองและขอตำแหน่งวิชาการ
                         </h4>
-                        <p className="text-[11px] text-slate-400">
+                        <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                           ผศ., รศ., ศ. และกรอบงบประมาณที่ขอสนับสนุน
                         </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-slate-400 px-2 py-0.5 rounded bg-black/30 hidden sm:inline-block">
+                    <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded hidden sm:inline-block ${
+                      isDark ? "text-slate-400 bg-black/30" : "text-slate-600 bg-slate-200/70"
+                    }`}>
                       ยุทธศาสตร์
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-400 truncate mr-2">
+              <div className={`mt-4 pt-3 border-t flex items-center justify-between text-xs ${
+                isDark ? "border-slate-800" : "border-slate-100"
+              }`}>
+                <span className={`truncate mr-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                   อาจารย์สามารถเข้าสู่ระบบเพื่อดูข้อมูลและแก้ไขประวัติของท่าน
                 </span>
                 <button
                   onClick={() => setLoginModalRole("INSTRUCTOR")}
-                  className="font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors shrink-0"
+                  className="font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition-colors shrink-0 shadow-xs"
                 >
                   เข้าสู่ระบบอาจารย์
                 </button>
               </div>
             </div>
 
-            {/* ฝั่งขวา: แผนปฏิบัติราชการ (ปรับเป็นโทนมืดสุขุม ไม่เหลืองจ้า) */}
-            <div className="lg:col-span-5 rounded-3xl bg-[#121929] border border-slate-800/90 p-5 sm:p-6 text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
+            {/* ฝั่งขวา: แผนปฏิบัติราชการ */}
+            <div className={`lg:col-span-5 rounded-3xl p-5 sm:p-6 border flex flex-col justify-between relative overflow-hidden transition-colors ${
+              isDark 
+                ? "bg-[#121929] border-slate-800/90 text-white shadow-xl" 
+                : "bg-white/95 border-black/[0.06] text-slate-900 shadow-sm"
+            }`}>
               <div className="flex items-start justify-between">
                 <div className="space-y-1.5 pr-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 bg-amber-950/60 border border-amber-800/60 px-2.5 py-0.5 rounded-full inline-block">
+                  <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full inline-block border ${
+                    isDark 
+                      ? "text-amber-300 bg-amber-950/60 border-amber-800/60" 
+                      : "text-amber-800 bg-amber-50 border-amber-200"
+                  }`}>
                     รอบการจัดทำแผนยุทธศาสตร์
                   </span>
-                  <h3 className="text-xl sm:text-2xl font-black text-white font-serif pt-1">
+                  <h3 className={`text-xl sm:text-2xl font-black font-serif pt-1 ${isDark ? "text-white" : "text-slate-900"}`}>
                     แผนปฏิบัติราชการ
                   </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className={`text-xs leading-relaxed ${isDark ? "text-slate-300" : "text-slate-600"}`}>
                     แบบสำรวจสำหรับคณาจารย์และหัวหน้าสาขาวิชา 12 สาขาวิชา คณะศึกษาศาสตร์ มหาวิทยาลัย
                   </p>
                 </div>
 
-                <div className="w-16 h-16 rounded-2xl bg-[#182238] border border-slate-700 shadow-md flex flex-col items-center justify-center shrink-0">
-                  <span className="text-2xl font-black text-amber-300 leading-none">5</span>
-                  <span className="text-[10px] font-bold text-slate-400 mt-0.5">ปีการศึกษา</span>
+                <div className={`w-16 h-16 rounded-2xl border shadow-xs flex flex-col items-center justify-center shrink-0 ${
+                  isDark ? "bg-[#182238] border-slate-700 text-amber-300" : "bg-amber-50/80 border-amber-200/90 text-amber-700"
+                }`}>
+                  <span className="text-2xl font-black leading-none">5</span>
+                  <span className={`text-[10px] font-bold mt-0.5 ${isDark ? "text-slate-400" : "text-slate-500"}`}>ปีการศึกษา</span>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="text-xs text-slate-400">
-                  <span className="text-emerald-400 font-bold">● Google Apps Script</span> ซิงค์ข้อมูล Real-time
+              <div className={`mt-6 pt-4 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                isDark ? "border-slate-800" : "border-slate-100"
+              }`}>
+                <div className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                  <span className={`font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>● Google Apps Script</span> ซิงค์ข้อมูล Real-time
                 </div>
                 <button
                   onClick={() => {
                     if (currentUser?.Role === "INSTRUCTOR") setActiveView("INSTRUCTOR");
                     else setLoginModalRole("INSTRUCTOR");
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-all text-center"
+                  className={`px-4 py-2.5 rounded-xl font-bold text-xs border transition-all text-center ${
+                    isDark 
+                      ? "bg-slate-800 hover:bg-slate-700 text-white border-slate-700" 
+                      : "bg-slate-900 hover:bg-slate-800 text-white border-slate-900 shadow-xs"
+                  }`}
                 >
                   กรอกข้อมูลแผน 2570–2574
                 </button>
@@ -1058,29 +1396,43 @@ export default function FacultyEducationPortalApp() {
           {/* ================================================================
               คลังข้อมูลสาธารณะ (PUBLIC REPOSITORY - ไม่ต้องล็อกอิน) ตามรูปแนบ 5
              ================================================================ */}
-          <section className="bg-[#121929] rounded-3xl p-6 sm:p-8 border border-blue-900/40 shadow-2xl space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+          <section className={`rounded-3xl p-6 sm:p-8 border shadow-xl space-y-6 transition-colors ${
+            isDark 
+              ? "bg-[#121929] border-blue-900/40 text-white" 
+              : "bg-white/95 border-black/[0.06] text-slate-900 shadow-[0_4px_24px_rgba(0,0,0,0.03)]"
+          }`}>
+            <div className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b pb-6 ${
+              isDark ? "border-slate-800" : "border-slate-200/80"
+            }`}>
               <div>
-                <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-800/60 px-3 py-1 rounded-full">
-                  <Library className="w-3.5 h-3.5 text-amber-400" />
+                <div className={`inline-flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${
+                  isDark 
+                    ? "text-amber-300 bg-amber-950/60 border-amber-800/60" 
+                    : "text-amber-800 bg-amber-50 border-amber-200"
+                }`}>
+                  <Library className="w-3.5 h-3.5 text-amber-500" />
                   <span>Public Knowledge Repository • เปิดเผยสาธารณะสำหรับนักศึกษาและบุคคลทั่วไป</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 font-serif">
+                <h2 className={`text-2xl sm:text-3xl font-extrabold mt-2 font-serif ${
+                  isDark ? "text-white" : "text-slate-900"
+                }`}>
                   คลังผลงานวิชาการ E-Book และทำเนียบคณาจารย์ คณะศึกษาศาสตร์
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                <p className={`text-xs sm:text-sm mt-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                   สืบค้นผลงานวิชาการ ตำรา E-Book และข้อมูลคุณวุฒิคณาจารย์ 67 ท่าน (12 สาขาวิชา) เปิดอ่านหรือดาวน์โหลดได้ทันที
                 </p>
               </div>
 
               {/* แท็บสลับ E-Book vs ทำเนียบคุณวุฒิ */}
-              <div className="flex p-1 rounded-2xl bg-[#182238] border border-slate-700/80 shrink-0">
+              <div className={`flex p-1 rounded-2xl border shrink-0 ${
+                isDark ? "bg-[#182238] border-slate-700/80" : "bg-slate-100 border-slate-200/80"
+              }`}>
                 <button
                   onClick={() => setPublicHubTab("EBOOKS")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                     publicHubTab === "EBOOKS"
-                      ? "bg-white text-slate-950 shadow-md"
-                      : "text-slate-400 hover:text-white"
+                      ? isDark ? "bg-white text-slate-950 shadow-md" : "bg-white text-slate-900 shadow-xs border border-black/5"
+                      : isDark ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <BookOpen className="w-4 h-4" />
@@ -1090,8 +1442,8 @@ export default function FacultyEducationPortalApp() {
                   onClick={() => setPublicHubTab("FACULTY")}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                     publicHubTab === "FACULTY"
-                      ? "bg-white text-slate-950 shadow-md"
-                      : "text-slate-400 hover:text-white"
+                      ? isDark ? "bg-white text-slate-950 shadow-md" : "bg-white text-slate-900 shadow-xs border border-black/5"
+                      : isDark ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <GraduationCap className="w-4 h-4" />
@@ -1101,7 +1453,9 @@ export default function FacultyEducationPortalApp() {
             </div>
 
             {/* แผงควบคุมการค้นหา 3 ช่องทาง (ตามรูปแนบ 5: ค้นหาง่าย มีให้เลือกรายชื่ออาจารย์ หรือจะเลือกเป็นสาขาก็ได้) */}
-            <div className="space-y-3.5 bg-[#182238]/60 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
+            <div className={`space-y-3.5 p-4 sm:p-5 rounded-2xl border ${
+              isDark ? "bg-[#182238]/60 border-slate-700/60" : "bg-slate-50/90 border-slate-200/80"
+            }`}>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                 {/* 1. กล่องพิมพ์ค้นหาอิสระ (4 คอลัมน์) */}
                 <div className="md:col-span-4 relative">
@@ -1111,12 +1465,18 @@ export default function FacultyEducationPortalApp() {
                     value={publicSearch}
                     onChange={(e) => setPublicSearch(e.target.value)}
                     placeholder="พิมพ์คำค้น (ชื่อ, ตำรา, สถาบัน)..."
-                    className="w-full pl-10 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-700/80 bg-[#121929] text-white placeholder-slate-400 focus:bg-[#1A253C] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full pl-10 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                      isDark 
+                        ? "border-slate-700/80 bg-[#121929] text-white placeholder-slate-400 focus:bg-[#1A253C]" 
+                        : "border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:bg-white shadow-xs"
+                    }`}
                   />
                   {publicSearch && (
                     <button
                       onClick={() => setPublicSearch("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                      className={`absolute right-2.5 top-1/2 -translate-y-1/2 ${
+                        isDark ? "text-slate-400 hover:text-white" : "text-slate-400 hover:text-slate-700"
+                      }`}
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -1131,7 +1491,11 @@ export default function FacultyEducationPortalApp() {
                       setPublicDeptFilter(e.target.value);
                       setPublicTeacherFilter("ALL");
                     }}
-                    className="w-full pl-3.5 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-700/80 bg-[#121929] text-white focus:bg-[#1A253C] focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
+                    className={`w-full pl-3.5 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                      isDark 
+                        ? "border-slate-700/80 bg-[#121929] text-white focus:bg-[#1A253C]" 
+                        : "border-slate-200 bg-white text-slate-900 focus:bg-white shadow-xs"
+                    }`}
                   >
                     <option value="ALL">🏢 ทุกสาขาวิชา (12 สาขา)</option>
                     {EDUCATION_PROGRAMS.map((prog) => (
@@ -1147,7 +1511,11 @@ export default function FacultyEducationPortalApp() {
                   <select
                     value={publicTeacherFilter}
                     onChange={(e) => setPublicTeacherFilter(e.target.value)}
-                    className="w-full pl-3.5 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-700/80 bg-[#121929] text-white focus:bg-[#1A253C] focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
+                    className={`w-full pl-3.5 pr-8 py-2.5 text-xs sm:text-sm rounded-xl border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                      isDark 
+                        ? "border-slate-700/80 bg-[#121929] text-white focus:bg-[#1A253C]" 
+                        : "border-slate-200 bg-white text-slate-900 focus:bg-white shadow-xs"
+                    }`}
                   >
                     <option value="ALL">
                       👨‍🏫 เลือกรายชื่ออาจารย์ ({availableTeachers.length} ท่าน)
@@ -1162,9 +1530,11 @@ export default function FacultyEducationPortalApp() {
               </div>
 
               {/* แถบปุ่มลัดเลือกสาขาวิชาแบบสไลด์บนมือถือ (Quick Pick Filter Chips) */}
-              <div className="pt-2 border-t border-slate-700/50">
+              <div className={`pt-2 border-t ${isDark ? "border-slate-700/50" : "border-slate-200/70"}`}>
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none text-xs">
-                  <span className="text-[11px] font-bold text-slate-400 shrink-0 mr-1 flex items-center gap-1">
+                  <span className={`text-[11px] font-bold shrink-0 mr-1 flex items-center gap-1 ${
+                    isDark ? "text-slate-400" : "text-slate-500"
+                  }`}>
                     <Filter className="w-3 h-3" /> สาขา:
                   </span>
                   <button
@@ -1174,8 +1544,8 @@ export default function FacultyEducationPortalApp() {
                     }}
                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 ${
                       publicDeptFilter === "ALL"
-                        ? "bg-white text-slate-950 shadow-sm"
-                        : "bg-[#121929] text-slate-400 hover:text-white border border-slate-700"
+                        ? isDark ? "bg-white text-slate-950 shadow-sm" : "bg-slate-900 text-white shadow-xs"
+                        : isDark ? "bg-[#121929] text-slate-400 hover:text-white border border-slate-700" : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-xs"
                     }`}
                   >
                     ทั้งหมด
@@ -1192,8 +1562,8 @@ export default function FacultyEducationPortalApp() {
                         }}
                         className={`px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 ${
                           isSelected
-                            ? "bg-white text-slate-950 font-bold shadow-sm"
-                            : "bg-[#121929] text-slate-400 hover:text-white border border-slate-700"
+                            ? isDark ? "bg-white text-slate-950 font-bold shadow-sm" : "bg-slate-900 text-white font-bold shadow-xs"
+                            : isDark ? "bg-[#121929] text-slate-400 hover:text-white border border-slate-700" : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-xs"
                         }`}
                       >
                         {shortName}
@@ -1205,38 +1575,46 @@ export default function FacultyEducationPortalApp() {
 
               {/* แถบแจ้งสถานะการกรอง และปุ่มรีเซ็ตใน 1 คลิก */}
               {(publicDeptFilter !== "ALL" || publicTeacherFilter !== "ALL" || publicSearch) && (
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-700/40 text-xs text-slate-300">
+                <div className={`flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-xs ${
+                  isDark ? "border-slate-700/40 text-slate-300" : "border-slate-200/80 text-slate-600"
+                }`}>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-slate-400">กำลังกรอง:</span>
+                    <span className={isDark ? "text-slate-400" : "text-slate-500"}>กำลังกรอง:</span>
                     {publicDeptFilter !== "ALL" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 text-[11px]">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] border ${
+                        isDark ? "bg-blue-950 text-blue-300 border-blue-800" : "bg-blue-50 text-blue-800 border-blue-200"
+                      }`}>
                         สาขา: {publicDeptFilter}
                         <button
                           onClick={() => {
                             setPublicDeptFilter("ALL");
                             setPublicTeacherFilter("ALL");
                           }}
-                          className="hover:text-white"
+                          className="hover:opacity-75"
                         >
                           ✕
                         </button>
                       </span>
                     )}
                     {publicTeacherFilter !== "ALL" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 text-[11px]">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] border ${
+                        isDark ? "bg-emerald-950 text-emerald-300 border-emerald-800" : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      }`}>
                         อาจารย์: {publicTeacherFilter}
                         <button
                           onClick={() => setPublicTeacherFilter("ALL")}
-                          className="hover:text-white"
+                          className="hover:opacity-75"
                         >
                           ✕
                         </button>
                       </span>
                     )}
                     {publicSearch && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 text-[11px]">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] border ${
+                        isDark ? "bg-purple-950 text-purple-300 border-purple-800" : "bg-purple-50 text-purple-800 border-purple-200"
+                      }`}>
                         คำค้น: "{publicSearch}"
-                        <button onClick={() => setPublicSearch("")} className="hover:text-white">
+                        <button onClick={() => setPublicSearch("")} className="hover:opacity-75">
                           ✕
                         </button>
                       </span>
@@ -1249,7 +1627,11 @@ export default function FacultyEducationPortalApp() {
                       setPublicDeptFilter("ALL");
                       setPublicTeacherFilter("ALL");
                     }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-[11px] transition-colors"
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors border ${
+                      isDark 
+                        ? "bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700" 
+                        : "bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border-slate-200 shadow-xs"
+                    }`}
                   >
                     <RefreshCw className="w-3 h-3" />
                     <span>ล้างตัวกรองทั้งหมด</span>
@@ -1262,10 +1644,12 @@ export default function FacultyEducationPortalApp() {
             {publicHubTab === "EBOOKS" && (
               <div>
                 {publicWorksFiltered.length === 0 ? (
-                  <div className="text-center py-16 text-slate-400 border border-dashed border-slate-800 rounded-3xl">
-                    <BookOpen className="w-10 h-10 text-slate-500 mx-auto mb-2" />
-                    <p className="font-bold text-sm text-slate-300">ไม่พบผลงานที่ตรงกับเงื่อนไข</p>
-                    <p className="text-xs text-slate-500 mt-1">ลองเปลี่ยนคำค้นหา หรือเลือกสาขาวิชาอื่น</p>
+                  <div className={`text-center py-16 border border-dashed rounded-3xl ${
+                    isDark ? "text-slate-400 border-slate-800" : "text-slate-500 border-slate-200"
+                  }`}>
+                    <BookOpen className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+                    <p className={`font-bold text-sm ${isDark ? "text-slate-300" : "text-slate-700"}`}>ไม่พบผลงานที่ตรงกับเงื่อนไข</p>
+                    <p className={`text-xs mt-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}>ลองเปลี่ยนคำค้นหา หรือเลือกสาขาวิชาอื่น</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1276,7 +1660,11 @@ export default function FacultyEducationPortalApp() {
                           setSelectedWorkModal(work);
                           setEbookPage(1);
                         }}
-                        className="group rounded-3xl border border-slate-800 bg-[#162032] hover:bg-[#1A263D] p-5 hover:shadow-2xl hover:border-slate-600 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                        className={`group rounded-3xl border p-5 transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+                          isDark 
+                            ? "border-slate-800 bg-[#162032] hover:bg-[#1A263D] hover:shadow-2xl hover:border-slate-600" 
+                            : "border-slate-200/90 bg-white hover:bg-slate-50/80 hover:shadow-xl hover:border-slate-300 shadow-xs"
+                        }`}
                       >
                         <div>
                           {/* ปกหนังสือ E-Book สมจริง */}
@@ -1303,21 +1691,31 @@ export default function FacultyEducationPortalApp() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 text-xs text-slate-200 font-bold mb-2">
+                          <div className={`flex items-center gap-2 text-xs font-bold mb-2 ${
+                            isDark ? "text-slate-200" : "text-slate-800"
+                          }`}>
                             <UserCheck className="w-4 h-4 text-slate-400 shrink-0" />
                             <span>อาจารย์: {work.Instructor_Name}</span>
                           </div>
-                          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                          <p className={`text-xs line-clamp-2 leading-relaxed ${
+                            isDark ? "text-slate-400" : "text-slate-600"
+                          }`}>
                             {work.Description}
                           </p>
                         </div>
 
-                        <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-slate-200">
-                          <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform text-blue-400">
+                        <div className={`mt-4 pt-3 border-t flex items-center justify-between text-xs font-bold ${
+                          isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-800"
+                        }`}>
+                          <span className={`flex items-center gap-1 group-hover:translate-x-0.5 transition-transform ${
+                            isDark ? "text-blue-400" : "text-blue-600"
+                          }`}>
                             <Eye className="w-3.5 h-3.5" />
                             {work.Work_Type === "PDF" ? "เปิดอ่าน E-Book / ดาวน์โหลด" : "พรีวิวลิงก์"}
                           </span>
-                          <span className="text-slate-400 font-normal">โหลด {work.Downloads} ครั้ง</span>
+                          <span className={`font-normal ${isDark ? "text-slate-400" : "text-slate-400"}`}>
+                            โหลด {work.Downloads} ครั้ง
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -1333,29 +1731,49 @@ export default function FacultyEducationPortalApp() {
                   <div
                     key={teacher.id}
                     onClick={() => setSelectedTeacherModal(teacher)}
-                    className="group rounded-3xl border border-slate-800 bg-[#162032] hover:bg-[#1A263D] p-5 hover:shadow-2xl hover:border-slate-600 transition-all cursor-pointer flex flex-col justify-between"
+                    className={`group rounded-3xl border p-5 transition-all cursor-pointer flex flex-col justify-between ${
+                      isDark 
+                        ? "border-slate-800 bg-[#162032] hover:bg-[#1A263D] hover:shadow-2xl hover:border-slate-600" 
+                        : "border-slate-200/90 bg-white hover:bg-slate-50/80 hover:shadow-xl hover:border-slate-300 shadow-xs"
+                    }`}
                   >
                     <div>
                       <div className="flex items-start justify-between">
-                        <div className="w-12 h-12 rounded-2xl bg-[#1C2740] text-amber-300 flex items-center justify-center font-bold text-sm border border-slate-700 group-hover:scale-105 transition-transform">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-sm border group-hover:scale-105 transition-transform ${
+                          isDark 
+                            ? "bg-[#1C2740] text-amber-300 border-slate-700" 
+                            : "bg-amber-50 text-amber-700 border-amber-200/80"
+                        }`}>
                           <GraduationCap className="w-6 h-6" />
                         </div>
-                        <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">
+                        <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md border ${
+                          isDark 
+                            ? "bg-slate-800 text-slate-300 border-slate-700" 
+                            : "bg-slate-100 text-slate-600 border-slate-200"
+                        }`}>
                           {teacher.id}
                         </span>
                       </div>
 
-                      <h4 className="font-bold text-base text-white mt-3 font-serif group-hover:text-amber-200 transition-colors">
+                      <h4 className={`font-bold text-base mt-3 font-serif transition-colors ${
+                        isDark ? "text-white group-hover:text-amber-200" : "text-slate-900 group-hover:text-blue-700"
+                      }`}>
                         {teacher.name}
                       </h4>
-                      <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                      <p className={`text-xs font-semibold mt-0.5 ${
+                        isDark ? "text-slate-400" : "text-slate-500"
+                      }`}>
                         {teacher.program}
                       </p>
 
-                      <div className="mt-3 space-y-1.5 border-t border-slate-800 pt-3">
+                      <div className={`mt-3 space-y-1.5 border-t pt-3 ${
+                        isDark ? "border-slate-800" : "border-slate-100"
+                      }`}>
                         {teacher.degrees.map((d, idx) => (
-                          <div key={idx} className="text-xs text-slate-300 flex items-start gap-1.5">
-                            <span className="font-bold text-amber-300 shrink-0">• {d.level}:</span>
+                          <div key={idx} className={`text-xs flex items-start gap-1.5 ${
+                            isDark ? "text-slate-300" : "text-slate-600"
+                          }`}>
+                            <span className={`font-bold shrink-0 ${isDark ? "text-amber-300" : "text-amber-700"}`}>• {d.level}:</span>
                             <span className="truncate" title={`${d.degree} (${d.major}) - ${d.institution}`}>
                               {d.degree} {d.major ? `(${d.major})` : ""} - {d.institution}
                             </span>
@@ -1364,7 +1782,9 @@ export default function FacultyEducationPortalApp() {
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-blue-400">
+                    <div className={`mt-4 pt-3 border-t flex items-center justify-between text-xs font-bold ${
+                      isDark ? "border-slate-800 text-blue-400" : "border-slate-100 text-blue-600"
+                    }`}>
                       <span>ดูประวัติ & ผลงาน E-Book</span>
                       <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -2698,13 +3118,21 @@ export default function FacultyEducationPortalApp() {
          ==================================================================== */}
       {loginModalRole && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#121929] rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-700/80 shadow-2xl space-y-5 text-white">
+          <div className={`rounded-3xl max-w-md w-full p-6 sm:p-8 border shadow-2xl space-y-5 transition-colors ${
+            isDark 
+              ? "bg-[#121929] border-slate-700/80 text-white" 
+              : "bg-white border-slate-200 text-slate-900"
+          }`}>
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-[#182238] text-blue-300 border border-slate-700">
+                <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${
+                  isDark 
+                    ? "bg-[#182238] text-blue-300 border-slate-700" 
+                    : "bg-blue-50 text-blue-700 border-blue-200"
+                }`}>
                   {loginModalRole} LOGIN
                 </span>
-                <h3 className="text-xl font-bold mt-2 text-white font-serif">
+                <h3 className={`text-xl font-bold mt-2 font-serif ${isDark ? "text-white" : "text-slate-900"}`}>
                   {loginModalRole === "INSTRUCTOR"
                     ? "เข้าสู่ระบบอาจารย์ผู้สอน"
                     : loginModalRole === "EXECUTIVE"
@@ -2717,7 +3145,9 @@ export default function FacultyEducationPortalApp() {
                   setLoginModalRole(null);
                   setLoginError("");
                 }}
-                className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                className={`p-2 rounded-full transition-colors ${
+                  isDark ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                }`}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2731,7 +3161,7 @@ export default function FacultyEducationPortalApp() {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className={`block text-xs font-bold mb-1 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                   รหัสบุคลากร (Staff ID)
                 </label>
                 <input
@@ -2740,11 +3170,15 @@ export default function FacultyEducationPortalApp() {
                   placeholder="เช่น EDU-001, HEAD-01 หรือ ADMIN"
                   value={loginStaffId}
                   onChange={(e) => setLoginStaffId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-700 bg-[#182238] text-white font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3.5 py-2.5 text-sm rounded-xl border font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                    isDark 
+                      ? "border-slate-700 bg-[#182238] text-white" 
+                      : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white"
+                  }`}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className={`block text-xs font-bold mb-1 ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                   รหัสผ่าน (Password)
                 </label>
                 <input
@@ -2753,7 +3187,11 @@ export default function FacultyEducationPortalApp() {
                   placeholder="กรอกรหัสผ่าน..."
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-700 bg-[#182238] text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                    isDark 
+                      ? "border-slate-700 bg-[#182238] text-white" 
+                      : "border-slate-200 bg-slate-50 text-slate-900 focus:bg-white"
+                  }`}
                 />
               </div>
               <button
@@ -2765,8 +3203,10 @@ export default function FacultyEducationPortalApp() {
             </form>
 
             {/* ปุ่มคลิกเดียวเติมรหัสทดสอบ */}
-            <div className="p-3.5 rounded-2xl bg-[#182238] border border-slate-700/80 text-xs space-y-2">
-              <p className="font-bold text-slate-300">💡 คลิกเพื่อเติมรหัสทดสอบอัตโนมัติ:</p>
+            <div className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
+              isDark ? "bg-[#182238] border-slate-700/80" : "bg-slate-50 border-slate-200/80"
+            }`}>
+              <p className={`font-bold ${isDark ? "text-slate-300" : "text-slate-700"}`}>💡 คลิกเพื่อเติมรหัสทดสอบอัตโนมัติ:</p>
               <div className="flex flex-wrap gap-1.5">
                 {loginModalRole === "INSTRUCTOR" && (
                   <>
@@ -2776,7 +3216,11 @@ export default function FacultyEducationPortalApp() {
                         setLoginStaffId("EDU-001");
                         setLoginPassword("123456");
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-[#121929] border border-slate-700 hover:border-blue-500 text-slate-300 font-medium transition-colors"
+                      className={`px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                        isDark 
+                          ? "bg-[#121929] border-slate-700 hover:border-blue-500 text-slate-300" 
+                          : "bg-white border-slate-200 hover:border-blue-500 text-slate-700 shadow-xs"
+                      }`}
                     >
                       อาจารย์ EDU-001 (ซอลีฮะห์)
                     </button>
@@ -2786,7 +3230,11 @@ export default function FacultyEducationPortalApp() {
                         setLoginStaffId("EDU-002");
                         setLoginPassword("123456");
                       }}
-                      className="px-2.5 py-1 rounded-lg bg-[#121929] border border-slate-700 hover:border-blue-500 text-slate-300 font-medium transition-colors"
+                      className={`px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                        isDark 
+                          ? "bg-[#121929] border-slate-700 hover:border-blue-500 text-slate-300" 
+                          : "bg-white border-slate-200 hover:border-blue-500 text-slate-700 shadow-xs"
+                      }`}
                     >
                       อาจารย์ EDU-002 (มะซีดิ)
                     </button>
@@ -2799,7 +3247,11 @@ export default function FacultyEducationPortalApp() {
                       setLoginStaffId("HEAD-01");
                       setLoginPassword("exec123");
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-[#121929] border border-slate-700 hover:border-blue-500 text-slate-300 font-medium transition-colors"
+                    className={`px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                      isDark 
+                        ? "bg-[#121929] border-slate-700 hover:border-blue-500 text-slate-300" 
+                        : "bg-white border-slate-200 hover:border-blue-500 text-slate-700 shadow-xs"
+                    }`}
                   >
                     หน.อิสลามศึกษา (HEAD-01)
                   </button>
@@ -2811,7 +3263,11 @@ export default function FacultyEducationPortalApp() {
                       setLoginStaffId("ADMIN");
                       setLoginPassword("admin999");
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-[#121929] border border-slate-700 hover:border-blue-500 text-slate-300 font-medium transition-colors"
+                    className={`px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                      isDark 
+                        ? "bg-[#121929] border-slate-700 hover:border-blue-500 text-slate-300" 
+                        : "bg-white border-slate-200 hover:border-blue-500 text-slate-700 shadow-xs"
+                    }`}
                   >
                     แอดมิน ADMIN (admin999)
                   </button>
@@ -2825,8 +3281,14 @@ export default function FacultyEducationPortalApp() {
       {/* E-Book Modal */}
       {selectedWorkModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
-            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+          <div className={`rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border transition-colors ${
+            isDark 
+              ? "bg-[#121929] border-slate-700/80 text-white" 
+              : "bg-white border-slate-200 text-slate-900"
+          }`}>
+            <div className={`px-6 py-4 flex items-center justify-between ${
+              isDark ? "bg-[#0E1626] text-white border-b border-slate-800" : "bg-slate-900 text-white"
+            }`}>
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-white/10 text-amber-300">
                   {selectedWorkModal.Work_Type === "PDF" ? "Interactive E-Book Reader" : "External Live Link"}
@@ -2837,7 +3299,7 @@ export default function FacultyEducationPortalApp() {
               </div>
               <button
                 onClick={() => setSelectedWorkModal(null)}
-                className="p-2 rounded-full hover:bg-slate-800 text-slate-300"
+                className="p-2 rounded-full hover:bg-white/10 text-slate-300"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2846,47 +3308,55 @@ export default function FacultyEducationPortalApp() {
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
               {selectedWorkModal.Work_Type === "PDF" ? (
                 <div className="space-y-4">
-                  <div className="bg-slate-100 rounded-2xl p-4 sm:p-6 border border-slate-200 min-h-[380px] flex flex-col justify-between">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-3 text-xs text-slate-500 font-semibold">
+                  <div className={`rounded-2xl p-4 sm:p-6 border min-h-[380px] flex flex-col justify-between transition-colors ${
+                    isDark ? "bg-[#182238] border-slate-700/80" : "bg-slate-100 border-slate-200"
+                  }`}>
+                    <div className={`flex items-center justify-between border-b pb-3 text-xs font-semibold ${
+                      isDark ? "border-slate-700 text-slate-400" : "border-slate-200 text-slate-500"
+                    }`}>
                       <span>ผู้แต่ง: {selectedWorkModal.Instructor_Name} • {selectedWorkModal.Department}</span>
                       <span>หน้าที่ {ebookPage} จาก 3 (พรีวิว E-Book)</span>
                     </div>
 
-                    <div className="my-auto py-6 px-4 sm:px-10 bg-white rounded-xl shadow-inner border border-slate-200/80 min-h-[250px] flex flex-col justify-center">
+                    <div className={`my-auto py-6 px-4 sm:px-10 rounded-xl shadow-inner border min-h-[250px] flex flex-col justify-center transition-colors ${
+                      isDark ? "bg-[#0E1626] border-slate-700 text-white" : "bg-white border-slate-200/80 text-slate-900"
+                    }`}>
                       {ebookPage === 1 && (
                         <div className="text-center space-y-3">
-                          <BookOpen className="w-12 h-12 text-slate-900 mx-auto" />
-                          <h4 className="text-xl font-bold text-slate-900 font-serif">{selectedWorkModal.Title}</h4>
-                          <p className="text-sm text-slate-600">
+                          <BookOpen className={`w-12 h-12 mx-auto ${isDark ? "text-blue-400" : "text-slate-900"}`} />
+                          <h4 className={`text-xl font-bold font-serif ${isDark ? "text-white" : "text-slate-900"}`}>
+                            {selectedWorkModal.Title}
+                          </h4>
+                          <p className={`text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>
                             โดย {selectedWorkModal.Instructor_Name} ({selectedWorkModal.Department})
                           </p>
-                          <p className="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
+                          <p className={`text-xs max-w-lg mx-auto leading-relaxed ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                             {selectedWorkModal.Description}
                           </p>
                         </div>
                       )}
                       {ebookPage === 2 && (
                         <div className="space-y-3">
-                          <h5 className="font-bold text-base text-slate-900 font-serif">
+                          <h5 className={`font-bold text-base font-serif ${isDark ? "text-white" : "text-slate-900"}`}>
                             สาระสำคัญและโครงสร้างเอกสาร
                           </h5>
-                          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                          <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                             {selectedWorkModal.Description} เอกสารฉบับนี้ถูกแปลงเป็นรูปแบบหนังสืออิเล็กทรอนิกส์ (E-Book) เพื่อให้นักศึกษาและบุคลากรเข้าถึงได้สะดวก
                           </p>
                           <iframe
                             src={selectedWorkModal.File_Or_Link_URL}
-                            className="w-full h-56 rounded-lg border border-slate-200 mt-2"
+                            className={`w-full h-56 rounded-lg border mt-2 ${isDark ? "border-slate-700" : "border-slate-200"}`}
                             title="PDF Preview"
                           />
                         </div>
                       )}
                       {ebookPage === 3 && (
                         <div className="text-center space-y-3">
-                          <Download className="w-12 h-12 text-emerald-700 mx-auto" />
-                          <h5 className="font-bold text-base text-slate-900 font-serif">
+                          <Download className="w-12 h-12 text-emerald-500 mx-auto" />
+                          <h5 className={`font-bold text-base font-serif ${isDark ? "text-white" : "text-slate-900"}`}>
                             ต้องการอ่านฉบับเต็มหรือบันทึกเก็บไว้ในอุปกรณ์?
                           </h5>
-                          <p className="text-xs text-slate-500">
+                          <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                             สามารถคลิกปุ่มดาวน์โหลดไฟล์ PDF ด้านล่างเพื่อนำไปอ่านแบบออฟไลน์ได้ทันที
                           </p>
                         </div>
@@ -2897,14 +3367,18 @@ export default function FacultyEducationPortalApp() {
                       <button
                         disabled={ebookPage <= 1}
                         onClick={() => setEbookPage((p) => Math.max(1, p - 1))}
-                        className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold disabled:opacity-40"
+                        className={`inline-flex items-center gap-1 px-3.5 py-2 rounded-xl border text-xs font-bold disabled:opacity-40 transition-colors ${
+                          isDark ? "bg-[#0E1626] border-slate-700 text-slate-200 hover:bg-slate-800" : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-xs"
+                        }`}
                       >
                         <ChevronLeft className="w-4 h-4" /> หน้าก่อนหน้า
                       </button>
                       <button
                         disabled={ebookPage >= 3}
                         onClick={() => setEbookPage((p) => Math.min(3, p + 1))}
-                        className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold disabled:opacity-40"
+                        className={`inline-flex items-center gap-1 px-3.5 py-2 rounded-xl border text-xs font-bold disabled:opacity-40 transition-colors ${
+                          isDark ? "bg-[#0E1626] border-slate-700 text-slate-200 hover:bg-slate-800" : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50 shadow-xs"
+                        }`}
                       >
                         หน้าถัดไป <ChevronRight className="w-4 h-4" />
                       </button>
@@ -2912,7 +3386,7 @@ export default function FacultyEducationPortalApp() {
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-xs text-slate-500">
+                    <div className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                       พ.ศ. {selectedWorkModal.Academic_Year} • ยอดดาวน์โหลด {selectedWorkModal.Downloads} ครั้ง
                     </div>
                     <a
@@ -2926,7 +3400,9 @@ export default function FacultyEducationPortalApp() {
                           )
                         );
                       }}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-sm"
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all ${
+                        isDark ? "bg-white hover:bg-slate-100 text-slate-950" : "bg-slate-900 hover:bg-slate-800 text-white"
+                      }`}
                     >
                       <Download className="w-4 h-4" />
                       <span>เปิดอ่านเต็มจอ / ดาวน์โหลดไฟล์ PDF</span>
@@ -2934,18 +3410,22 @@ export default function FacultyEducationPortalApp() {
                   </div>
                 </div>
               ) : (
-                <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                <div className={`p-6 rounded-2xl border space-y-4 ${
+                  isDark ? "bg-[#182238] border-slate-700" : "bg-slate-50 border-slate-200"
+                }`}>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center">
                       <ExternalLink className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-emerald-800">พรีวิวลิงก์สื่อการสอนภายนอก</p>
-                      <h4 className="font-bold text-lg text-slate-900 font-serif">{selectedWorkModal.Title}</h4>
+                      <p className={`text-xs font-bold ${isDark ? "text-emerald-400" : "text-emerald-800"}`}>พรีวิวลิงก์สื่อการสอนภายนอก</p>
+                      <h4 className={`font-bold text-lg font-serif ${isDark ? "text-white" : "text-slate-900"}`}>{selectedWorkModal.Title}</h4>
                     </div>
                   </div>
-                  <p className="text-sm text-slate-700 leading-relaxed">{selectedWorkModal.Description}</p>
-                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-500 break-all font-mono">
+                  <p className={`text-sm leading-relaxed ${isDark ? "text-slate-300" : "text-slate-700"}`}>{selectedWorkModal.Description}</p>
+                  <div className={`p-3.5 rounded-xl border text-xs break-all font-mono ${
+                    isDark ? "bg-[#0E1626] border-slate-700 text-slate-400" : "bg-white border-slate-200 text-slate-500"
+                  }`}>
                     ลิงก์ปลายทาง: {selectedWorkModal.File_Or_Link_URL}
                   </div>
                   <div className="pt-2 flex justify-end">
@@ -2953,7 +3433,9 @@ export default function FacultyEducationPortalApp() {
                       href={selectedWorkModal.File_Or_Link_URL}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-sm"
+                      className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold shadow-sm ${
+                        isDark ? "bg-white hover:bg-slate-100 text-slate-950" : "bg-slate-900 hover:bg-slate-800 text-white"
+                      }`}
                     >
                       <span>ไปยังเว็บไซต์ต้นทาง</span>
                       <ExternalLink className="w-4 h-4" />
@@ -2969,42 +3451,56 @@ export default function FacultyEducationPortalApp() {
       {/* Teacher Profile Modal */}
       {selectedTeacherModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 border border-slate-200 shadow-2xl space-y-5">
+          <div className={`rounded-3xl max-w-2xl w-full p-6 sm:p-8 border shadow-2xl space-y-5 transition-colors ${
+            isDark ? "bg-[#121929] border-slate-700/80 text-white" : "bg-white border-slate-200 text-slate-900"
+          }`}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-slate-900 text-amber-300 flex items-center justify-center font-bold text-xl">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-xl ${
+                  isDark ? "bg-[#182238] text-amber-300 border border-slate-700" : "bg-slate-900 text-amber-300"
+                }`}>
                   <GraduationCap className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 font-serif">{selectedTeacherModal.name}</h3>
-                  <p className="text-xs font-semibold text-slate-500 mt-0.5">{selectedTeacherModal.program}</p>
+                  <h3 className={`text-xl font-bold font-serif ${isDark ? "text-white" : "text-slate-900"}`}>{selectedTeacherModal.name}</h3>
+                  <p className={`text-xs font-semibold mt-0.5 ${isDark ? "text-slate-400" : "text-slate-500"}`}>{selectedTeacherModal.program}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedTeacherModal(null)}
-                className="p-2 rounded-full hover:bg-slate-100 text-slate-400"
+                className={`p-2 rounded-full transition-colors ${
+                  isDark ? "hover:bg-slate-800 text-slate-400 hover:text-white" : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                }`}
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2">
-                <Award className="w-4 h-4 text-slate-700" />
+              <h4 className={`font-bold text-sm flex items-center gap-2 border-b pb-2 ${
+                isDark ? "border-slate-800 text-slate-200" : "border-slate-100 text-slate-800"
+              }`}>
+                <Award className={`w-4 h-4 ${isDark ? "text-amber-400" : "text-slate-700"}`} />
                 <span>ประวัติและคุณวุฒิการศึกษา (จากฐานข้อมูลคณะศึกษาศาสตร์)</span>
               </h4>
 
               <div className="space-y-2.5">
                 {selectedTeacherModal.degrees.map((deg, i) => (
-                  <div key={i} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                  <div key={i} className={`p-3.5 rounded-2xl border space-y-1 transition-colors ${
+                    isDark ? "bg-[#182238] border-slate-700/80" : "bg-slate-50 border-slate-200/80"
+                  }`}>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold px-2.5 py-0.5 rounded bg-slate-200 text-slate-800">
+                      <span className={`font-bold px-2.5 py-0.5 rounded ${
+                        isDark ? "bg-slate-800 text-slate-200" : "bg-slate-200 text-slate-800"
+                      }`}>
                         {deg.level}
                       </span>
-                      {deg.year && <span className="text-slate-400">จบปี พ.ศ. {deg.year}</span>}
+                      {deg.year && <span className={isDark ? "text-slate-400" : "text-slate-400"}>จบปี พ.ศ. {deg.year}</span>}
                     </div>
-                    <p className="text-sm font-semibold text-slate-900 font-serif">{deg.degree} {deg.major ? `(${deg.major})` : ""}</p>
-                    <p className="text-xs text-slate-500">{deg.institution}</p>
+                    <p className={`text-sm font-semibold font-serif ${isDark ? "text-white" : "text-slate-900"}`}>
+                      {deg.degree} {deg.major ? `(${deg.major})` : ""}
+                    </p>
+                    <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>{deg.institution}</p>
                   </div>
                 ))}
               </div>
@@ -3016,7 +3512,9 @@ export default function FacultyEducationPortalApp() {
                     setPublicHubTab("EBOOKS");
                     setSelectedTeacherModal(null);
                   }}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm"
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all ${
+                    isDark ? "bg-white hover:bg-slate-100 text-slate-950" : "bg-slate-900 hover:bg-slate-800 text-white"
+                  }`}
                 >
                   <BookOpen className="w-4 h-4" />
                   <span>ค้นหาผลงาน E-Book ของอาจารย์ท่านนี้</span>
