@@ -789,13 +789,64 @@ export default function FacultyEducationPortalApp() {
           : "bg-[#F2F2F7] text-slate-900 selection:bg-purple-200 selection:text-purple-950"
       }`}
     >
-      {/* Toast Notification (macOS Floating Pill) */}
+      {/* Toast Notification (macOS Floating Pill - positioned above the floating font widget) */}
       {toastMsg && (
-        <div className="fixed bottom-4 inset-x-4 sm:inset-x-auto sm:right-6 z-50 flex items-center justify-center sm:justify-start gap-2.5 bg-slate-900/95 dark:bg-purple-950/95 backdrop-blur-xl text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/15 text-xs sm:text-sm font-semibold">
+        <div className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-50 flex items-center justify-center sm:justify-start gap-2.5 bg-slate-900/95 dark:bg-purple-950/95 backdrop-blur-xl text-white px-4 py-3 rounded-2xl shadow-2xl border border-white/15 text-xs sm:text-sm font-semibold animate-in fade-in slide-in-from-bottom-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="truncate">{toastMsg}</span>
         </div>
       )}
+
+      {/* Floating Font Size Control Widget (ปุ่มลอยด้านล่างขวา กดสะดวกและใช้งานง่ายทั้งในมือถือและคอมพิวเตอร์) */}
+      <aside
+        aria-label="เครื่องมือปรับขนาดตัวอักษร"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 select-none print:hidden pointer-events-auto"
+      >
+        <div
+          className={`flex items-center gap-1.5 p-1.5 rounded-2xl border backdrop-blur-xl transition-all ${
+            isDark
+              ? "bg-[#160E2E]/90 border-white/20 text-purple-100 shadow-[0_12px_32px_rgba(0,0,0,0.55)]"
+              : "bg-white/95 border-slate-300 text-slate-800 shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={handleDecreaseFontSize}
+            disabled={fontStep === 0}
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm active:scale-90 disabled:opacity-30 disabled:pointer-events-none transition-all ${
+              isDark
+                ? "bg-white/10 hover:bg-purple-600 hover:text-white text-white"
+                : "bg-slate-100 hover:bg-purple-600 hover:text-white text-slate-800"
+            }`}
+            title="ลดขนาดตัวอักษร (-)"
+            aria-label="ลดขนาดตัวอักษร"
+          >
+            ก-
+          </button>
+
+          <div className="px-1.5 flex flex-col items-center justify-center min-w-[38px] leading-tight select-none">
+            <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">ขนาด</span>
+            <span className="text-xs font-black text-purple-600 dark:text-purple-300">
+              {FONT_STEP_LABELS[fontStep]}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleIncreaseFontSize}
+            disabled={fontStep === 4}
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm active:scale-90 disabled:opacity-30 disabled:pointer-events-none transition-all ${
+              isDark
+                ? "bg-white/10 hover:bg-purple-600 hover:text-white text-white"
+                : "bg-slate-100 hover:bg-purple-600 hover:text-white text-slate-800"
+            }`}
+            title="เพิ่มขนาดตัวอักษร (+)"
+            aria-label="เพิ่มขนาดตัวอักษร"
+          >
+            ก+
+          </button>
+        </div>
+      </aside>
 
       {/* ====================================================================
           GLOBAL HEADER: macOS Top Menu Bar
@@ -860,13 +911,13 @@ export default function FacultyEducationPortalApp() {
               </div>
             </div>
 
-            {/* Right: ปุ่มคลังข้อมูล + ปุ่ม -/+ ขนาดตัวอักษรที่กดง่ายในมือถือ + สลับธีม + ผู้ใช้ */}
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {/* Right: ปุ่มคลังข้อมูล + สลับธีม + ผู้ใช้ (สะอาด เรียบร้อย ไม่แน่นหน้าจอ) */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
               {/* ปุ่มแยกเข้าหน้า "คลังข้อมูล" โดยตรง */}
               <button
                 type="button"
                 onClick={() => setActiveView("REPOSITORY")}
-                className={`h-8 sm:h-9 px-2 sm:px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shrink-0 transition-all active:scale-95 ${
+                className={`h-9 px-2.5 sm:px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shrink-0 transition-all active:scale-95 ${
                   activeView === "REPOSITORY"
                     ? "bg-purple-600 text-white border-purple-500 shadow-xs"
                     : isDark
@@ -878,37 +929,6 @@ export default function FacultyEducationPortalApp() {
                 <FolderOpen className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">คลังข้อมูล</span>
               </button>
-
-              {/* ปุ่ม - / + ปรับขนาดตัวหนังสือ (กดง่ายทั้งบนมือถือและคอมพิวเตอร์) */}
-              <div
-                className={`flex items-center rounded-xl p-0.5 border shrink-0 ${
-                  isDark
-                    ? "bg-white/5 border-white/15 text-purple-100"
-                    : "bg-slate-100 border-slate-200/90 text-slate-800"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={handleDecreaseFontSize}
-                  disabled={fontStep === 0}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-purple-600 hover:text-white active:scale-90 disabled:opacity-30 font-black text-xs transition-all"
-                  title="ลดขนาดตัวอักษร (-)"
-                >
-                  ก-
-                </button>
-                <span className="hidden md:inline-block px-1.5 text-[11px] font-bold opacity-75 select-none">
-                  {FONT_STEP_LABELS[fontStep]}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleIncreaseFontSize}
-                  disabled={fontStep === 4}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-purple-600 hover:text-white active:scale-90 disabled:opacity-30 font-black text-xs transition-all"
-                  title="เพิ่มขนาดตัวอักษร (+)"
-                >
-                  ก+
-                </button>
-              </div>
 
               {/* Theme Toggle */}
               <button
@@ -1508,9 +1528,9 @@ export default function FacultyEducationPortalApp() {
                         setInstructorSubView("SURVEY_FORM");
                         setEditingSection("PROFILE");
                       }}
-                      className="px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition-all"
+                      className="px-3.5 py-2 rounded-xl bg-white text-purple-950 hover:bg-purple-50 text-xs font-black flex items-center gap-1.5 shadow-md transition-all active:scale-95 shrink-0"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
+                      <Edit3 className="w-3.5 h-3.5 text-purple-700" />
                       <span>แก้ไขประวัติ</span>
                     </button>
 
@@ -1657,11 +1677,7 @@ export default function FacultyEducationPortalApp() {
                       <button
                         type="button"
                         onClick={() => setInstructorSubView("SURVEY_FORM")}
-                        className={`flex-1 py-3 px-4 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 ${
-                          isDark
-                            ? "bg-white text-slate-950 hover:bg-slate-200"
-                            : "bg-slate-900 text-white hover:bg-slate-800"
-                        }`}
+                        className="flex-1 py-3 px-4 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/25 transition-all active:scale-95"
                       >
                         <Edit3 className="w-4 h-4 shrink-0" />
                         <span>กรอก / แก้ไขแบบสำรวจ</span>
@@ -1928,16 +1944,16 @@ export default function FacultyEducationPortalApp() {
                     onClick={() =>
                       setEditingSection(editingSection === "PROFILE" ? "NONE" : "PROFILE")
                     }
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-all ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shadow-sm transition-all active:scale-95 ${
                       editingSection === "PROFILE"
-                        ? "bg-emerald-600 text-white shadow-xs"
-                        : "bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300 hover:bg-purple-600 hover:text-white"
+                        ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-md ring-2 ring-emerald-400/40"
+                        : "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20 border border-purple-500"
                     }`}
                   >
                     {editingSection === "PROFILE" ? (
                       <>
-                        <Check className="w-3.5 h-3.5" />
-                        <span>เสร็จสิ้น</span>
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>เสร็จสิ้นการแก้ไข</span>
                       </>
                     ) : (
                       <>
@@ -2213,16 +2229,16 @@ export default function FacultyEducationPortalApp() {
                   onClick={() =>
                     setEditingSection(editingSection === "RESEARCH" ? "NONE" : "RESEARCH")
                   }
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-all ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-sm transition-all active:scale-95 ${
                     editingSection === "RESEARCH"
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : "bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300 hover:bg-purple-600 hover:text-white"
+                      ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-md ring-2 ring-emerald-400/40"
+                      : "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20 border border-purple-500"
                   }`}
                 >
                   {editingSection === "RESEARCH" ? (
                     <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>เสร็จสิ้น</span>
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>เสร็จสิ้นการแก้ไข</span>
                     </>
                   ) : (
                     <>
@@ -2624,16 +2640,16 @@ export default function FacultyEducationPortalApp() {
                   onClick={() =>
                     setEditingSection(editingSection === "TEACHING" ? "NONE" : "TEACHING")
                   }
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-all ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-sm transition-all active:scale-95 ${
                     editingSection === "TEACHING"
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : "bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300 hover:bg-purple-600 hover:text-white"
+                      ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-md ring-2 ring-emerald-400/40"
+                      : "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20 border border-purple-500"
                   }`}
                 >
                   {editingSection === "TEACHING" ? (
                     <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>เสร็จสิ้น</span>
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>เสร็จสิ้นการแก้ไข</span>
                     </>
                   ) : (
                     <>
@@ -2937,16 +2953,16 @@ export default function FacultyEducationPortalApp() {
                   onClick={() =>
                     setEditingSection(editingSection === "SERVICE" ? "NONE" : "SERVICE")
                   }
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition-all ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-sm transition-all active:scale-95 ${
                     editingSection === "SERVICE"
-                      ? "bg-emerald-600 text-white shadow-xs"
-                      : "bg-purple-600/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300 hover:bg-purple-600 hover:text-white"
+                      ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-md ring-2 ring-emerald-400/40"
+                      : "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20 border border-purple-500"
                   }`}
                 >
                   {editingSection === "SERVICE" ? (
                     <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>เสร็จสิ้น</span>
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>เสร็จสิ้นการแก้ไข</span>
                     </>
                   ) : (
                     <>
@@ -3320,36 +3336,12 @@ export default function FacultyEducationPortalApp() {
                   <span className="font-bold text-sm truncate">ผู้ดูแลระบบ</span>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
-                  {/* ปุ่ม ก- / ก+ ในหน้าแอดมิน กดง่าย */}
-                  <div
-                    className={`inline-flex items-center rounded-lg p-0.5 border ${
-                      isDark ? "bg-white/5 border-white/10" : "bg-slate-100 border-slate-200"
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={handleDecreaseFontSize}
-                      disabled={fontStep === 0}
-                      className="w-7 h-7 rounded-md font-black text-[11px] flex items-center justify-center disabled:opacity-30"
-                      title="ลดขนาดตัวอักษร"
-                    >
-                      ก-
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleIncreaseFontSize}
-                      disabled={fontStep === 4}
-                      className="w-7 h-7 rounded-md font-black text-[11px] flex items-center justify-center disabled:opacity-30"
-                      title="เพิ่มขนาดตัวอักษร"
-                    >
-                      ก+
-                    </button>
-                  </div>
+                <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     type="button"
                     onClick={toggleTheme}
-                    className="w-8 h-8 rounded-lg border border-purple-500/20 flex items-center justify-center"
+                    className="w-8 h-8 rounded-lg border border-purple-500/20 flex items-center justify-center transition-colors"
+                    title={isDark ? "สลับเป็นธีมสว่าง" : "สลับเป็นธีมมืด"}
                   >
                     {isDark ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4" />}
                   </button>
