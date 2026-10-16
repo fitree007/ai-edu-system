@@ -35,6 +35,9 @@ import {
   Trash2,
   Copy,
   Sparkles,
+  FolderOpen,
+  Upload,
+  Minus,
 } from "lucide-react";
 
 import {
@@ -45,6 +48,7 @@ import {
   INITIAL_INSTRUCTOR_FORMS,
   INITIAL_EXECUTIVE_FORMS,
   INITIAL_TEACHER_SURVEYS,
+  INITIAL_EXECUTIVE_SURVEYS,
   createDefaultSurvey,
   SURVEY_YEARS,
   TEACHING_LOAD_SEMESTERS,
@@ -55,31 +59,38 @@ import {
   FIELDWORK_AGENCY_OPTIONS,
   TARGET_COMMUNITY_OPTIONS,
   CRITERIA_PERCENTAGE_OPTIONS,
-  GOOGLE_FORM_EXECUTIVE_URL,
   SHEET_TEACHER_HISTORY_URL,
   type StaffMember,
   type TeacherInfo,
   type DegreeInfo,
   type InstructorPlanRecord,
   type ExecutivePlanRecord,
+  type ExecutiveSurveyPlan,
   type PortfolioWork,
   type TeacherSurveyPlan,
 } from "@/data/seedData";
 
 import { GAS_API_URL } from "@/lib/api";
+import { PdfReaderModal, UploadWorkModal } from "@/components/PdfReaderModal";
+import { ExecutivePortalView } from "@/components/ExecutivePortalView";
+import { RepositoryPortalView } from "@/components/RepositoryPortalView";
 
 export default function FacultyEducationPortalApp() {
   // Navigation & Auth State
-  const [activeView, setActiveView] = useState<"HOME" | "INSTRUCTOR" | "EXECUTIVE" | "ADMIN">("HOME");
+  const [activeView, setActiveView] = useState<
+    "HOME" | "INSTRUCTOR" | "EXECUTIVE" | "ADMIN" | "REPOSITORY"
+  >("HOME");
   const [currentUser, setCurrentUser] = useState<StaffMember | null>(null);
-  const [loginModalRole, setLoginModalRole] = useState<"INSTRUCTOR" | "EXECUTIVE" | "ADMIN" | null>(null);
+  const [loginModalRole, setLoginModalRole] = useState<
+    "INSTRUCTOR" | "EXECUTIVE" | "ADMIN" | null
+  >(null);
   const [loginStaffId, setLoginStaffId] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  // Theme & Accessibility State (Default: Light macOS style)
+  // Theme & Accessibility State (Default: Light macOS style + 5-step easy +/- font size)
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
-  const [fontSizeScale, setFontSizeScale] = useState<"normal" | "large" | "xlarge">("normal");
+  const [fontStep, setFontStep] = useState<number>(1); // 0=90%, 1=100%, 2=112%, 3=125%, 4=138%
   const isDark = themeMode === "dark";
 
   // System Settings: เปิด/ปิดการกรอกข้อมูลโดยแอดมิน
@@ -88,28 +99,46 @@ export default function FacultyEducationPortalApp() {
   // Database State
   const [staffList, setStaffList] = useState<StaffMember[]>(INITIAL_STAFF);
   const [teachersList, setTeachersList] = useState<TeacherInfo[]>(INITIAL_TEACHERS);
-  const [instructorForms, setInstructorForms] = useState<InstructorPlanRecord[]>(INITIAL_INSTRUCTOR_FORMS);
-  const [teacherSurveys, setTeacherSurveys] = useState<TeacherSurveyPlan[]>(INITIAL_TEACHER_SURVEYS);
-  const [portfolioWorks, setPortfolioWorks] = useState<PortfolioWork[]>(INITIAL_PORTFOLIO_WORKS);
-  const [executiveForms, setExecutiveForms] = useState<ExecutivePlanRecord[]>(INITIAL_EXECUTIVE_FORMS);
+  const [instructorForms, setInstructorForms] = useState<InstructorPlanRecord[]>(
+    INITIAL_INSTRUCTOR_FORMS
+  );
+  const [teacherSurveys, setTeacherSurveys] = useState<TeacherSurveyPlan[]>(
+    INITIAL_TEACHER_SURVEYS
+  );
+  const [executiveSurveys, setExecutiveSurveys] = useState<ExecutiveSurveyPlan[]>(
+    INITIAL_EXECUTIVE_SURVEYS
+  );
+  const [portfolioWorks, setPortfolioWorks] = useState<PortfolioWork[]>(
+    INITIAL_PORTFOLIO_WORKS
+  );
+  const [executiveForms, setExecutiveForms] = useState<ExecutivePlanRecord[]>(
+    INITIAL_EXECUTIVE_FORMS
+  );
   const [lastRealtimeSavedAt, setLastRealtimeSavedAt] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Public Hub State
+  // Public Hub & Repository State
   const [publicHubTab, setPublicHubTab] = useState<"FACULTY" | "EBOOKS">("FACULTY");
   const [publicSearch, setPublicSearch] = useState("");
   const [publicDeptFilter, setPublicDeptFilter] = useState("ALL");
   const [publicTeacherFilter, setPublicTeacherFilter] = useState("ALL");
   const [selectedWorkModal, setSelectedWorkModal] = useState<PortfolioWork | null>(null);
   const [selectedTeacherModal, setSelectedTeacherModal] = useState<TeacherInfo | null>(null);
+  const [isUploadWorkModalOpen, setIsUploadWorkModalOpen] = useState(false);
 
-  // Instructor Per-Section Edit Mode State
-  // อาจารย์ทุกคนเมื่อล็อกอินเข้ามาจะเห็นข้อมูลทั้งหมดของตัวเองทันที และกดแก้ไขแยกแต่ละส่วนได้แบบเรียลไทม์
+  // Instructor Verification -> Dashboard State
   const [editingSection, setEditingSection] = useState<
     "NONE" | "PROFILE" | "RESEARCH" | "TEACHING" | "SERVICE"
   >("NONE");
+  const [instructorSubView, setInstructorSubView] = useState<
+    "DASHBOARD" | "SURVEY_FORM" | "VERIFY_FIRST"
+  >("DASHBOARD");
+  const [isViewingSubmittedSurveyModal, setIsViewingSubmittedSurveyModal] = useState(false);
+
   const [adminEditingStaffId, setAdminEditingStaffId] = useState<string | null>(null);
-  const [adminViewingSurvey, setAdminViewingSurvey] = useState<TeacherSurveyPlan | null>(null);
+  const [adminViewingSurvey, setAdminViewingSurvey] = useState<TeacherSurveyPlan | null>(
+    null
+  );
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // Password State
@@ -117,25 +146,21 @@ export default function FacultyEducationPortalApp() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // Executive Portal State
-  const [editingExecId, setEditingExecId] = useState<string | null>(null);
-  const [execFormState, setExecFormState] = useState({
-    Academic_Year: 2570,
-    Curriculum_Status: "ผ่านการรับรองมาตรฐาน AUN-QA",
-    Faculty_Count: 8,
-    Total_Graduates: 90,
-    Quality_Score: 4.8,
-    Strategic_Plan_2570_2574: "",
-    Budget_Needs: "",
-    Issues_Found: "",
-  });
+  const [selectedExecDept, setSelectedExecDept] = useState<string>(EDUCATION_PROGRAMS[0]);
 
   // Admin Portal State
-  const [adminMenu, setAdminMenu] = useState<"INSTRUCTORS" | "DASHBOARD" | "FACULTY" | "SETTINGS">("INSTRUCTORS");
-  const [adminYearMode] = useState<"RANGE_2570_2574" | "EVERY_5_YEARS" | "SINGLE_YEAR">("RANGE_2570_2574");
+  const [adminMenu, setAdminMenu] = useState<
+    "INSTRUCTORS" | "DASHBOARD" | "FACULTY" | "SETTINGS"
+  >("INSTRUCTORS");
+  const [adminYearMode] = useState<
+    "RANGE_2570_2574" | "EVERY_5_YEARS" | "SINGLE_YEAR"
+  >("RANGE_2570_2574");
   const [adminSelectedYear] = useState<number>(2570);
   const [adminTeacherSearch, setAdminTeacherSearch] = useState("");
   const [adminTeacherDeptFilter, setAdminTeacherDeptFilter] = useState("ALL");
-  const [adminTeacherStatusFilter, setAdminTeacherStatusFilter] = useState<"ALL" | "SUBMITTED" | "PENDING">("ALL");
+  const [adminTeacherStatusFilter, setAdminTeacherStatusFilter] = useState<
+    "ALL" | "SUBMITTED" | "PENDING"
+  >("ALL");
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -145,26 +170,29 @@ export default function FacultyEducationPortalApp() {
   // Load from LocalStorage
   useEffect(() => {
     try {
-      const cachedStaff = localStorage.getItem("edu_staff_v3");
+      const cachedStaff = localStorage.getItem("edu_staff_v4");
       const cachedTeachers = localStorage.getItem("edu_teachers_v1");
       const cachedInst = localStorage.getItem("edu_inst_v3");
       const cachedWorks = localStorage.getItem("edu_works_v3");
       const cachedExec = localStorage.getItem("edu_exec_v3");
+      const cachedExecSurveys = localStorage.getItem("edu_exec_surveys_v1");
       const cachedSub = localStorage.getItem("edu_submission_open");
       const cachedTheme = localStorage.getItem("edu_theme_v3");
-      const cachedScale = localStorage.getItem("edu_scale_v3");
+      const cachedFontStep = localStorage.getItem("edu_font_step_v1");
       const cachedSurveys = localStorage.getItem("edu_surveys_v1");
 
       if (cachedStaff) setStaffList(JSON.parse(cachedStaff));
       if (cachedTeachers) setTeachersList(JSON.parse(cachedTeachers));
       if (cachedInst) setInstructorForms(JSON.parse(cachedInst));
       if (cachedSurveys) setTeacherSurveys(JSON.parse(cachedSurveys));
+      if (cachedExecSurveys) setExecutiveSurveys(JSON.parse(cachedExecSurveys));
       if (cachedWorks) setPortfolioWorks(JSON.parse(cachedWorks));
       if (cachedExec) setExecutiveForms(JSON.parse(cachedExec));
       if (cachedSub !== null) setIsSubmissionOpen(JSON.parse(cachedSub));
       if (cachedTheme === "dark" || cachedTheme === "light") setThemeMode(cachedTheme);
-      if (cachedScale === "normal" || cachedScale === "large" || cachedScale === "xlarge") {
-        setFontSizeScale(cachedScale);
+      if (cachedFontStep !== null) {
+        const parsed = Number(cachedFontStep);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 4) setFontStep(parsed);
       }
     } catch (e) {
       console.warn("LocalStorage cache error:", e);
@@ -178,17 +206,27 @@ export default function FacultyEducationPortalApp() {
   // Real-time Persistence to LocalStorage
   useEffect(() => {
     try {
-      localStorage.setItem("edu_staff_v3", JSON.stringify(staffList));
+      localStorage.setItem("edu_staff_v4", JSON.stringify(staffList));
       localStorage.setItem("edu_teachers_v1", JSON.stringify(teachersList));
       localStorage.setItem("edu_inst_v3", JSON.stringify(instructorForms));
       localStorage.setItem("edu_surveys_v1", JSON.stringify(teacherSurveys));
+      localStorage.setItem("edu_exec_surveys_v1", JSON.stringify(executiveSurveys));
       localStorage.setItem("edu_works_v3", JSON.stringify(portfolioWorks));
       localStorage.setItem("edu_exec_v3", JSON.stringify(executiveForms));
       localStorage.setItem("edu_submission_open", JSON.stringify(isSubmissionOpen));
     } catch (e) {
       console.warn("Failed to persist to localStorage", e);
     }
-  }, [staffList, teachersList, instructorForms, teacherSurveys, portfolioWorks, executiveForms, isSubmissionOpen]);
+  }, [
+    staffList,
+    teachersList,
+    instructorForms,
+    teacherSurveys,
+    executiveSurveys,
+    portfolioWorks,
+    executiveForms,
+    isSubmissionOpen,
+  ]);
 
   useEffect(() => {
     try {
@@ -196,42 +234,32 @@ export default function FacultyEducationPortalApp() {
     } catch {}
   }, [themeMode]);
 
+  const FONT_STEP_PX = [14, 15.5, 17, 18.5, 20];
+  const FONT_STEP_LABELS = ["90%", "100%", "112%", "125%", "138%"];
+
   useEffect(() => {
     try {
-      localStorage.setItem("edu_scale_v3", fontSizeScale);
+      localStorage.setItem("edu_font_step_v1", String(fontStep));
       if (typeof document !== "undefined") {
-        if (fontSizeScale === "xlarge") {
-          document.documentElement.style.fontSize = "18.5px";
-        } else if (fontSizeScale === "large") {
-          document.documentElement.style.fontSize = "17px";
-        } else {
-          document.documentElement.style.fontSize = "15.5px";
-        }
+        document.documentElement.style.fontSize = `${FONT_STEP_PX[fontStep] || 15.5}px`;
       }
     } catch {}
-  }, [fontSizeScale]);
-
-  const handleToggleFontSize = () => {
-    if (fontSizeScale === "normal") {
-      setFontSizeScale("large");
-      showToast("ขนาดตัวอักษร: ใหญ่ (115%)");
-    } else if (fontSizeScale === "large") {
-      setFontSizeScale("xlarge");
-      showToast("ขนาดตัวอักษร: ใหญ่พิเศษ (125%)");
-    } else {
-      setFontSizeScale("normal");
-      showToast("ขนาดตัวอักษร: ปกติ (100%)");
-    }
-  };
+  }, [fontStep]);
 
   const handleDecreaseFontSize = () => {
-    if (fontSizeScale === "xlarge") setFontSizeScale("large");
-    else if (fontSizeScale === "large") setFontSizeScale("normal");
+    setFontStep((prev) => {
+      const next = Math.max(0, prev - 1);
+      showToast(`ขนาดตัวอักษร: ${FONT_STEP_LABELS[next]}`);
+      return next;
+    });
   };
 
   const handleIncreaseFontSize = () => {
-    if (fontSizeScale === "normal") setFontSizeScale("large");
-    else if (fontSizeScale === "large") setFontSizeScale("xlarge");
+    setFontStep((prev) => {
+      const next = Math.min(4, prev + 1);
+      showToast(`ขนาดตัวอักษร: ${FONT_STEP_LABELS[next]}`);
+      return next;
+    });
   };
 
   const toggleTheme = () => {
@@ -250,9 +278,12 @@ export default function FacultyEducationPortalApp() {
           return Array.from(map.values());
         });
       }
-      if (data.instructorForms && data.instructorForms.length > 0) setInstructorForms(data.instructorForms);
-      if (data.portfolioWorks && data.portfolioWorks.length > 0) setPortfolioWorks(data.portfolioWorks);
-      if (data.executiveForms && data.executiveForms.length > 0) setExecutiveForms(data.executiveForms);
+      if (data.instructorForms && data.instructorForms.length > 0)
+        setInstructorForms(data.instructorForms);
+      if (data.portfolioWorks && data.portfolioWorks.length > 0)
+        setPortfolioWorks(data.portfolioWorks);
+      if (data.executiveForms && data.executiveForms.length > 0)
+        setExecutiveForms(data.executiveForms);
     } catch {}
   };
 
@@ -267,7 +298,7 @@ export default function FacultyEducationPortalApp() {
     } catch {}
   };
 
-  // Auth Handling
+  // Auth Handling (รองรับอาจารย์ที่ได้รับแต่งตั้งเป็นหัวหน้าสาขา/ผู้บริหาร ให้เข้าได้ทั้งโหมดอาจารย์และโหมดผู้บริหาร)
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
@@ -282,15 +313,32 @@ export default function FacultyEducationPortalApp() {
       return;
     }
 
-    if (loginModalRole && user.Role !== loginModalRole && user.Role !== "ADMIN") {
-      setLoginError("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานในส่วนนี้");
+    const canAccessExecutive =
+      user.Role === "EXECUTIVE" ||
+      user.Role === "ADMIN" ||
+      !!user.Is_Executive_Assigned;
+
+    if (loginModalRole === "EXECUTIVE" && !canAccessExecutive) {
+      setLoginError("บัญชีนี้ยังไม่ได้รับมอบหมายสิทธิ์หัวหน้าสาขาวิชา/ผู้บริหาร");
+      return;
+    }
+
+    if (
+      loginModalRole === "ADMIN" &&
+      user.Role !== "ADMIN"
+    ) {
+      setLoginError("เฉพาะผู้ดูแลระบบ (ADMIN) เท่านั้น");
       return;
     }
 
     setCurrentUser(user);
     const target = loginModalRole || user.Role;
     setActiveView(target);
+    if (user.Managed_Department || user.Department) {
+      setSelectedExecDept(user.Managed_Department || user.Department);
+    }
     setEditingSection("NONE");
+    setInstructorSubView("DASHBOARD");
     setLoginModalRole(null);
     setLoginStaffId("");
     setLoginPassword("");
@@ -301,6 +349,7 @@ export default function FacultyEducationPortalApp() {
     setCurrentUser(null);
     setAdminEditingStaffId(null);
     setEditingSection("NONE");
+    setInstructorSubView("DASHBOARD");
     setActiveView("HOME");
     showToast("ออกจากระบบแล้ว");
   };
@@ -434,9 +483,10 @@ export default function FacultyEducationPortalApp() {
     });
 
     setEditingSection("NONE");
+    setInstructorSubView("DASHBOARD");
     setLastRealtimeSavedAt(nowTime);
     postToGAS({ action: "upsertTeacherSurvey", survey: confirmedRecord });
-    showToast("ยืนยันความถูกต้องและบันทึกข้อมูลลงฐานข้อมูลเรียบร้อยแล้ว");
+    showToast("ยืนยันข้อมูลสำเร็จ เข้าสู่หน้าแดชบอร์ดอาจารย์แล้ว");
   };
 
   // Toggle เลือกแหล่งทุนวิจัย (Checkbox + เลือกปี)
@@ -535,50 +585,96 @@ export default function FacultyEducationPortalApp() {
     showToast("เปลี่ยนรหัสผ่านสำเร็จ");
   };
 
-  const handleSaveExecutiveForm = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentUser) return;
-
-    const execId = editingExecId || `PLAN-EXEC-${Date.now().toString().slice(-4)}`;
-    const newExec: ExecutivePlanRecord = {
-      Exec_ID: execId,
-      Staff_ID: currentUser.Staff_ID,
-      Executive_Name: currentUser.Full_Name,
-      Department: currentUser.Department,
-      Academic_Year: Number(execFormState.Academic_Year),
-      Curriculum_Status: execFormState.Curriculum_Status,
-      Faculty_Count: Number(execFormState.Faculty_Count),
-      Total_Graduates: Number(execFormState.Total_Graduates),
-      Quality_Score: Number(execFormState.Quality_Score),
-      Strategic_Plan_2570_2574: execFormState.Strategic_Plan_2570_2574,
-      Budget_Needs: execFormState.Budget_Needs,
-      Issues_Found: execFormState.Issues_Found,
-      Updated_At: new Date().toISOString().split("T")[0],
-    };
-
-    setExecutiveForms((prev) => {
-      const exists = prev.some((r) => r.Exec_ID === execId);
-      return exists ? prev.map((r) => (r.Exec_ID === execId ? newExec : r)) : [newExec, ...prev];
+  // บันทึกแบบสำรวจผู้บริหาร 2570–2574 (In-App Executive Survey)
+  const handleSaveExecutiveSurvey = (
+    updatedPlan: ExecutiveSurveyPlan,
+    showNotice = true
+  ) => {
+    const nowTime = new Date().toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
+    setExecutiveSurveys((prev) => {
+      const idx = prev.findIndex((s) => s.Department === updatedPlan.Department);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = updatedPlan;
+        return copy;
+      }
+      return [updatedPlan, ...prev];
+    });
+    setLastRealtimeSavedAt(nowTime);
+    postToGAS({ action: "upsertExecutiveSurvey", survey: updatedPlan });
+    if (showNotice) {
+      showToast(`บันทึกแผนผู้บริหาร (${updatedPlan.Department}) เรียบร้อยแล้ว`);
+    }
+  };
 
+  // สับเปลี่ยนตำแหน่งหัวหน้าสาขาวิชา / ผู้บริหารในอนาคต (Role Handover)
+  const handleAssignDepartmentHead = (
+    dept: string,
+    teacherId: string,
+    positionTitle: string,
+    canViewAll: boolean
+  ) => {
+    setStaffList((prev) =>
+      prev.map((member) => {
+        if (member.Staff_ID.toUpperCase() === teacherId.toUpperCase()) {
+          return {
+            ...member,
+            Is_Executive_Assigned: true,
+            Executive_Position: positionTitle,
+            Managed_Department: dept,
+            Can_View_All_Departments: canViewAll,
+          };
+        }
+        // หากเป็นหัวหน้าสาขาคนเดิมของสาขานี้ ให้ปลดสถานะหัวหน้าสาขานี้ออก (แต่ยังเป็นอาจารย์ปกติ)
+        if (
+          member.Role === "INSTRUCTOR" &&
+          member.Managed_Department === dept &&
+          member.Staff_ID.toUpperCase() !== teacherId.toUpperCase()
+        ) {
+          return {
+            ...member,
+            Is_Executive_Assigned: false,
+            Executive_Position: undefined,
+            Managed_Department: undefined,
+          };
+        }
+        return member;
+      })
+    );
+
+    const assignedMember = staffList.find(
+      (s) => s.Staff_ID.toUpperCase() === teacherId.toUpperCase()
+    );
+    showToast(
+      `แต่งตั้ง ${assignedMember?.Full_Name || teacherId} เป็น${positionTitle} (${dept}) เรียบร้อยแล้ว`
+    );
+  };
+
+  // อัปโหลดผลงานใหม่เข้าสู่คลังข้อมูลสาธารณะ (รองรับ PDF เปิดอ่านบนเว็บแอป + ลิงก์)
+  const handleSaveNewWork = (
+    newWork: PortfolioWork,
+    base64Data?: string,
+    fileName?: string
+  ) => {
+    setPortfolioWorks((prev) => [newWork, ...prev]);
     postToGAS({
-      action: "upsertExecutiveForm",
-      execId: newExec.Exec_ID,
-      staffId: newExec.Staff_ID,
-      executiveName: newExec.Executive_Name,
-      department: newExec.Department,
-      academicYear: newExec.Academic_Year,
-      curriculumStatus: newExec.Curriculum_Status,
-      facultyCount: newExec.Faculty_Count,
-      totalGraduates: newExec.Total_Graduates,
-      qualityScore: newExec.Quality_Score,
-      strategicPlan: newExec.Strategic_Plan_2570_2574,
-      budgetNeeds: newExec.Budget_Needs,
-      issuesFound: newExec.Issues_Found,
+      action: "uploadWork",
+      work: newWork,
+      base64Data,
+      fileName,
     });
+    showToast(`อัปโหลดผลงาน "${newWork.Title}" เข้าสู่คลังข้อมูลเรียบร้อยแล้ว`);
+  };
 
-    setEditingExecId(null);
-    showToast(`บันทึกรายงานของ ${currentUser.Department} แล้ว`);
+  const handleIncrementDownload = (workId: string) => {
+    setPortfolioWorks((prev) =>
+      prev.map((w) =>
+        w.Work_ID === workId ? { ...w, Downloads: (w.Downloads || 0) + 1 } : w
+      )
+    );
   };
 
   // Filters for Public Hub
@@ -593,7 +689,9 @@ export default function FacultyEducationPortalApp() {
       const matchDept = publicDeptFilter === "ALL" || w.Department === publicDeptFilter;
       const matchTeacher =
         publicTeacherFilter === "ALL" ||
-        w.Instructor_Name.trim().toLowerCase().includes(publicTeacherFilter.trim().toLowerCase());
+        w.Instructor_Name.trim()
+          .toLowerCase()
+          .includes(publicTeacherFilter.trim().toLowerCase());
       const q = publicSearch.trim().toLowerCase();
       const matchQuery =
         !q ||
@@ -616,15 +714,22 @@ export default function FacultyEducationPortalApp() {
         !q ||
         t.name.toLowerCase().includes(q) ||
         t.program.toLowerCase().includes(q) ||
-        t.degrees.some((d) => d.major.toLowerCase().includes(q) || d.institution.toLowerCase().includes(q));
+        t.degrees.some(
+          (d) =>
+            d.major.toLowerCase().includes(q) ||
+            d.institution.toLowerCase().includes(q)
+        );
       return matchDept && matchTeacher && matchQuery;
     });
   }, [teachersList, publicSearch, publicDeptFilter, publicTeacherFilter]);
 
   const adminTeachersFiltered = useMemo(() => {
     return teachersList.filter((t) => {
-      const matchDept = adminTeacherDeptFilter === "ALL" || t.program === adminTeacherDeptFilter;
-      const survey = teacherSurveys.find((s) => s.Staff_ID.trim().toUpperCase() === t.id.trim().toUpperCase());
+      const matchDept =
+        adminTeacherDeptFilter === "ALL" || t.program === adminTeacherDeptFilter;
+      const survey = teacherSurveys.find(
+        (s) => s.Staff_ID.trim().toUpperCase() === t.id.trim().toUpperCase()
+      );
       const isSubmitted = !!survey?.Is_Submitted;
       const matchStatus =
         adminTeacherStatusFilter === "ALL" ||
@@ -640,24 +745,36 @@ export default function FacultyEducationPortalApp() {
 
       return matchDept && matchStatus && matchQuery;
     });
-  }, [teachersList, teacherSurveys, adminTeacherDeptFilter, adminTeacherStatusFilter, adminTeacherSearch]);
+  }, [
+    teachersList,
+    teacherSurveys,
+    adminTeacherDeptFilter,
+    adminTeacherStatusFilter,
+    adminTeacherSearch,
+  ]);
 
   const adminChartData = useMemo(() => {
     if (adminYearMode === "RANGE_2570_2574") {
       const years = [2570, 2571, 2572, 2573, 2574];
       return years.map((yr) => ({
         label: `${yr}`,
-        formsCount: instructorForms.filter((f) => Number(f.Academic_Year) === yr).length,
-        worksCount: portfolioWorks.filter((w) => Number(w.Academic_Year) === yr).length,
+        formsCount: instructorForms.filter((f) => Number(f.Academic_Year) === yr)
+          .length,
+        worksCount: portfolioWorks.filter((w) => Number(w.Academic_Year) === yr)
+          .length,
       }));
     }
     return EDUCATION_PROGRAMS.map((prog) => ({
       label: prog.replace(/^สาขาวิชา/, ""),
       formsCount: instructorForms.filter(
-        (f) => f.Department === prog && Number(f.Academic_Year) === Number(adminSelectedYear)
+        (f) =>
+          f.Department === prog &&
+          Number(f.Academic_Year) === Number(adminSelectedYear)
       ).length,
       worksCount: portfolioWorks.filter(
-        (w) => w.Department === prog && Number(w.Academic_Year) === Number(adminSelectedYear)
+        (w) =>
+          w.Department === prog &&
+          Number(w.Academic_Year) === Number(adminSelectedYear)
       ).length,
     }));
   }, [adminYearMode, adminSelectedYear, instructorForms, portfolioWorks]);
@@ -681,21 +798,24 @@ export default function FacultyEducationPortalApp() {
       )}
 
       {/* ====================================================================
-          GLOBAL HEADER: macOS Top Menu Bar (100% Mobile-Safe, Never Wraps/Overflows)
+          GLOBAL HEADER: macOS Top Menu Bar
+          - แก้ปัญหาไอคอนจมในมือถือ 100% (ซ่อนโลโก้ซ้ำซ้อนเมื่ออยู่หน้าย่อยบนจอแคบ)
+          - มีปุ่ม - / + ปรับขนาดตัวหนังสือที่กดง่ายมากบนมือถือและทุกหน้าจอ
+          - มีปุ่มแยกสำหรับเข้าหน้า "คลังข้อมูล" ได้ทันทีจากทุกหน้า
          ==================================================================== */}
       {activeView !== "ADMIN" && (
         <header
           className={`sticky top-0 z-30 border-b backdrop-blur-2xl transition-colors ${
             isDark
-              ? "bg-[#130B29]/85 border-white/10 text-white"
-              : "bg-white/80 border-slate-200/80 text-slate-900 shadow-[0_1px_3px_rgba(0,0,0,0.03)]"
+              ? "bg-[#130B29]/90 border-white/10 text-white"
+              : "bg-white/90 border-slate-200/80 text-slate-900 shadow-[0_1px_3px_rgba(0,0,0,0.03)]"
           }`}
         >
-          <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
-            {/* Left: macOS Dots + Back Button / Brand Title */}
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="max-w-6xl mx-auto px-2.5 sm:px-6 h-14 flex items-center justify-between gap-1.5 sm:gap-3">
+            {/* Left: macOS Dots + Back Button / Brand Title (ไม่เบียดไอคอนจมบนมือถือ) */}
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
               {/* macOS Traffic Lights */}
-              <div className="hidden md:flex items-center gap-1.5 mr-1 shrink-0">
+              <div className="hidden lg:flex items-center gap-1.5 mr-1 shrink-0">
                 <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-black/10" />
                 <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-black/10" />
                 <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-black/10" />
@@ -720,79 +840,71 @@ export default function FacultyEducationPortalApp() {
                 </button>
               ) : null}
 
+              {/* แสดงโลโก้เฉพาะหน้าหลักบนมือถือ หรือบนจอแท็บเล็ต/คอมพิวเตอร์ เพื่อไม่ให้ไอคอนจมเมื่อมีปุ่มหน้าหลัก */}
               <div
                 onClick={() => {
                   setAdminEditingStaffId(null);
                   setEditingSection("NONE");
                   setActiveView("HOME");
                 }}
-                className="flex items-center gap-2 cursor-pointer min-w-0"
+                className={`${
+                  activeView !== "HOME" ? "hidden sm:flex" : "flex"
+                } items-center gap-2 cursor-pointer shrink-0`}
               >
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <GraduationCap className="w-4 h-4" />
+                  <GraduationCap className="w-4 h-4 shrink-0" />
                 </div>
-                <span className="font-bold text-sm sm:text-base tracking-tight whitespace-nowrap truncate">
+                <span className="font-bold text-xs sm:text-base tracking-tight whitespace-nowrap">
                   คณะศึกษาศาสตร์
                 </span>
               </div>
             </div>
 
-            {/* Right: Mobile-First Compact Controls (Never wraps text vertically) */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Mobile Font Size Button (Single 1-tap button on mobile, 3-segment on desktop) */}
+            {/* Right: ปุ่มคลังข้อมูล + ปุ่ม -/+ ขนาดตัวอักษรที่กดง่ายในมือถือ + สลับธีม + ผู้ใช้ */}
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              {/* ปุ่มแยกเข้าหน้า "คลังข้อมูล" โดยตรง */}
               <button
                 type="button"
-                onClick={handleToggleFontSize}
-                className={`sm:hidden px-2.5 h-9 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1 ${
-                  fontSizeScale !== "normal"
-                    ? "bg-purple-600 text-white border-purple-500"
+                onClick={() => setActiveView("REPOSITORY")}
+                className={`h-9 px-2.5 sm:px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shrink-0 transition-all active:scale-95 ${
+                  activeView === "REPOSITORY"
+                    ? "bg-purple-600 text-white border-purple-500 shadow-xs"
                     : isDark
-                    ? "bg-white/10 border-white/15 text-purple-100"
-                    : "bg-slate-100 border-slate-200/90 text-slate-800"
+                    ? "bg-purple-500/15 border-purple-400/30 text-purple-200 hover:bg-purple-500/25"
+                    : "bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100"
                 }`}
-                title="ปรับขนาดตัวอักษร"
+                title="เปิดหน้าคลังค้นหาข้อมูลและ E-Book"
               >
-                <span>ก+</span>
-                <span className="text-[10px] opacity-80">
-                  {fontSizeScale === "normal" ? "100%" : fontSizeScale === "large" ? "115%" : "125%"}
-                </span>
+                <FolderOpen className="w-3.5 h-3.5 shrink-0" />
+                <span>คลังข้อมูล</span>
               </button>
 
-              {/* Desktop Font Size Control */}
+              {/* ปุ่ม - / + ปรับขนาดตัวหนังสือ (กดง่ายทั้งบนมือถือและคอมพิวเตอร์) */}
               <div
-                className={`hidden sm:flex items-center rounded-xl p-0.5 border text-xs ${
+                className={`flex items-center rounded-xl p-0.5 border ${
                   isDark
-                    ? "bg-white/5 border-white/10 text-purple-100"
-                    : "bg-slate-100 border-slate-200/80 text-slate-800"
+                    ? "bg-white/5 border-white/15 text-purple-100"
+                    : "bg-slate-100 border-slate-200/90 text-slate-800"
                 }`}
               >
                 <button
                   type="button"
                   onClick={handleDecreaseFontSize}
-                  disabled={fontSizeScale === "normal"}
-                  className="px-2 h-8 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 font-bold whitespace-nowrap"
+                  disabled={fontStep === 0}
+                  className="w-8 h-8 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-purple-600 hover:text-white active:scale-90 disabled:opacity-30 font-black text-xs transition-all"
+                  title="ลดขนาดตัวอักษร (-)"
                 >
                   ก-
                 </button>
-                <button
-                  type="button"
-                  onClick={handleToggleFontSize}
-                  className={`px-2.5 h-8 rounded-lg font-bold text-[11px] whitespace-nowrap transition-colors ${
-                    fontSizeScale !== "normal"
-                      ? "bg-purple-600 text-white shadow-2xs"
-                      : "hover:bg-black/5 dark:hover:bg-white/10"
-                  }`}
-                >
-                  <Type className="w-3.5 h-3.5 inline mr-1" />
-                  <span>
-                    {fontSizeScale === "normal" ? "100%" : fontSizeScale === "large" ? "115%" : "125%"}
-                  </span>
-                </button>
+                <span className="hidden md:inline-block px-1.5 text-[11px] font-bold opacity-75 select-none">
+                  {FONT_STEP_LABELS[fontStep]}
+                </span>
                 <button
                   type="button"
                   onClick={handleIncreaseFontSize}
-                  disabled={fontSizeScale === "xlarge"}
-                  className="px-2 h-8 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 font-bold whitespace-nowrap"
+                  disabled={fontStep === 4}
+                  className="w-8 h-8 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-purple-600 hover:text-white active:scale-90 disabled:opacity-30 font-black text-xs transition-all"
+                  title="เพิ่มขนาดตัวอักษร (+)"
                 >
                   ก+
                 </button>
@@ -814,11 +926,11 @@ export default function FacultyEducationPortalApp() {
 
               {/* Auth / User Pill */}
               {currentUser ? (
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => setActiveView(currentUser.Role)}
-                    className="h-9 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold whitespace-nowrap max-w-[110px] sm:max-w-[160px] truncate shadow-xs"
+                    className="h-9 px-2.5 sm:px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold whitespace-nowrap max-w-[88px] sm:max-w-[150px] truncate shadow-xs"
                   >
                     {currentUser.Full_Name.split(" ")[0]}
                   </button>
@@ -839,14 +951,14 @@ export default function FacultyEducationPortalApp() {
                 <button
                   type="button"
                   onClick={() => setLoginModalRole("ADMIN")}
-                  className={`h-9 px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shrink-0 transition-colors ${
+                  className={`h-9 px-2.5 sm:px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1 shrink-0 transition-colors ${
                     isDark
                       ? "border-white/15 bg-white/10 hover:bg-white/15 text-purple-100"
                       : "border-slate-200/90 bg-slate-100 hover:bg-slate-200/70 text-slate-800"
                   }`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                  <span>แอดมิน</span>
+                  <span className="hidden xs:inline sm:inline">แอดมิน</span>
                 </button>
               )}
             </div>
@@ -855,19 +967,38 @@ export default function FacultyEducationPortalApp() {
       )}
 
       {/* ====================================================================
+          VIEW 0: หน้าคลังค้นหาข้อมูลและสื่อวิชาการ (DEDICATED REPOSITORY VIEW)
+         ==================================================================== */}
+      {activeView === "REPOSITORY" && (
+        <main className="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
+          <RepositoryPortalView
+            isDark={isDark}
+            works={portfolioWorks}
+            onOpenPdfWork={(work) => setSelectedWorkModal(work)}
+            onIncrementDownload={handleIncrementDownload}
+            onOpenUploadModal={() => setIsUploadWorkModalOpen(true)}
+          />
+        </main>
+      )}
+
+      {/* ====================================================================
           VIEW 1: หน้าหลัก (HOME) - macOS Sequoia Clean Bento Workspace
          ==================================================================== */}
       {activeView === "HOME" && (
         <main className="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-5 sm:space-y-6">
-          {/* 1. ปุ่มหลัก 2 ปุ่มเด่นๆ (สำหรับอาจารย์ผู้สอน & สำหรับผู้บริหาร) */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 1. ปุ่มหลัก 3 การ์ด (อาจารย์ผู้สอน, ผู้บริหาร, และคลังรวมข้อมูลสาธารณะ) */}
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* การ์ด 1: เข้าสู่ระบบอาจารย์ผู้สอน */}
             <div
               onClick={() => {
-                if (currentUser?.Role === "INSTRUCTOR") setActiveView("INSTRUCTOR");
-                else setLoginModalRole("INSTRUCTOR");
+                if (currentUser?.Role === "INSTRUCTOR") {
+                  setInstructorSubView("DASHBOARD");
+                  setActiveView("INSTRUCTOR");
+                } else {
+                  setLoginModalRole("INSTRUCTOR");
+                }
               }}
-              className={`group relative overflow-hidden rounded-3xl p-5 sm:p-7 text-white border transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[175px] sm:min-h-[200px] ${
+              className={`group relative overflow-hidden rounded-3xl p-5 sm:p-6 text-white border transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[175px] sm:min-h-[195px] ${
                 isDark
                   ? "bg-gradient-to-br from-[#5B21B6] via-[#3B0764] to-[#1E0938] border-purple-400/30 shadow-xl"
                   : "bg-gradient-to-br from-[#6D28D9] via-[#5B21B6] to-[#4C1D95] border-purple-300/40 shadow-[0_12px_30px_rgba(109,40,217,0.22)]"
@@ -895,11 +1026,11 @@ export default function FacultyEducationPortalApp() {
 
               <div className="mt-4 flex items-end justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-2xl font-black tracking-tight text-balance">
+                  <h2 className="text-lg sm:text-xl font-black tracking-tight text-balance">
                     เข้าสู่ระบบอาจารย์ผู้สอน
                   </h2>
-                  <p className="text-xs sm:text-sm text-purple-100/90 mt-1 line-clamp-2">
-                    ตรวจสอบประวัติและยืนยันข้อมูลแผนประจำปีการศึกษา 2570–2574
+                  <p className="text-xs text-purple-100/90 mt-1 line-clamp-2">
+                    ยืนยันประวัติ แผนประจำปี 2570–2574 และอัปโหลดผลงาน PDF
                   </p>
                 </div>
                 <div className="w-10 h-10 rounded-2xl bg-white text-purple-950 flex items-center justify-center shrink-0 shadow-md group-hover:translate-x-1 transition-transform">
@@ -911,10 +1042,16 @@ export default function FacultyEducationPortalApp() {
             {/* การ์ด 2: เข้าสู่ระบบผู้บริหาร */}
             <div
               onClick={() => {
-                if (currentUser?.Role === "EXECUTIVE") setActiveView("EXECUTIVE");
-                else setLoginModalRole("EXECUTIVE");
+                if (
+                  currentUser?.Role === "EXECUTIVE" ||
+                  currentUser?.Is_Executive_Assigned
+                ) {
+                  setActiveView("EXECUTIVE");
+                } else {
+                  setLoginModalRole("EXECUTIVE");
+                }
               }}
-              className={`group relative overflow-hidden rounded-3xl p-5 sm:p-7 text-white border transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[175px] sm:min-h-[200px] ${
+              className={`group relative overflow-hidden rounded-3xl p-5 sm:p-6 text-white border transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[175px] sm:min-h-[195px] ${
                 isDark
                   ? "bg-gradient-to-br from-[#701A75] via-[#4A044E] to-[#1F082B] border-fuchsia-400/30 shadow-xl"
                   : "bg-gradient-to-br from-[#7E22CE] via-[#6B21A8] to-[#4A044E] border-fuchsia-300/40 shadow-[0_12px_30px_rgba(126,34,206,0.2)]"
@@ -931,14 +1068,47 @@ export default function FacultyEducationPortalApp() {
 
               <div className="mt-4 flex items-end justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-2xl font-black tracking-tight text-balance">
+                  <h2 className="text-lg sm:text-xl font-black tracking-tight text-balance">
                     เข้าสู่ระบบผู้บริหาร
                   </h2>
-                  <p className="text-xs sm:text-sm text-purple-100/90 mt-1 line-clamp-2">
-                    สำหรับหัวหน้าสาขาวิชา ติดตามและรายงานแผนพัฒนาหลักสูตร
+                  <p className="text-xs text-purple-100/90 mt-1 line-clamp-2">
+                    กรอกแบบสำรวจผู้บริหารในเว็บแอป & ดูแดชบอร์ดทั้ง 12 สาขา
                   </p>
                 </div>
                 <div className="w-10 h-10 rounded-2xl bg-white text-purple-950 flex items-center justify-center shrink-0 shadow-md group-hover:translate-x-1 transition-transform">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+
+            {/* การ์ด 3: ปุ่มแยกเข้าหน้า "คลังรวมข้อมูลและสื่อวิชาการ (PDF Reader)" */}
+            <div
+              onClick={() => setActiveView("REPOSITORY")}
+              className={`group relative overflow-hidden rounded-3xl p-5 sm:p-6 border transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[175px] sm:min-h-[195px] ${
+                isDark
+                  ? "bg-[#181030] border-purple-400/30 text-white hover:border-purple-400 shadow-xl"
+                  : "bg-white border-purple-200 text-slate-900 hover:border-purple-400 shadow-[0_12px_30px_rgba(15,23,42,0.06)]"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <FolderOpen className="w-5 h-5" />
+                </div>
+                <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-300 text-xs font-bold whitespace-nowrap">
+                  {portfolioWorks.filter((w) => w.Is_Public).length} ผลงานสาธารณะ
+                </span>
+              </div>
+
+              <div className="mt-4 flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl font-black tracking-tight text-balance">
+                    คลังค้นหาข้อมูล & E-Book
+                  </h2>
+                  <p className="text-xs opacity-75 mt-1 line-clamp-2">
+                    เปิดอ่านไฟล์ PDF บนเว็บแอป ดาวน์โหลดตำรา และสื่อการสอนสาธารณะ
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-md group-hover:translate-x-1 transition-transform">
                   <ArrowRight className="w-5 h-5" />
                 </div>
               </div>
@@ -1276,65 +1446,442 @@ export default function FacultyEducationPortalApp() {
           )}
 
           {/* ====================================================================
-              TOP VERIFICATION BANNER (ยืนยันข้อมูลครั้งแรกและครั้งเดียว + สถานะ Real-time)
+              STEP 2: CLEAN BENTO DASHBOARD (ปรากฏทันทีหลังจากอาจารย์กดยืนยันข้อมูลเสร็จแล้ว)
+              - Bento ชื่อและประวัติอาจารย์: สีธีมม่วงหรูทันสมัย
+              - ส่วนอื่นๆ: โทนสีเรียบสะอาดตา ไม่เน้นสีฉูดฉาด
+              - มีปุ่มกรอกแบบสำรวจ (เมื่อแอดมินเปิดรับ) + ปุ่มดูข้อมูลที่กรอกไว้แล้ว (ไม่รก)
+              - มีปุ่มอัปโหลดคลังข้อมูลสาธารณะ (PDF เปิดอ่านบนเว็บได้ทันที)
              ==================================================================== */}
-          <div
-            className={`rounded-3xl p-5 sm:p-6 border transition-all ${
-              currentTeacherSurvey.Is_Submitted
-                ? isDark
-                  ? "bg-emerald-950/30 border-emerald-500/40 text-white"
-                  : "bg-emerald-50/90 border-emerald-300/80 text-slate-900"
-                : isDark
-                ? "bg-gradient-to-br from-[#3B0764] via-[#270949] to-[#16072C] border-purple-400/40 text-white shadow-xl"
-                : "bg-gradient-to-br from-[#5B21B6] via-[#4C1D95] to-[#3B0764] border-purple-400/30 text-white shadow-lg"
-            }`}
-          >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  {currentTeacherSurvey.Is_Submitted ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>ยืนยันข้อมูลเรียบร้อยแล้ว</span>
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-purple-950">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>รอการยืนยันข้อมูลครั้งแรก</span>
-                    </span>
-                  )}
+          {currentTeacherSurvey.Is_Submitted && instructorSubView === "DASHBOARD" && (
+            <div className="space-y-5">
+              {/* 1. BENTO ชื่อและประวัติอาจารย์ (สีธีมม่วงหรูทันสมัย) */}
+              <div
+                className={`rounded-3xl p-5 sm:p-7 text-white border shadow-xl relative overflow-hidden ${
+                  isDark
+                    ? "bg-gradient-to-br from-[#5B21B6] via-[#3B0764] to-[#1E0938] border-purple-400/35"
+                    : "bg-gradient-to-br from-[#6D28D9] via-[#5B21B6] to-[#3B0764] border-purple-300/40 shadow-[0_14px_34px_rgba(109,40,217,0.24)]"
+                }`}
+              >
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-200 border border-emerald-300/30">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>ยืนยันข้อมูลแล้ว</span>
+                      </span>
+                      <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-white/15 border border-white/20">
+                        {currentTeacherProfile.id}
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/15 border border-white/20">
+                        {currentTeacherProfile.program}
+                      </span>
+                    </div>
 
-                  <span className="text-xs opacity-80 font-mono">
-                    {lastRealtimeSavedAt
-                      ? `● บันทึกเรียลไทม์ล่าสุดเมื่อ ${lastRealtimeSavedAt} น.`
-                      : `● อัปเดตล่าสุด: ${currentTeacherSurvey.Updated_At}`}
-                  </span>
+                    <h2 className="text-xl sm:text-3xl font-black tracking-tight pt-1">
+                      {currentTeacherProfile.name}
+                    </h2>
+                  </div>
+
+                  {/* ปุ่มจัดการส่วนตัว & ปุ่มสลับโหมดผู้บริหาร (กรณีหัวหน้าสาขา/ผู้บริหารสับเปลี่ยนตำแหน่ง) */}
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedExecDept(
+                          currentUser.Managed_Department || currentTeacherProfile.program
+                        );
+                        setActiveView("EXECUTIVE");
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                    >
+                      <Building2 className="w-4 h-4 shrink-0" />
+                      <span>
+                        {currentUser.Is_Executive_Assigned
+                          ? `โหมดผู้บริหาร (${currentUser.Executive_Position || "หัวหน้าสาขา"})`
+                          : "ดูแดชบอร์ดผู้บริหาร / สาขา"}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInstructorSubView("SURVEY_FORM");
+                        setEditingSection("PROFILE");
+                      }}
+                      className="px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition-all"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>แก้ไขประวัติ</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordModal(true)}
+                      className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold flex items-center gap-1.5 transition-all"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-amber-300" />
+                      <span>รหัสผ่าน</span>
+                    </button>
+                  </div>
                 </div>
 
-                <h2 className="text-base sm:text-xl font-black text-balance pt-1">
-                  {currentTeacherSurvey.Is_Submitted
-                    ? "ข้อมูลประวัติและแผนประจำปีการศึกษา 2570–2574 ของท่านได้รับการยืนยันแล้ว"
-                    : "กรุณาตรวจสอบข้อมูลประวัติและข้อมูลแบบสำรวจ 2570–2574 ของท่านด้านล่าง"}
-                </h2>
-                <p className="text-xs sm:text-sm opacity-85">
-                  {currentTeacherSurvey.Is_Submitted
-                    ? "หากต้องการแก้ไขเพิ่มเติม สามารถกดปุ่ม 'แก้ไขส่วนนี้' ในแต่ละหัวข้อได้ทันที ระบบจะบันทึกอัตโนมัติแบบเรียลไทม์"
-                    : "ตรวจสอบข้อมูลทั้ง 4 ส่วนด้านล่าง หากส่วนใดไม่ถูกต้องสามารถกด 'แก้ไขส่วนนี้' ได้ทันที เมื่อถูกต้องครบถ้วนแล้วกดปุ่มยืนยันเพียงครั้งเดียว"}
-                </p>
+                {/* คุณวุฒิการศึกษาใน Bento ธีมม่วง */}
+                <div className="mt-5 pt-4 border-t border-white/15 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {currentTeacherProfile.degrees.map((deg, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-2xl bg-black/20 border border-white/15 backdrop-blur-xs"
+                    >
+                      <div className="flex items-center justify-between text-[11px] text-purple-200 font-bold">
+                        <span>{deg.level}</span>
+                        {deg.year && <span>พ.ศ. {deg.year}</span>}
+                      </div>
+                      <p className="font-bold text-xs sm:text-sm mt-0.5 text-white">
+                        {deg.degree} {deg.major ? `(${deg.major})` : ""}
+                      </p>
+                      <p className="text-[11px] text-purple-200/80 truncate mt-0.5">
+                        {deg.institution}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {!currentTeacherSurvey.Is_Submitted && canEditSurvey && (
-                <button
-                  type="button"
-                  onClick={handleConfirmAllData}
-                  className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 text-purple-950 font-black text-xs sm:text-sm shadow-lg whitespace-nowrap flex items-center justify-center gap-2 shrink-0 active:scale-95 transition-all"
+              {/* 2. BENTO ส่วนอื่นๆ (โทนสีเรียบสะอาดตา ไม่เน้นสีฉูดฉาด แบ่ง 2 การ์ดชัดเจน) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* การ์ด 2.1: แบบสำรวจแผนประจำปีการศึกษา 2570–2574 (แสดงปุ่มกรอกเมื่อแอดมินเปิด + ปุ่มดูข้อมูลที่กรอกไว้แล้ว) */}
+                <div
+                  className={`rounded-3xl p-5 sm:p-6 border flex flex-col justify-between gap-5 ${
+                    isDark
+                      ? "bg-[#151026] border-white/10 text-slate-100"
+                      : "bg-white border-slate-200/90 text-slate-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+                  }`}
                 >
-                  <CheckCircle2 className="w-5 h-5 shrink-0" />
-                  <span>ยืนยันข้อมูลถูกต้องทั้งหมด</span>
-                </button>
-              )}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                          isDark
+                            ? "bg-white/10 text-slate-200"
+                            : "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        แบบสำรวจอาจารย์ พ.ศ. 2570–2574
+                      </span>
+                      <span className="text-xs opacity-60">
+                        อัปเดตล่าสุด: {currentTeacherSurvey.Updated_At}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base sm:text-lg font-extrabold leading-snug">
+                      แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570–2574 (อาจารย์ คณะศึกษาศาสตร์)
+                    </h3>
+
+                    {/* สรุปสั้นๆ สะอาดตา */}
+                    <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                      <div
+                        className={`p-2.5 rounded-2xl border ${
+                          isDark
+                            ? "bg-white/[0.03] border-white/10"
+                            : "bg-slate-50 border-slate-200/80"
+                        }`}
+                      >
+                        <span className="text-[11px] opacity-65 block">แผนงานวิจัยรวม</span>
+                        <span className="text-base font-black">
+                          {(Number(currentTeacherSurvey.research_classroom) || 0) +
+                            (Number(currentTeacherSurvey.research_education) || 0) +
+                            (Number(currentTeacherSurvey.research_development) || 0) +
+                            (Number(currentTeacherSurvey.research_other) || 0)}{" "}
+                          เรื่อง
+                        </span>
+                      </div>
+                      <div
+                        className={`p-2.5 rounded-2xl border ${
+                          isDark
+                            ? "bg-white/[0.03] border-white/10"
+                            : "bg-slate-50 border-slate-200/80"
+                        }`}
+                      >
+                        <span className="text-[11px] opacity-65 block">แหล่งทุนวิจัย</span>
+                        <span className="text-base font-black">
+                          {
+                            Object.values(
+                              currentTeacherSurvey.research_funding_sources || {}
+                            ).filter((arr) => Array.isArray(arr) && arr.length > 0)
+                              .length
+                          }{" "}
+                          แหล่งทุน
+                        </span>
+                      </div>
+                      <div
+                        className={`p-2.5 rounded-2xl border ${
+                          isDark
+                            ? "bg-white/[0.03] border-white/10"
+                            : "bg-slate-50 border-slate-200/80"
+                        }`}
+                      >
+                        <span className="text-[11px] opacity-65 block">บริการวิชาการ</span>
+                        <span className="text-base font-black">
+                          {SURVEY_YEARS.reduce(
+                            (acc, y) =>
+                              acc +
+                              (Number(
+                                currentTeacherSurvey.academic_services_count?.[
+                                  String(y)
+                                ]
+                              ) || 0),
+                            0
+                          )}{" "}
+                          กิจกรรม
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ปุ่มกดดูข้อมูลที่กรอกไว้แล้ว (จะได้ไม่รก) + ปุ่มกดกรอกข้อมูลเมื่อแอดมินเปิดระบบ */}
+                  <div className="pt-3 border-t border-slate-200/70 dark:border-white/10 flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsViewingSubmittedSurveyModal(true)}
+                      className={`flex-1 py-3 px-4 rounded-2xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                        isDark
+                          ? "border-white/15 bg-white/5 hover:bg-white/10 text-white"
+                          : "border-slate-300 bg-slate-100 hover:bg-slate-200/70 text-slate-800"
+                      }`}
+                    >
+                      <Eye className="w-4 h-4 shrink-0" />
+                      <span>ดูข้อมูลที่กรอกไว้แล้ว</span>
+                    </button>
+
+                    {canEditSurvey ? (
+                      <button
+                        type="button"
+                        onClick={() => setInstructorSubView("SURVEY_FORM")}
+                        className={`flex-1 py-3 px-4 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 ${
+                          isDark
+                            ? "bg-white text-slate-950 hover:bg-slate-200"
+                            : "bg-slate-900 text-white hover:bg-slate-800"
+                        }`}
+                      >
+                        <Edit3 className="w-4 h-4 shrink-0" />
+                        <span>กรอก / แก้ไขแบบสำรวจ</span>
+                      </button>
+                    ) : (
+                      <div className="px-3.5 py-2.5 rounded-2xl border border-slate-300/60 dark:border-white/10 text-xs opacity-70 flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 shrink-0" />
+                        <span>แอดมินปิดรับการกรอกชั่วคราว</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* การ์ด 2.2: อัปโหลดคลังข้อมูลสาธารณะ & ระบบอ่านไฟล์ PDF บนเว็บแอป (โทนสีเรียบสะอาดตา) */}
+                <div
+                  className={`rounded-3xl p-5 sm:p-6 border flex flex-col justify-between gap-5 ${
+                    isDark
+                      ? "bg-[#151026] border-white/10 text-slate-100"
+                      : "bg-white border-slate-200/90 text-slate-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                          isDark
+                            ? "bg-white/10 text-slate-200"
+                            : "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        คลังข้อมูลและสื่อวิชาการสาธารณะ
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setActiveView("REPOSITORY")}
+                        className="text-xs font-bold underline opacity-75 hover:opacity-100"
+                      >
+                        ไปหน้าคลังรวมข้อมูล →
+                      </button>
+                    </div>
+
+                    <h3 className="text-base sm:text-lg font-extrabold leading-snug">
+                      เผยแพร่ผลงาน ตำรา E-Book และเอกสารวิชาการ (รองรับการเปิดอ่าน PDF บนเว็บแอป)
+                    </h3>
+
+                    {/* รายการผลงานของอาจารย์ท่านนี้ */}
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                      {portfolioWorks.filter(
+                        (w) =>
+                          w.Staff_ID.toUpperCase() ===
+                            currentTeacherProfile.id.toUpperCase() ||
+                          w.Instructor_Name.includes(currentTeacherProfile.name)
+                      ).length === 0 ? (
+                        <div
+                          className={`p-3.5 rounded-2xl border text-xs opacity-70 text-center ${
+                            isDark
+                              ? "bg-white/[0.02] border-white/10"
+                              : "bg-slate-50 border-slate-200/70"
+                          }`}
+                        >
+                          ยังไม่มีผลงานที่อัปโหลด กดปุ่มอัปโหลดด้านล่างเพื่อเผยแพร่ไฟล์ PDF หรือลิงก์สู่สาธารณะ
+                        </div>
+                      ) : (
+                        portfolioWorks
+                          .filter(
+                            (w) =>
+                              w.Staff_ID.toUpperCase() ===
+                                currentTeacherProfile.id.toUpperCase() ||
+                              w.Instructor_Name.includes(currentTeacherProfile.name)
+                          )
+                          .map((work) => (
+                            <div
+                              key={work.Work_ID}
+                              className={`p-3 rounded-2xl border flex items-center justify-between gap-2 text-xs ${
+                                isDark
+                                  ? "bg-white/[0.03] border-white/10"
+                                  : "bg-slate-50 border-slate-200/80"
+                              }`}
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold truncate">{work.Title}</p>
+                                <p className="text-[11px] opacity-65">
+                                  {work.Category} • พ.ศ. {work.Academic_Year} •{" "}
+                                  {work.Is_Public ? "เผยแพร่สาธารณะ" : "ส่วนตัว"}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedWorkModal(work)}
+                                  className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] border ${
+                                    isDark
+                                      ? "bg-white/10 border-white/15 text-white"
+                                      : "bg-white border-slate-300 text-slate-800"
+                                  }`}
+                                >
+                                  เปิดอ่าน PDF
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleWorkVisibility(work)}
+                                  className={`px-2 py-1.5 rounded-xl font-bold text-[11px] ${
+                                    work.Is_Public
+                                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+                                      : "bg-slate-500/15 text-slate-500"
+                                  }`}
+                                >
+                                  {work.Is_Public ? "สาธารณะ" : "ซ่อน"}
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ปุ่มอัปโหลดคลังข้อมูล */}
+                  <div className="pt-3 border-t border-slate-200/70 dark:border-white/10 flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsUploadWorkModalOpen(true)}
+                      className={`w-full py-3 px-4 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 ${
+                        isDark
+                          ? "bg-white text-slate-950 hover:bg-slate-200"
+                          : "bg-slate-900 text-white hover:bg-slate-800"
+                      }`}
+                    >
+                      <Upload className="w-4 h-4 shrink-0" />
+                      <span>อัปโหลดผลงานสู่คลังข้อมูลสาธารณะ (PDF / ลิงก์)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* ====================================================================
+              STEP 1 (หรือเมื่อกดเข้ามาแก้ไขแบบสำรวจ): หน้าตรวจสอบ & ยืนยันข้อมูล / กรอกแบบสำรวจ 4 ส่วน
+             ==================================================================== */}
+          {(!currentTeacherSurvey.Is_Submitted || instructorSubView !== "DASHBOARD") && (
+            <div className="space-y-5">
+              {currentTeacherSurvey.Is_Submitted && (
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingSection("NONE");
+                      setInstructorSubView("DASHBOARD");
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs font-bold ${
+                      isDark
+                        ? "bg-white/10 border-white/15 text-white"
+                        : "bg-white border-slate-300 text-slate-800"
+                    }`}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>กลับสู่หน้าแดชบอร์ดอาจารย์</span>
+                  </button>
+                </div>
+              )}
+
+              <div
+                className={`rounded-3xl p-5 sm:p-6 border transition-all ${
+                  currentTeacherSurvey.Is_Submitted
+                    ? isDark
+                      ? "bg-[#181030] border-white/15 text-white"
+                      : "bg-white border-slate-200 text-slate-900"
+                    : isDark
+                    ? "bg-gradient-to-br from-[#3B0764] via-[#270949] to-[#16072C] border-purple-400/40 text-white shadow-xl"
+                    : "bg-gradient-to-br from-[#5B21B6] via-[#4C1D95] to-[#3B0764] border-purple-400/30 text-white shadow-lg"
+                }`}
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {currentTeacherSurvey.Is_Submitted ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>โหมดกรอก / แก้ไขแบบสำรวจ 2570–2574</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-purple-950">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>ขั้นตอนที่ 1: ยืนยันข้อมูลครั้งแรกก่อนเข้าสู่แดชบอร์ด</span>
+                        </span>
+                      )}
+
+                      <span className="text-xs opacity-80 font-mono">
+                        {lastRealtimeSavedAt
+                          ? `● บันทึกเรียลไทม์ล่าสุดเมื่อ ${lastRealtimeSavedAt} น.`
+                          : `● อัปเดตล่าสุด: ${currentTeacherSurvey.Updated_At}`}
+                      </span>
+                    </div>
+
+                    <h2 className="text-base sm:text-xl font-black text-balance pt-1">
+                      {currentTeacherSurvey.Is_Submitted
+                        ? "แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570–2574 (อาจารย์ คณะศึกษาศาสตร์)"
+                        : "กรุณาตรวจสอบประวัติและข้อมูลแบบสำรวจ 2570–2574 ของท่าน แล้วกดปุ่มยืนยันเพื่อเข้าสู่หน้าแดชบอร์ด"}
+                    </h2>
+                    <p className="text-xs sm:text-sm opacity-85">
+                      กดปุ่ม &ldquo;แก้ไขส่วนนี้&rdquo; ในหมวดที่ต้องการปรับปรุง ระบบจะบันทึกอัตโนมัติแบบเรียลไทม์
+                    </p>
+                  </div>
+
+                  {canEditSurvey && (
+                    <button
+                      type="button"
+                      onClick={handleConfirmAllData}
+                      className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 text-purple-950 font-black text-xs sm:text-sm shadow-lg whitespace-nowrap flex items-center justify-center gap-2 shrink-0 active:scale-95 transition-all"
+                    >
+                      <CheckCircle2 className="w-5 h-5 shrink-0" />
+                      <span>
+                        {currentTeacherSurvey.Is_Submitted
+                          ? "บันทึกและกลับหน้าแดชบอร์ด"
+                          : "ยืนยันข้อมูลและเข้าสู่แดชบอร์ด"}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
 
           {/* ====================================================================
               ส่วนที่ 1: ข้อมูลประวัติและคุณวุฒิการศึกษา (Profile & Qualifications)
@@ -2721,6 +3268,8 @@ export default function FacultyEducationPortalApp() {
               </button>
             </div>
           )}
+            </div>
+          )}
         </main>
       )}
 
@@ -2728,170 +3277,25 @@ export default function FacultyEducationPortalApp() {
           VIEW 3: ระบบสำหรับผู้บริหาร (EXECUTIVE PORTAL)
          ==================================================================== */}
       {activeView === "EXECUTIVE" && currentUser && (
-        <main className="max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-5">
-          <div
-            className={`rounded-3xl p-5 sm:p-6 border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-              isDark
-                ? "bg-[#181030] border-white/10 text-white"
-                : "bg-white border-slate-200/80 text-slate-900 shadow-xs"
-            }`}
-          >
-            <div>
-              <span className="text-xs font-bold text-purple-500">{currentUser.Department}</span>
-              <h2 className="text-lg sm:text-2xl font-black mt-0.5">{currentUser.Full_Name}</h2>
-            </div>
-            <a
-              href={GOOGLE_FORM_EXECUTIVE_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white whitespace-nowrap shrink-0"
-            >
-              <span>แบบสำรวจผู้บริหาร</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-            <div
-              className={`p-4 sm:p-5 rounded-3xl border ${
-                isDark ? "bg-[#181030] border-white/10" : "bg-white border-slate-200/80"
-              }`}
-            >
-              <span className="text-xs opacity-70">อาจารย์ในสาขา</span>
-              <p className="text-2xl font-black mt-1">
-                {teachersList.filter((t) => t.program === currentUser.Department).length} ท่าน
-              </p>
-            </div>
-            <div
-              className={`p-4 sm:p-5 rounded-3xl border ${
-                isDark ? "bg-[#181030] border-white/10" : "bg-white border-slate-200/80"
-              }`}
-            >
-              <span className="text-xs opacity-70">ยืนยันข้อมูลแล้ว</span>
-              <p className="text-2xl font-black mt-1 text-emerald-500">
-                {
-                  teacherSurveys.filter(
-                    (s) => s.Department === currentUser.Department && s.Is_Submitted
-                  ).length
-                }{" "}
-                ท่าน
-              </p>
-            </div>
-            <div
-              className={`p-4 sm:p-5 rounded-3xl border ${
-                isDark ? "bg-[#181030] border-white/10" : "bg-white border-slate-200/80"
-              }`}
-            >
-              <span className="text-xs opacity-70">ผลงาน E-Book ในสาขา</span>
-              <p className="text-2xl font-black mt-1">
-                {portfolioWorks.filter((w) => w.Department === currentUser.Department).length} เล่ม
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <form
-              onSubmit={handleSaveExecutiveForm}
-              className={`lg:col-span-5 rounded-3xl p-5 sm:p-6 border space-y-4 ${
-                isDark ? "bg-[#181030] border-white/10" : "bg-white border-slate-200/80"
-              }`}
-            >
-              <h3 className="font-bold text-base">บันทึกแผนพัฒนาหลักสูตร</h3>
-
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label className="block font-bold mb-1">ปีการศึกษา</label>
-                  <select
-                    value={execFormState.Academic_Year}
-                    onChange={(e) =>
-                      setExecFormState({ ...execFormState, Academic_Year: Number(e.target.value) })
-                    }
-                    className={`w-full px-3 h-10 rounded-xl border font-bold ${
-                      isDark ? "bg-[#0D081D] border-white/15 text-white" : "bg-slate-50 border-slate-300"
-                    }`}
-                  >
-                    {SURVEY_YEARS.map((y) => (
-                      <option key={y} value={y}>
-                        พ.ศ. {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold mb-1">คะแนนประกันคุณภาพ</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="5"
-                    required
-                    value={execFormState.Quality_Score}
-                    onChange={(e) =>
-                      setExecFormState({ ...execFormState, Quality_Score: Number(e.target.value) })
-                    }
-                    className={`w-full px-3 h-10 rounded-xl border font-bold ${
-                      isDark ? "bg-[#0D081D] border-white/15 text-white" : "bg-slate-50 border-slate-300"
-                    }`}
-                  />
-                </div>
-              </div>
-
-              <div className="text-xs">
-                <label className="block font-bold mb-1">แผนพัฒนาหลักสูตร (2570–2574)</label>
-                <textarea
-                  rows={3}
-                  required
-                  value={execFormState.Strategic_Plan_2570_2574}
-                  onChange={(e) =>
-                    setExecFormState({ ...execFormState, Strategic_Plan_2570_2574: e.target.value })
-                  }
-                  className={`w-full p-3 rounded-xl border ${
-                    isDark ? "bg-[#0D081D] border-white/15 text-white" : "bg-slate-50 border-slate-300"
-                  }`}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs"
-              >
-                บันทึกรายงาน
-              </button>
-            </form>
-
-            <div
-              className={`lg:col-span-7 rounded-3xl p-5 sm:p-6 border space-y-3 ${
-                isDark ? "bg-[#181030] border-white/10" : "bg-white border-slate-200/80"
-              }`}
-            >
-              <h3 className="font-bold text-base">รายชื่ออาจารย์ประจำ{currentUser.Department}</h3>
-              <div className="divide-y divide-slate-200/60 dark:divide-white/10">
-                {teachersList
-                  .filter((t) => t.program === currentUser.Department)
-                  .map((t) => {
-                    const survey = teacherSurveys.find((s) => s.Staff_ID === t.id);
-                    return (
-                      <div key={t.id} className="py-2.5 flex items-center justify-between gap-2 text-xs">
-                        <div className="min-w-0">
-                          <span className="font-bold block sm:inline truncate">{t.name}</span>
-                          <span className="opacity-60 font-mono sm:ml-2">({t.id})</span>
-                        </div>
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap shrink-0 ${
-                            survey?.Is_Submitted
-                              ? "bg-emerald-500/15 text-emerald-500"
-                              : "bg-amber-500/15 text-amber-500"
-                          }`}
-                        >
-                          {survey?.Is_Submitted ? "ยืนยันแล้ว" : "รอยืนยัน"}
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          </div>
-        </main>
+        <ExecutivePortalView
+          isDark={isDark}
+          currentUser={currentUser}
+          teachersList={teachersList}
+          teacherSurveys={teacherSurveys}
+          portfolioWorks={portfolioWorks}
+          executiveSurveys={executiveSurveys}
+          staffAccounts={staffAccounts}
+          onSaveExecutiveSurvey={handleSaveExecutiveSurvey}
+          onAssignDepartmentHead={handleAssignDepartmentHead}
+          onSwitchToInstructorMode={() => {
+            setAdminEditingStaffId(null);
+            setEditingSection("NONE");
+            setInstructorSubView("DASHBOARD");
+            setActiveView("INSTRUCTOR");
+          }}
+          onOpenWorkModal={(w) => setSelectedWorkModal(w)}
+          onViewTeacherSurvey={(s) => setAdminViewingSurvey(s)}
+        />
       )}
 
       {/* ====================================================================
@@ -2901,12 +3305,12 @@ export default function FacultyEducationPortalApp() {
         <div className="min-h-screen flex flex-col lg:flex-row">
           {/* Sidebar / Mobile Top Bar */}
           <aside
-            className={`lg:w-60 shrink-0 border-b lg:border-b-0 lg:border-r p-3.5 sm:p-4 flex flex-col justify-between ${
+            className={`lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r p-3.5 sm:p-4 flex flex-col justify-between ${
               isDark ? "bg-[#130B29] border-white/10" : "bg-white border-slate-200/80"
             }`}
           >
             <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-1.5">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold shrink-0">
                     <ShieldCheck className="w-4 h-4" />
@@ -2914,7 +3318,32 @@ export default function FacultyEducationPortalApp() {
                   <span className="font-bold text-sm truncate">ผู้ดูแลระบบ</span>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
+                  {/* ปุ่ม ก- / ก+ ในหน้าแอดมิน กดง่าย */}
+                  <div
+                    className={`inline-flex items-center rounded-lg p-0.5 border ${
+                      isDark ? "bg-white/5 border-white/10" : "bg-slate-100 border-slate-200"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={decreaseFont}
+                      disabled={fontStep === 0}
+                      className="w-7 h-7 rounded-md font-black text-[11px] flex items-center justify-center disabled:opacity-30"
+                      title="ลดขนาดตัวอักษร"
+                    >
+                      ก-
+                    </button>
+                    <button
+                      type="button"
+                      onClick={increaseFont}
+                      disabled={fontStep === FONT_SCALES.length - 1}
+                      className="w-7 h-7 rounded-md font-black text-[11px] flex items-center justify-center disabled:opacity-30"
+                      title="เพิ่มขนาดตัวอักษร"
+                    >
+                      ก+
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={toggleTheme}
@@ -2995,7 +3424,7 @@ export default function FacultyEducationPortalApp() {
                     </h2>
                     <p className="text-xs opacity-70 mt-0.5">
                       ยืนยันแล้ว {teacherSurveys.filter((s) => s.Is_Submitted).length} จาก{" "}
-                      {teachersList.length} ท่าน
+                      {teachersList.length} ท่าน • เปิดปุ่มกรอกแบบสำรวจในแดชบอร์ดอาจารย์ทุกคนได้จากปุ่มด้านขวา
                     </p>
                   </div>
 
@@ -3014,13 +3443,17 @@ export default function FacultyEducationPortalApp() {
                       onClick={() => {
                         const next = !isSubmissionOpen;
                         setIsSubmissionOpen(next);
-                        showToast(next ? "เปิดรับแบบสำรวจแล้ว" : "ปิดรับแบบสำรวจแล้ว");
+                        showToast(
+                          next
+                            ? "เปิดระบบกรอกข้อมูลแล้ว (แสดงปุ่มกรอกแบบสำรวจในแดชบอร์ดอาจารย์ทุกคน)"
+                            : "ปิดระบบกรอกข้อมูลชั่วคราวแล้ว"
+                        );
                       }}
                       className={`px-3.5 py-2 rounded-xl text-xs font-bold text-white whitespace-nowrap ${
                         isSubmissionOpen ? "bg-red-600" : "bg-emerald-600"
                       }`}
                     >
-                      {isSubmissionOpen ? "สั่งปิด" : "สั่งเปิด"}
+                      {isSubmissionOpen ? "สั่งปิดระบบกรอกข้อมูล" : "สั่งเปิดระบบกรอกข้อมูล"}
                     </button>
                   </div>
                 </div>
@@ -3131,6 +3564,7 @@ export default function FacultyEducationPortalApp() {
                               onClick={() => {
                                 setAdminEditingStaffId(teacher.id);
                                 setEditingSection("NONE");
+                                setInstructorSubView("SURVEY_FORM");
                                 setActiveView("INSTRUCTOR");
                               }}
                               className="px-3 py-1.5 rounded-xl bg-purple-600 text-white font-bold whitespace-nowrap"
@@ -3164,8 +3598,8 @@ export default function FacultyEducationPortalApp() {
                     <p className="text-2xl font-black mt-1">{portfolioWorks.length} เล่ม</p>
                   </div>
                   <div className={`p-4 rounded-3xl border ${isDark ? "bg-[#181030] border-white/10" : "bg-white border-slate-200/80"}`}>
-                    <span className="text-xs opacity-70">รายงานสาขาวิชา</span>
-                    <p className="text-2xl font-black mt-1">{executiveForms.length} ฉบับ</p>
+                    <span className="text-xs opacity-70">แบบสำรวจผู้บริหาร</span>
+                    <p className="text-2xl font-black mt-1">{executiveSurveys.length} สาขา</p>
                   </div>
                 </div>
 
@@ -3205,7 +3639,7 @@ export default function FacultyEducationPortalApp() {
                   <div className={`p-5 rounded-3xl border space-y-4 ${isDark ? "bg-[#181030] border-white/10" : "bg-white border-slate-200/80"}`}>
                     <h3 className="font-bold text-sm flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-emerald-500" />
-                      <span>จัดการคลัง E-Book</span>
+                      <span>จัดการคลังข้อมูลและ E-Book</span>
                     </h3>
                     <div className="space-y-2 max-h-44 overflow-y-auto">
                       {portfolioWorks.map((w) => (
@@ -3217,17 +3651,26 @@ export default function FacultyEducationPortalApp() {
                             <p className="font-bold truncate">{w.Title}</p>
                             <p className="opacity-60 text-[11px]">{w.Instructor_Name}</p>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => toggleWorkVisibility(w)}
-                            className={`px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap shrink-0 ${
-                              w.Is_Public
-                                ? "bg-emerald-500/15 text-emerald-500"
-                                : "bg-slate-500/15 text-slate-400"
-                            }`}
-                          >
-                            {w.Is_Public ? "สาธารณะ" : "ซ่อน"}
-                          </button>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedWorkModal(w)}
+                              className="px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-400 font-bold text-[11px]"
+                            >
+                              เปิดอ่าน
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleWorkVisibility(w)}
+                              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap ${
+                                w.Is_Public
+                                  ? "bg-emerald-500/15 text-emerald-500"
+                                  : "bg-slate-500/15 text-slate-400"
+                              }`}
+                            >
+                              {w.Is_Public ? "สาธารณะ" : "ซ่อน"}
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -3263,7 +3706,9 @@ export default function FacultyEducationPortalApp() {
                 <h2 className="text-base sm:text-lg font-bold">ตั้งค่าระบบ</h2>
                 <div className="p-4 rounded-2xl border border-purple-500/20 flex items-center justify-between gap-4">
                   <span className="font-bold text-xs sm:text-sm">
-                    {isSubmissionOpen ? "เปิดรับแบบสำรวจแผน 2570–2574" : "ปิดรับแบบสำรวจชั่วคราว"}
+                    {isSubmissionOpen
+                      ? "เปิดระบบกรอกแบบสำรวจแผน 2570–2574 (แสดงปุ่มกรอกข้อมูลในแดชบอร์ดอาจารย์ทุกคน)"
+                      : "ปิดรับแบบสำรวจชั่วคราว (อาจารย์ยังดูข้อมูลที่กรอกไว้แล้วได้)"}
                   </span>
                   <button
                     type="button"
@@ -3296,7 +3741,7 @@ export default function FacultyEducationPortalApp() {
       )}
 
       {/* ====================================================================
-          MODALS: ล็อกอิน, ประวัติอาจารย์, E-Book, ดูผลสำรวจ, เปลี่ยนรหัสผ่าน
+          MODALS: ล็อกอิน, ประวัติอาจารย์, E-Book PDF Reader, อัปโหลดคลังข้อมูล, ดูข้อมูลที่กรอกแล้ว
          ==================================================================== */}
       {loginModalRole && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
@@ -3350,7 +3795,7 @@ export default function FacultyEducationPortalApp() {
                     loginModalRole === "INSTRUCTOR"
                       ? "EDU-001"
                       : loginModalRole === "EXECUTIVE"
-                      ? "HEAD-01"
+                      ? "HEAD-01 หรือรหัสอาจารย์ที่เป็นหัวหน้าสาขา"
                       : "ADMIN"
                   }
                   value={loginStaffId}
@@ -3413,16 +3858,28 @@ export default function FacultyEducationPortalApp() {
                   </>
                 )}
                 {loginModalRole === "EXECUTIVE" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginStaffId("HEAD-01");
-                      setLoginPassword("exec123");
-                    }}
-                    className="px-2.5 py-1 rounded-lg border border-purple-500/30 font-medium"
-                  >
-                    HEAD-01
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginStaffId("HEAD-01");
+                        setLoginPassword("exec123");
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-purple-500/30 font-medium"
+                    >
+                      HEAD-01 (ผู้บริหารสาขา)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginStaffId("EDU-001");
+                        setLoginPassword("123456");
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-purple-500/30 font-medium"
+                    >
+                      EDU-001 (โหมดหัวหน้าสาขา)
+                    </button>
+                  </>
                 )}
                 {loginModalRole === "ADMIN" && (
                   <button
@@ -3493,83 +3950,201 @@ export default function FacultyEducationPortalApp() {
                 type="button"
                 onClick={() => {
                   setPublicTeacherFilter(selectedTeacherModal.name);
-                  setPublicHubTab("EBOOKS");
                   setSelectedTeacherModal(null);
+                  setActiveView("REPOSITORY");
                 }}
                 className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold"
               >
-                ดูผลงาน E-Book
+                ดูผลงานในคลังข้อมูล
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal: เปิดอ่าน E-Book */}
-      {selectedWorkModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+      {/* Modal: เปิดอ่าน PDF / E-Book บนเว็บแอปทันที */}
+      <PdfReaderModal
+        work={selectedWorkModal}
+        isDark={isDark}
+        onClose={() => setSelectedWorkModal(null)}
+        onIncrementDownload={handleIncrementDownload}
+      />
+
+      {/* Modal: อัปโหลดผลงานเข้าคลังข้อมูลสาธารณะ */}
+      {isUploadWorkModalOpen && activeTeacherProfile && (
+        <UploadWorkModal
+          isOpen={isUploadWorkModalOpen}
+          isDark={isDark}
+          staffId={activeTeacherProfile.id}
+          instructorName={activeTeacherProfile.name}
+          department={activeTeacherProfile.program}
+          onClose={() => setIsUploadWorkModalOpen(false)}
+          onSaveWork={handleSaveNewWork}
+        />
+      )}
+
+      {/* Modal: อาจารย์กดดูข้อมูลที่กรอกไว้แล้ว (ไม่รกหน้าแดชบอร์ด) */}
+      {isViewingSubmittedSurveyModal && currentTeacherSurvey && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
+          style={{ overscrollBehavior: "contain" }}
+        >
           <div
-            className={`rounded-3xl max-w-2xl w-full p-5 sm:p-6 border shadow-2xl space-y-4 ${
+            className={`rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 border shadow-2xl space-y-4 ${
               isDark
                 ? "bg-[#181030] border-white/15 text-white"
                 : "bg-white border-slate-200 text-slate-900"
             }`}
+            style={{ overscrollBehavior: "contain" }}
           >
             <div className="flex items-start justify-between gap-3 border-b pb-3 border-slate-200/70 dark:border-white/10">
               <div>
-                <span className="text-xs font-bold text-purple-500">
-                  {selectedWorkModal.Category} • พ.ศ. {selectedWorkModal.Academic_Year}
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/15 text-purple-500">
+                  สรุปข้อมูลแบบสำรวจแผน 2570–2574 ที่บันทึกไว้
                 </span>
-                <h3 className="font-bold text-base sm:text-lg">{selectedWorkModal.Title}</h3>
-                <p className="text-xs opacity-75">
-                  {selectedWorkModal.Instructor_Name} ({selectedWorkModal.Department})
+                <h3 className="text-base sm:text-lg font-black mt-1">
+                  {currentTeacherSurvey.Full_Name}
+                </h3>
+                <p className="text-xs opacity-70">
+                  {currentTeacherSurvey.Staff_ID} • {currentTeacherSurvey.Department} • อัปเดตล่าสุด{" "}
+                  {currentTeacherSurvey.Updated_At}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedWorkModal(null)}
+                onClick={() => setIsViewingSubmittedSurveyModal(false)}
                 className="p-1.5 rounded-full hover:bg-purple-500/10"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs sm:text-sm leading-relaxed">{selectedWorkModal.Description}</p>
-
-            <div className="flex items-center justify-between pt-3 border-t border-slate-200/70 dark:border-white/10">
-              <span className="text-xs opacity-70">ดาวน์โหลด {selectedWorkModal.Downloads} ครั้ง</span>
-              <a
-                href={selectedWorkModal.File_Or_Link_URL}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => {
-                  setPortfolioWorks((prev) =>
-                    prev.map((w) =>
-                      w.Work_ID === selectedWorkModal.Work_ID
-                        ? { ...w, Downloads: w.Downloads + 1 }
-                        : w
-                    )
-                  );
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div
+                className={`p-3.5 rounded-2xl border space-y-1 ${
+                  isDark ? "bg-white/[0.03] border-white/10" : "bg-slate-50 border-slate-200"
+                }`}
               >
-                <Download className="w-4 h-4" />
-                <span>เปิดไฟล์ / ดาวน์โหลด</span>
-              </a>
+                <span className="font-bold text-purple-500 block">
+                  1. แผนศึกษาต่อและตำแหน่งทางวิชาการ
+                </span>
+                <p>
+                  • แผนศึกษาต่อปริญญาเอก:{" "}
+                  <strong>{currentTeacherSurvey.phd_plan_status}</strong>
+                  {currentTeacherSurvey.phd_plan_year
+                    ? ` (พ.ศ. ${currentTeacherSurvey.phd_plan_year} • ${currentTeacherSurvey.phd_plan_field})`
+                    : ""}
+                </p>
+                <p>
+                  • ตำแหน่งทางวิชาการปัจจุบัน:{" "}
+                  <strong>{currentTeacherSurvey.acad_current_rank}</strong>
+                </p>
+                <p>
+                  • แผนขอตำแหน่งทางวิชาการ:{" "}
+                  <strong>{currentTeacherSurvey.acad_plan_status}</strong>
+                  {currentTeacherSurvey.acad_plan_year
+                    ? ` (พ.ศ. ${currentTeacherSurvey.acad_plan_year})`
+                    : ""}
+                </p>
+              </div>
+
+              <div
+                className={`p-3.5 rounded-2xl border space-y-1 ${
+                  isDark ? "bg-white/[0.03] border-white/10" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <span className="font-bold text-purple-500 block">
+                  2. แผนงานวิจัยและตำรา/หนังสือ (พ.ศ. 2570–2574)
+                </span>
+                <p>
+                  • วิจัยในชั้นเรียน: <strong>{currentTeacherSurvey.research_classroom} เรื่อง</strong>{" "}
+                  | วิจัยการศึกษา: <strong>{currentTeacherSurvey.research_education} เรื่อง</strong>
+                </p>
+                <p>
+                  • วิจัยเพื่อการพัฒนา:{" "}
+                  <strong>{currentTeacherSurvey.research_development} เรื่อง</strong> | อื่นๆ:{" "}
+                  <strong>{currentTeacherSurvey.research_other} เรื่อง</strong>
+                </p>
+                <p>
+                  • แผนผลิตหนังสือ/ตำรา:{" "}
+                  <strong>{currentTeacherSurvey.book_plan_status}</strong>
+                  {currentTeacherSurvey.book_plan_year
+                    ? ` (พ.ศ. ${currentTeacherSurvey.book_plan_year})`
+                    : ""}
+                </p>
+              </div>
+
+              <div
+                className={`p-3.5 rounded-2xl border space-y-1 sm:col-span-2 ${
+                  isDark ? "bg-white/[0.03] border-white/10" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <span className="font-bold text-purple-500 block">
+                  3. แผนบริการวิชาการ และแผนพัฒนาตนเอง
+                </span>
+                <p>
+                  • โครงการบริการวิชาการที่รับผิดชอบ:{" "}
+                  <strong>
+                    {[
+                      currentTeacherSurvey.service_project_1,
+                      currentTeacherSurvey.service_project_2,
+                      currentTeacherSurvey.service_project_3,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || "-"}
+                  </strong>
+                </p>
+                <p>
+                  • หัวข้ออบรม/พัฒนาตนเอง:{" "}
+                  <strong>
+                    {[
+                      currentTeacherSurvey.dev_topic_1,
+                      currentTeacherSurvey.dev_topic_2,
+                      currentTeacherSurvey.dev_topic_3,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || "-"}
+                  </strong>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200/70 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => setIsViewingSubmittedSurveyModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-purple-500/30 text-xs font-bold"
+              >
+                ปิดหน้าต่าง
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsViewingSubmittedSurveyModal(false);
+                  setInstructorSubView("SURVEY_FORM");
+                }}
+                className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold"
+              >
+                แก้ไขข้อมูลแบบสำรวจ
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal: แอดมินดูผลสำรวจ */}
+      {/* Modal: แอดมิน/ผู้บริหารดูผลสำรวจรายบุคคล */}
       {adminViewingSurvey && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+          style={{ overscrollBehavior: "contain" }}
+        >
           <div
             className={`rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 border shadow-2xl space-y-4 ${
               isDark
                 ? "bg-[#181030] border-white/15 text-white"
                 : "bg-white border-slate-200 text-slate-900"
             }`}
+            style={{ overscrollBehavior: "contain" }}
           >
             <div className="flex items-start justify-between border-b pb-3 border-slate-200/70 dark:border-white/10">
               <div>
@@ -3606,6 +4181,21 @@ export default function FacultyEducationPortalApp() {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div className="p-3 rounded-xl border border-purple-500/20 space-y-1">
+                <span className="opacity-70 block">แผนศึกษาต่อ & ตำแหน่งวิชาการ</span>
+                <p>ป.เอก: <strong>{adminViewingSurvey.phd_plan_status}</strong></p>
+                <p>ตำแหน่งปัจจุบัน: <strong>{adminViewingSurvey.acad_current_rank}</strong></p>
+                <p>แผนขอตำแหน่ง: <strong>{adminViewingSurvey.acad_plan_status}</strong></p>
+              </div>
+              <div className="p-3 rounded-xl border border-purple-500/20 space-y-1">
+                <span className="opacity-70 block">แผนผลิตตำรา & บริการวิชาการ</span>
+                <p>ผลิตตำรา: <strong>{adminViewingSurvey.book_plan_status}</strong></p>
+                <p>โครงการบริการวิชาการ: <strong>{adminViewingSurvey.service_project_1 || "-"}</strong></p>
+                <p>หัวข้อพัฒนาตนเอง: <strong>{adminViewingSurvey.dev_topic_1 || "-"}</strong></p>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-200/70 dark:border-white/10">
               <button
                 type="button"
@@ -3614,19 +4204,22 @@ export default function FacultyEducationPortalApp() {
               >
                 ปิด
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const staffId = adminViewingSurvey.Staff_ID;
-                  setAdminViewingSurvey(null);
-                  setAdminEditingStaffId(staffId);
-                  setEditingSection("NONE");
-                  setActiveView("INSTRUCTOR");
-                }}
-                className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold"
-              >
-                แก้ไขข้อมูลชุดนี้
-              </button>
+              {activeView === "ADMIN" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const staffId = adminViewingSurvey.Staff_ID;
+                    setAdminViewingSurvey(null);
+                    setAdminEditingStaffId(staffId);
+                    setEditingSection("NONE");
+                    setInstructorSubView("SURVEY_FORM");
+                    setActiveView("INSTRUCTOR");
+                  }}
+                  className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold"
+                >
+                  แก้ไขข้อมูลชุดนี้
+                </button>
+              )}
             </div>
           </div>
         </div>

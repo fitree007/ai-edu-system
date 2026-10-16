@@ -22,6 +22,11 @@ export interface StaffMember {
   Role: "INSTRUCTOR" | "EXECUTIVE" | "ADMIN";
   Password: string;
   Is_Default_Pwd: boolean;
+  // รองรับการสับเปลี่ยนตำแหน่งหัวหน้าสาขาวิชา / ผู้บริหาร (สามารถเข้าได้ทั้งโหมดอาจารย์และโหมดผู้บริหาร)
+  Is_Executive_Assigned?: boolean;
+  Executive_Position?: string; // เช่น "หัวหน้าสาขาวิชา", "คณบดี/รองคณบดี", "ผู้บริหารคณะ"
+  Managed_Department?: string; // สาขาวิชาที่ดูแล
+  Can_View_All_Departments?: boolean; // สิทธิ์ดูแดชบอร์ดภาพรวมทั้งคณะ 12 สาขา
 }
 
 export interface InstructorPlanRecord {
@@ -61,6 +66,49 @@ export interface ExecutivePlanRecord {
   Strategic_Plan_2570_2574: string;
   Budget_Needs: string;
   Issues_Found: string;
+  Updated_At: string;
+}
+
+// โครงสร้างแบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570–2574 คณะศึกษาศาสตร์ (สำหรับผู้บริหาร / หัวหน้าสาขาวิชา)
+export interface ExecutiveSurveyPlan {
+  Exec_Survey_ID: string;
+  Department: string;
+  Updated_By_Staff_ID: string;
+  Updated_By_Name: string;
+  Program_Level: string; // ปริญญาตรี, ประกาศนียบัตร, ปริญญาโท, ปริญญาเอก, ปริญญาโท+เอก
+
+  // หมวด 1: ข้อมูลการรับนักศึกษาใหม่ (2570-2574)
+  student_intake_targets: { [year: string]: number }; // 2570..2574 -> จำนวนคน
+  student_intake_by_type: {
+    quota: number; // รับสมัครเรียนแบบโควตา (Quota Sampling)
+    portfolio: number; // รับสมัครเรียนแบบ Portfolio (พอร์ตโฟลิโอ)
+    regular: number; // รับสมัครเรียนแบบปกติ
+    other: number; // อื่น ๆ
+  };
+
+  // หมวด 2: ข้อมูลด้านงานวิจัยของสาขาวิชา (2570-2574)
+  research_classroom: number;
+  research_education: number;
+  research_development: number;
+  research_other: number;
+  research_funding_sources: { [fundName: string]: number[] };
+  research_budgets: { [year: string]: string };
+
+  // หมวด 3: ข้อมูลด้านบริการวิชาการของสาขาวิชา (2570-2574)
+  academic_services_count: { [year: string]: number };
+  target_communities: { [commName: string]: number[] };
+  selection_criteria_weights: { [criteriaName: string]: string }; // 10 ข้อ -> 10%..100%
+
+  // หมวด 4: ด้านบุคลากรสายวิชาการ (แผนรับเพิ่ม 2570-2574)
+  staff_recruitment_total: { [year: string]: number };
+  staff_recruitment_master: { [year: string]: number };
+  staff_recruitment_doctoral: { [year: string]: number };
+  staff_recruitment_adjunct: { [year: string]: number };
+
+  // หมวด 5: ข้อเสนอแนะ
+  suggestions: string;
+
+  Is_Submitted: boolean;
   Updated_At: string;
 }
 
@@ -121,6 +169,30 @@ export const SHEET_TEACHER_HISTORY_URL = "https://docs.google.com/spreadsheets/d
 export const SURVEY_YEARS = [2570, 2571, 2572, 2573, 2574];
 export const TEACHING_LOAD_SEMESTERS = ["1/2568", "2/2568", "1/2569", "2/2569"];
 export const FIELDWORK_SEMESTERS = ["1/2568", "2/2568", "1/2569", "2/2569", "1/2570", "2/2570"];
+
+export const EXEC_PROGRAM_LEVEL_OPTIONS = [
+  "ปริญญาตรี",
+  "ประกาศนียบัตร",
+  "ปริญญาโท",
+  "ปริญญาเอก",
+  "ปริญญาโท+เอก",
+];
+
+export const EXEC_STUDENT_INTAKE_OPTIONS = [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 90, 150];
+export const EXEC_ADMISSION_TYPE_OPTIONS = [0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 90];
+
+export const EXEC_SELECTION_CRITERIA_LIST = [
+  "ความต้องการและปัญหาที่แท้จริงของชุมชน",
+  "ความสอดคล้องกับพันธกิจและความเชี่ยวชาญของสาขาวิชา",
+  "ความสอดคล้องกับยุทธศาสตร์ของคณะและมหาวิทยาลัย",
+  "ความสอดคล้องกับอัตลักษณ์และหลักการบูรณาการอิสลาม",
+  "ความจำเป็นเร่งด่วนของชุมชน",
+  "จำนวนประชาชนหรือผู้เรียนที่ได้รับประโยชน์",
+  "ความพร้อมและความร่วมมือของหน่วยงานหรือชุมชน",
+  "ความต่อเนื่องและความยั่งยืนของการดำเนินงาน",
+  "การขยายผลจากโครงการบริการวิชาการที่ผ่านมา",
+  "อื่น ๆ",
+];
 
 export const RESEARCH_FUND_OPTIONS = [
   "ทุนคณะศึกษาศาสตร์",
@@ -231,16 +303,31 @@ export const SURVEY_TOPICS = [
 
 export const INITIAL_TEACHERS: TeacherInfo[] = teachersData as TeacherInfo[];
 
+// หาอาจารย์คนแรกของแต่ละสาขาเพื่อให้เป็นตัวแทนหัวหน้าสาขาเริ่มต้น (สามารถสับเปลี่ยนได้ตลอดเวลา)
+const firstTeacherByProgram = new Map<string, string>();
+INITIAL_TEACHERS.forEach((t) => {
+  if (!firstTeacherByProgram.has(t.program)) {
+    firstTeacherByProgram.set(t.program, t.id);
+  }
+});
+
 // สร้างรายชื่อ Staff อัตโนมัติจากอาจารย์ 67 ท่าน + หัวหน้าสาขา 12 สาขา + แอดมิน
 export const INITIAL_STAFF: StaffMember[] = [
-  ...INITIAL_TEACHERS.map((t) => ({
-    Staff_ID: t.id,
-    Full_Name: t.name,
-    Department: t.program,
-    Role: "INSTRUCTOR" as const,
-    Password: "123456",
-    Is_Default_Pwd: true,
-  })),
+  ...INITIAL_TEACHERS.map((t) => {
+    const isInitialHead = firstTeacherByProgram.get(t.program) === t.id;
+    return {
+      Staff_ID: t.id,
+      Full_Name: t.name,
+      Department: t.program,
+      Role: "INSTRUCTOR" as const,
+      Password: "123456",
+      Is_Default_Pwd: true,
+      Is_Executive_Assigned: isInitialHead,
+      Executive_Position: isInitialHead ? `หัวหน้า${t.program}` : "",
+      Managed_Department: t.program,
+      Can_View_All_Departments: true,
+    };
+  }),
   ...EDUCATION_PROGRAMS.map((prog, idx) => ({
     Staff_ID: `HEAD-${String(idx + 1).padStart(2, "0")}`,
     Full_Name: `หัวหน้า${prog}`,
@@ -248,6 +335,10 @@ export const INITIAL_STAFF: StaffMember[] = [
     Role: "EXECUTIVE" as const,
     Password: "exec123",
     Is_Default_Pwd: false,
+    Is_Executive_Assigned: true,
+    Executive_Position: `หัวหน้า${prog}`,
+    Managed_Department: prog,
+    Can_View_All_Departments: true,
   })),
   {
     Staff_ID: "ADMIN",
@@ -256,6 +347,10 @@ export const INITIAL_STAFF: StaffMember[] = [
     Role: "ADMIN",
     Password: "admin999",
     Is_Default_Pwd: false,
+    Is_Executive_Assigned: true,
+    Executive_Position: "ผู้บริหารและผู้ดูแลระบบคณะ",
+    Managed_Department: EDUCATION_PROGRAMS[0],
+    Can_View_All_Departments: true,
   },
 ];
 
@@ -566,3 +661,113 @@ export const INITIAL_TEACHER_SURVEYS: TeacherSurveyPlan[] = INITIAL_TEACHERS.map
   return createDefaultSurvey(teacher, isSubmitted);
 });
 
+export function createDefaultExecutiveSurvey(
+  department: string,
+  index = 0,
+  isSubmitted = false
+): ExecutiveSurveyPlan {
+  const defaultWeights: { [k: string]: string } = {};
+  EXEC_SELECTION_CRITERIA_LIST.forEach((c, idx) => {
+    defaultWeights[c] = idx < 4 ? "90%" : idx < 8 ? "80%" : "70%";
+  });
+
+  const isMaster = department.includes("ป.โท") || department.includes("บริหาร");
+
+  return {
+    Exec_Survey_ID: `EXEC-SRV-${String(index + 1).padStart(2, "0")}`,
+    Department: department,
+    Updated_By_Staff_ID: `HEAD-${String(index + 1).padStart(2, "0")}`,
+    Updated_By_Name: `หัวหน้า${department}`,
+    Program_Level: isMaster ? "ปริญญาโท" : "ปริญญาตรี",
+
+    // หมวด 1: ข้อมูลการรับนักศึกษาใหม่ (2570-2574)
+    student_intake_targets: {
+      "2570": 60,
+      "2571": 60,
+      "2572": 60,
+      "2573": 60,
+      "2574": 60,
+    },
+    student_intake_by_type: {
+      quota: 20,
+      portfolio: 20,
+      regular: 20,
+      other: 0,
+    },
+
+    // หมวด 2: ข้อมูลด้านงานวิจัยของสาขาวิชา (2570-2574)
+    research_classroom: 3,
+    research_education: 3,
+    research_development: 2,
+    research_other: 0,
+    research_funding_sources: {
+      "ทุนคณะศึกษาศาสตร์": [2570, 2571, 2572, 2573, 2574],
+      "ทุนมหาวิทยาลัยฟาฏอนี": [2570, 2571, 2572],
+      "สำนักงานการวิจัยแห่งชาติ (วช.)": [2571, 2572, 2573],
+      "หน่วยบริหารและจัดการทุนพัฒนาระดับพื้นที่ (บพท.)": [2572, 2573, 2574],
+    },
+    research_budgets: {
+      "2570": "300,001-500,000",
+      "2571": "300,001-500,000",
+      "2572": "500,001-1,000,000",
+      "2573": "500,001-1,000,000",
+      "2574": "500,001-1,000,000",
+    },
+
+    // หมวด 3: ข้อมูลด้านบริการวิชาการของสาขาวิชา (2570-2574)
+    academic_services_count: {
+      "2570": 2,
+      "2571": 3,
+      "2572": 3,
+      "2573": 3,
+      "2574": 4,
+    },
+    target_communities: {
+      "โรงเรียนรัฐบาล": [2570, 2571, 2572, 2573, 2574],
+      "โรงเรียนเอกชนสอนศาสนาอิสลาม": [2570, 2571, 2572, 2573, 2574],
+      "ครูและบุคลากรทางการศึกษา": [2570, 2571, 2572, 2573, 2574],
+      "โรงเรียนตาดีกา": [2571, 2572, 2573],
+    },
+    selection_criteria_weights: defaultWeights,
+
+    // หมวด 4: ด้านบุคลากรสายวิชาการ (แผนรับเพิ่ม 2570-2574)
+    staff_recruitment_total: {
+      "2570": 1,
+      "2571": 1,
+      "2572": 1,
+      "2573": 1,
+      "2574": 1,
+    },
+    staff_recruitment_master: {
+      "2570": 1,
+      "2571": 0,
+      "2572": 1,
+      "2573": 0,
+      "2574": 0,
+    },
+    staff_recruitment_doctoral: {
+      "2570": 0,
+      "2571": 1,
+      "2572": 0,
+      "2573": 1,
+      "2574": 1,
+    },
+    staff_recruitment_adjunct: {
+      "2570": 2,
+      "2571": 2,
+      "2572": 2,
+      "2573": 2,
+      "2574": 2,
+    },
+
+    // หมวด 5: ข้อเสนอแนะ
+    suggestions: `ส่งเสริมการบูรณาการงานวิจัยและบริการวิชาการของ${department} ร่วมกับโรงเรียนเครือข่ายในพื้นที่ และสนับสนุนทุนพัฒนาตำรา/E-Book ประจำหลักสูตร`,
+
+    Is_Submitted: isSubmitted,
+    Updated_At: "2570-01-20",
+  };
+}
+
+export const INITIAL_EXECUTIVE_SURVEYS: ExecutiveSurveyPlan[] = EDUCATION_PROGRAMS.map(
+  (prog, idx) => createDefaultExecutiveSurvey(prog, idx, idx < 3)
+);
