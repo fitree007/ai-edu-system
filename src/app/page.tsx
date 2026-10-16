@@ -170,16 +170,16 @@ export default function FacultyEducationPortalApp() {
   // Load from LocalStorage
   useEffect(() => {
     try {
-      const cachedStaff = localStorage.getItem("edu_staff_v4");
-      const cachedTeachers = localStorage.getItem("edu_teachers_v1");
-      const cachedInst = localStorage.getItem("edu_inst_v3");
-      const cachedWorks = localStorage.getItem("edu_works_v3");
-      const cachedExec = localStorage.getItem("edu_exec_v3");
-      const cachedExecSurveys = localStorage.getItem("edu_exec_surveys_v1");
+      const cachedStaff = localStorage.getItem("edu_staff_v5");
+      const cachedTeachers = localStorage.getItem("edu_teachers_v2");
+      const cachedInst = localStorage.getItem("edu_inst_v4");
+      const cachedWorks = localStorage.getItem("edu_works_v4");
+      const cachedExec = localStorage.getItem("edu_exec_v4");
+      const cachedExecSurveys = localStorage.getItem("edu_exec_surveys_v2");
       const cachedSub = localStorage.getItem("edu_submission_open");
       const cachedTheme = localStorage.getItem("edu_theme_v3");
       const cachedFontStep = localStorage.getItem("edu_font_step_v1");
-      const cachedSurveys = localStorage.getItem("edu_surveys_v1");
+      const cachedSurveys = localStorage.getItem("edu_surveys_v2");
 
       if (cachedStaff) setStaffList(JSON.parse(cachedStaff));
       if (cachedTeachers) setTeachersList(JSON.parse(cachedTeachers));
@@ -206,13 +206,13 @@ export default function FacultyEducationPortalApp() {
   // Real-time Persistence to LocalStorage
   useEffect(() => {
     try {
-      localStorage.setItem("edu_staff_v4", JSON.stringify(staffList));
-      localStorage.setItem("edu_teachers_v1", JSON.stringify(teachersList));
-      localStorage.setItem("edu_inst_v3", JSON.stringify(instructorForms));
-      localStorage.setItem("edu_surveys_v1", JSON.stringify(teacherSurveys));
-      localStorage.setItem("edu_exec_surveys_v1", JSON.stringify(executiveSurveys));
-      localStorage.setItem("edu_works_v3", JSON.stringify(portfolioWorks));
-      localStorage.setItem("edu_exec_v3", JSON.stringify(executiveForms));
+      localStorage.setItem("edu_staff_v5", JSON.stringify(staffList));
+      localStorage.setItem("edu_teachers_v2", JSON.stringify(teachersList));
+      localStorage.setItem("edu_inst_v4", JSON.stringify(instructorForms));
+      localStorage.setItem("edu_surveys_v2", JSON.stringify(teacherSurveys));
+      localStorage.setItem("edu_exec_surveys_v2", JSON.stringify(executiveSurveys));
+      localStorage.setItem("edu_works_v4", JSON.stringify(portfolioWorks));
+      localStorage.setItem("edu_exec_v4", JSON.stringify(executiveForms));
       localStorage.setItem("edu_submission_open", JSON.stringify(isSubmissionOpen));
     } catch (e) {
       console.warn("Failed to persist to localStorage", e);
@@ -234,8 +234,8 @@ export default function FacultyEducationPortalApp() {
     } catch {}
   }, [themeMode]);
 
-  const FONT_STEP_PX = [14, 15.5, 17, 18.5, 20];
-  const FONT_STEP_LABELS = ["90%", "100%", "112%", "125%", "138%"];
+  const FONT_STEP_PX = [13.5, 14.5, 15.5, 17, 18.5];
+  const FONT_STEP_LABELS = ["90%", "100%", "110%", "120%", "130%"];
 
   useEffect(() => {
     try {
@@ -854,7 +854,7 @@ export default function FacultyEducationPortalApp() {
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center shrink-0 shadow-xs">
                   <GraduationCap className="w-4 h-4 shrink-0" />
                 </div>
-                <span className="font-bold text-xs sm:text-base tracking-tight whitespace-nowrap">
+                <span className="hidden sm:inline font-bold text-xs sm:text-base tracking-tight whitespace-nowrap">
                   คณะศึกษาศาสตร์
                 </span>
               </div>
@@ -866,7 +866,7 @@ export default function FacultyEducationPortalApp() {
               <button
                 type="button"
                 onClick={() => setActiveView("REPOSITORY")}
-                className={`h-9 px-2.5 sm:px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shrink-0 transition-all active:scale-95 ${
+                className={`h-8 sm:h-9 px-2 sm:px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shrink-0 transition-all active:scale-95 ${
                   activeView === "REPOSITORY"
                     ? "bg-purple-600 text-white border-purple-500 shadow-xs"
                     : isDark
@@ -876,12 +876,12 @@ export default function FacultyEducationPortalApp() {
                 title="เปิดหน้าคลังค้นหาข้อมูลและ E-Book"
               >
                 <FolderOpen className="w-3.5 h-3.5 shrink-0" />
-                <span>คลังข้อมูล</span>
+                <span className="hidden sm:inline">คลังข้อมูล</span>
               </button>
 
               {/* ปุ่ม - / + ปรับขนาดตัวหนังสือ (กดง่ายทั้งบนมือถือและคอมพิวเตอร์) */}
               <div
-                className={`flex items-center rounded-xl p-0.5 border ${
+                className={`flex items-center rounded-xl p-0.5 border shrink-0 ${
                   isDark
                     ? "bg-white/5 border-white/15 text-purple-100"
                     : "bg-slate-100 border-slate-200/90 text-slate-800"
@@ -891,7 +891,7 @@ export default function FacultyEducationPortalApp() {
                   type="button"
                   onClick={handleDecreaseFontSize}
                   disabled={fontStep === 0}
-                  className="w-8 h-8 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-purple-600 hover:text-white active:scale-90 disabled:opacity-30 font-black text-xs transition-all"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-purple-600 hover:text-white active:scale-90 disabled:opacity-30 font-black text-xs transition-all"
                   title="ลดขนาดตัวอักษร (-)"
                 >
                   ก-
@@ -903,7 +903,7 @@ export default function FacultyEducationPortalApp() {
                   type="button"
                   onClick={handleIncreaseFontSize}
                   disabled={fontStep === 4}
-                  className="w-8 h-8 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-purple-600 hover:text-white active:scale-90 disabled:opacity-30 font-black text-xs transition-all"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-purple-600 hover:text-white active:scale-90 disabled:opacity-30 font-black text-xs transition-all"
                   title="เพิ่มขนาดตัวอักษร (+)"
                 >
                   ก+
@@ -914,14 +914,14 @@ export default function FacultyEducationPortalApp() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors ${
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors ${
                   isDark
                     ? "bg-white/10 border-white/15 text-amber-300 hover:bg-white/15"
                     : "bg-slate-100 border-slate-200/90 text-slate-700 hover:bg-slate-200/70"
                 }`}
                 title={isDark ? "สลับเป็นธีมสว่าง" : "สลับเป็นธีมมืด"}
               >
-                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {isDark ? <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               </button>
 
               {/* Auth / User Pill */}
@@ -930,35 +930,35 @@ export default function FacultyEducationPortalApp() {
                   <button
                     type="button"
                     onClick={() => setActiveView(currentUser.Role)}
-                    className="h-9 px-2.5 sm:px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold whitespace-nowrap max-w-[88px] sm:max-w-[150px] truncate shadow-xs"
+                    className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold whitespace-nowrap max-w-[70px] sm:max-w-[150px] truncate shadow-xs"
                   >
                     {currentUser.Full_Name.split(" ")[0]}
                   </button>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors ${
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors ${
                       isDark
                         ? "border-white/15 bg-white/5 text-purple-200 hover:bg-red-500/20 hover:text-red-300"
                         : "border-slate-200/90 bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
                     }`}
                     title="ออกจากระบบ"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setLoginModalRole("ADMIN")}
-                  className={`h-9 px-2.5 sm:px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1 shrink-0 transition-colors ${
+                  className={`h-8 sm:h-9 px-2 sm:px-3 rounded-xl border text-xs font-bold whitespace-nowrap flex items-center gap-1 shrink-0 transition-colors ${
                     isDark
                       ? "border-white/15 bg-white/10 hover:bg-white/15 text-purple-100"
                       : "border-slate-200/90 bg-slate-100 hover:bg-slate-200/70 text-slate-800"
                   }`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                  <span className="hidden xs:inline sm:inline">แอดมิน</span>
+                  <span className="hidden sm:inline">แอดมิน</span>
                 </button>
               )}
             </div>

@@ -354,227 +354,11 @@ export const INITIAL_STAFF: StaffMember[] = [
   },
 ];
 
-export const INITIAL_INSTRUCTOR_FORMS: InstructorPlanRecord[] = [
-  {
-    Record_ID: "REC-2568-01",
-    Staff_ID: "EDU-001",
-    Full_Name: "ซอลีฮะห์ หะยีสะมะแอ",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2568,
-    Course_Code: "IS101",
-    Course_Name: "ประวัติศาสตร์และพัฒนาการการศึกษาอิสลาม",
-    Teaching_Method: "Active Learning บูรณาการกรณีศึกษาจริงและการอภิปรายกลุ่มย่อย",
-    Target_KPI: "ผู้เรียนร้อยละ 88 มีผลการเรียนระดับ B ขึ้นไป และผ่านเกณฑ์ประเมินทักษะศตวรรษที่ 21",
-    Teaching_Summary: "นักศึกษามีส่วนร่วมในการวิเคราะห์แหล่งเรียนรู้ประวัติศาสตร์ท้องถิ่นชายแดนใต้",
-    Research_Output: "รายงานวิจัยเบื้องต้น: การจัดการศึกษาอิสลามในศตวรรษใหม่",
-    Ebook_Planned: "เอกสารประกอบการสอนรายวิชา IS101 ในรูปแบบ PDF สรุปบทเรียน",
-    Self_Development: "เข้าร่วมการอบรมการประยุกต์ใช้ AI เพื่อการวิจัยทางมนุษยศาสตร์",
-    Budget_Requested: "งบประมาณจัดซื้อหนังสืออ้างอิงภาษาอาหรับและมลายู 15,000 บาท",
-    Additional_Notes: "ระบบประเมินผลผ่านเกณฑ์มาตรฐานของหลักสูตร",
-    Updated_At: "2568-10-15",
-  },
-  {
-    Record_ID: "REC-2569-01",
-    Staff_ID: "EDU-001",
-    Full_Name: "ซอลีฮะห์ หะยีสะมะแอ",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2569,
-    Course_Code: "IS204",
-    Course_Name: "นวัตกรรมการสอนภาษาและการสื่อสารเพื่อครูอิสลามศึกษา",
-    Teaching_Method: "โครงงานเป็นฐาน (PBL) และการจำลองสถานการณ์สอนจริง (Micro-teaching)",
-    Target_KPI: "นักศึกษาร้อยละ 92 ผ่านการประเมินทักษะการสอนจริงในระดับดีมาก",
-    Teaching_Summary: "นักศึกษาจัดทำสื่อการสอนจำลองและทดลองสอนในโรงเรียนเครือข่าย",
-    Research_Output: "บทความวิจัยตีพิมพ์ในวารสาร TCI กลุ่ม 1 จำนวน 1 เรื่อง",
-    Ebook_Planned: "จัดทำ E-Book คู่มือการจัดการเรียนรู้อิสลามศึกษาเชิงบูรณาการ 1 เล่ม",
-    Self_Development: "อบรมเชิงปฏิบัติการการสร้างสื่อดิจิทัลและหนังสืออิเล็กทรอนิกส์",
-    Budget_Requested: "งบสนับสนุนการลงพื้นที่นิเทศและสังเกตการสอนของนักศึกษา 20,000 บาท",
-    Additional_Notes: "ผลงาน E-Book ได้รับการเผยแพร่สู่คลังสาธารณะ",
-    Updated_At: "2569-09-20",
-  },
-  {
-    Record_ID: "REC-2570-01",
-    Staff_ID: "EDU-001",
-    Full_Name: "ซอลีฮะห์ หะยีสะมะแอ",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2570,
-    Course_Code: "ED101",
-    Course_Name: "ปรัชญาและหลักการศึกษาอิสลามร่วมสมัย",
-    Teaching_Method: "Active Learning ผสานกระบวนการ Design Thinking และการสะท้อนคิด",
-    Target_KPI: "นักศึกษาร้อยละ 90 มีผลสัมฤทธิ์ระดับ B+ ขึ้นไปและผลิตสื่อนวัตกรรมได้",
-    Teaching_Summary: "เน้นการพัฒนาทักษะการคิดวิเคราะห์เชิงปรัชญาและการออกแบบหลักสูตรท้องถิ่น",
-    Research_Output: "บทความวิจัยตีพิมพ์ระดับนานาชาติในฐานข้อมูล Scopus 1 เรื่อง",
-    Ebook_Planned: "จัดทำ E-Book ตำราเรียนปรัชญาการศึกษาอิสลามฉบับสมบูรณ์ (พร้อมเสียงบรรยาย)",
-    Self_Development: "นำเสนอผลงานวิชาการในการประชุมนานาชาติ ณ ประเทศมาเลเซีย",
-    Budget_Requested: "งบสนับสนุนการเดินทางไปนำเสนอผลงานวิจัยในต่างประเทศ 35,000 บาท",
-    Additional_Notes: "แผนระยะ 5 ปี เพื่อยกระดับหลักสูตรสู่มาตรฐานสากล",
-    Updated_At: "2570-01-10",
-  },
-  {
-    Record_ID: "REC-2570-02",
-    Staff_ID: "EDU-002",
-    Full_Name: "มะซีดิ สาแล",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2570,
-    Course_Code: "ED202",
-    Course_Name: "ระเบียบวิธีวิจัยขั้นสูงทางการศึกษาและเทววิทยา",
-    Teaching_Method: "Research-based Learning ผสานระบบสืบค้นสารสนเทศออนไลน์และการสังเคราะห์เอกสาร",
-    Target_KPI: "นักศึกษาทุกคนสามารถส่งเค้าโครงวิจัยที่มีคุณภาพตามเกณฑ์บัณฑิตวิทยาลัย",
-    Teaching_Summary: "นักศึกษาเรียนรู้กระบวนการวิจัยเชิงคุณภาพและการวิเคราะห์เนื้อหาเชิงลึก",
-    Research_Output: "บทความวิจัยตีพิมพ์ในฐานข้อมูล Scopus Q2 จำนวน 1 เรื่อง",
-    Ebook_Planned: "จัดทำ E-Book เทคนิคการวิจัยเชิงคุณภาพทางอิสลามศึกษา 1 เล่ม",
-    Self_Development: "อบรมหลักสูตรจริยธรรมการวิจัยในมนุษย์และสัตว์ทดลอง",
-    Budget_Requested: "งบสนับสนุนค่าแปลและค่าธรรมเนียมการตีพิมพ์วารสารนานาชาติ 30,000 บาท",
-    Additional_Notes: "เชื่อมโยงงานวิจัยกับฐานข้อมูลของมหาวิทยาลัยในต่างประเทศ",
-    Updated_At: "2570-02-14",
-  },
-  {
-    Record_ID: "REC-2571-01",
-    Staff_ID: "EDU-004",
-    Full_Name: "ยะหะยา นิแว",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2571,
-    Course_Code: "ED305",
-    Course_Name: "นวัตกรรมการบริหารและการนิเทศการศึกษา",
-    Teaching_Method: "การจำลองสถานการณ์บริหาร (Management Simulation) ร่วมกับการถ่ายทอดสด Live Stream",
-    Target_KPI: "ผู้เรียนร้อยละ 88 ผ่านเกณฑ์การประเมินทักษะการตัดสินใจเชิงบริหารสถานศึกษา",
-    Teaching_Summary: "จัดการเรียนการสอนแบบไฮบริด เชิญผู้บริหารสถานศึกษาตัวจริงมาร่วมอภิปราย",
-    Research_Output: "การพัฒนาโมเดลการบริหารสถานศึกษาเอกชนสอนศาสนาอิสลามสู่ความเป็นเลิศ",
-    Ebook_Planned: "บันทึกคลิปวิดีโอการสอนสดและคู่มือดิจิทัลสำหรับผู้บริหารโรงเรียน",
-    Self_Development: "ศึกษาดูงานระบบการบริหารจัดการสถานศึกษา ณ ประเทศอินโดนีเซีย",
-    Budget_Requested: "งบจัดตั้งห้องสตูดิโอย่อยสำหรับการผลิตสื่อและไลฟ์สดเพื่อการศึกษา 50,000 บาท",
-    Additional_Notes: "บูรณาการร่วมกับโครงการบริการวิชาการแก่โรงเรียนในพื้นที่",
-    Updated_At: "2571-03-01",
-  },
-  {
-    Record_ID: "REC-2571-02",
-    Staff_ID: "EDU-005",
-    Full_Name: "อับดุลรอฮมาน สามะอาลี",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2571,
-    Course_Code: "ED401",
-    Course_Name: "การพัฒนาทรัพยากรมนุษย์และจริยธรรมวิชาชีพครู",
-    Teaching_Method: "Value Clarification และการศึกษาดูงานชุมชนต้นแบบด้านคุณธรรม",
-    Target_KPI: "นักศึกษาร้อยละ 95 ผ่านการประเมินพฤติกรรมจริยธรรมวิชาชีพครูในเกณฑ์ดีเยี่ยม",
-    Teaching_Summary: "เน้นการปลูกฝังจิตวิญญาณความเป็นครูและการอุทิศตนเพื่อสังคม",
-    Research_Output: "ตำราวิชาการ: การพัฒนาทรัพยากรมนุษย์ตามแนวทางอิสลามศึกษา",
-    Ebook_Planned: "E-Book ถอดบทเรียนครูต้นแบบใน 3 จังหวัดชายแดนภาคใต้",
-    Self_Development: "เข้าร่วมสัมมนาวิชาชีพครูระดับชาติ ณ กรุงเทพมหานคร",
-    Budget_Requested: "งบจัดทำโครงการค่ายคุณธรรมและจริยธรรมสำหรับนักศึกษาครู 40,000 บาท",
-    Additional_Notes: "เตรียมความพร้อมนักศึกษาสู่การทดสอบใบประกอบวิชาชีพครู",
-    Updated_At: "2571-04-18",
-  }
-];
+export const INITIAL_INSTRUCTOR_FORMS: InstructorPlanRecord[] = [];
 
-export const INITIAL_PORTFOLIO_WORKS: PortfolioWork[] = [
-  {
-    Work_ID: "WRK-EDU-01",
-    Staff_ID: "EDU-001",
-    Instructor_Name: "ซอลีฮะห์ หะยีสะมะแอ",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2570,
-    Title: "คู่มือการจัดการเรียนรู้อิสลามศึกษาเชิงบูรณาการ (E-Book ฉบับสมบูรณ์)",
-    Category: "ตำรา / E-Book",
-    Work_Type: "PDF",
-    File_Or_Link_URL: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    Description: "หนังสืออิเล็กทรอนิกส์สำหรับครูผู้สอนอิสลามศึกษา รวบรวมแนวคิดการจัดการเรียนรู้เชิงรุก (Active Learning) ร่วมกับหลักสูตรแกนกลาง",
-    Is_Public: true,
-    Downloads: 348,
-    Updated_At: "2570-01-15",
-  },
-  {
-    Work_ID: "WRK-EDU-02",
-    Staff_ID: "EDU-002",
-    Instructor_Name: "มะซีดิ สาแล",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2570,
-    Title: "เทคนิคการวิจัยเชิงคุณภาพทางอิสลามศึกษาและปรัชญาการศึกษา",
-    Category: "งานวิจัย / เอกสารวิชาการ",
-    Work_Type: "PDF",
-    File_Or_Link_URL: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    Description: "เอกสารประกอบการสอนวิจัยระดับบัณฑิตศึกษา เน้นการวิเคราะห์เชิงลึกและการเทียบเคียงทัศนะ",
-    Is_Public: true,
-    Downloads: 236,
-    Updated_At: "2570-02-20",
-  },
-  {
-    Work_ID: "WRK-EDU-03",
-    Staff_ID: "EDU-004",
-    Instructor_Name: "ยะหะยา นิแว",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2571,
-    Title: "บันทึกการสอนสด (Live Stream): การบริหารจัดการชั้นเรียนยุคดิจิทัล",
-    Category: "สื่อการสอนไลฟ์สด / วิดีโอ",
-    Work_Type: "LINK",
-    File_Or_Link_URL: "https://www.youtube.com",
-    Description: "การบรรยายพิเศษสาธิตการใช้เทคโนโลยีดิจิทัลและแอปพลิเคชันเพื่อการจัดการชั้นเรียนและประเมินผลผู้เรียน",
-    Is_Public: true,
-    Downloads: 198,
-    Updated_At: "2571-03-12",
-  },
-  {
-    Work_ID: "WRK-EDU-04",
-    Staff_ID: "EDU-005",
-    Instructor_Name: "อับดุลรอฮมาน สามะอาลี",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2571,
-    Title: "นวัตกรรมการพัฒนาทรัพยากรมนุษย์ตามแนวทางอิสลามศึกษา",
-    Category: "ตำรา / E-Book",
-    Work_Type: "PDF",
-    File_Or_Link_URL: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    Description: "E-Book ถ่ายทอดผลการศึกษาและประสบการณ์วิจัยจากมหาวิทยาลัยชั้นนำในต่างประเทศ",
-    Is_Public: true,
-    Downloads: 165,
-    Updated_At: "2571-04-25",
-  },
-  {
-    Work_ID: "WRK-EDU-05",
-    Staff_ID: "EDU-001",
-    Instructor_Name: "ซอลีฮะห์ หะยีสะมะแอ",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2569,
-    Title: "เอกสารร่างแบบฝึกทักษะภาษาอังกฤษเพื่อการสื่อสารครู (ฉบับภายใน)",
-    Category: "เอกสารภายใน",
-    Work_Type: "PDF",
-    File_Or_Link_URL: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    Description: "เอกสารพัฒนาทักษะภาษาอังกฤษสำหรับนักศึกษาครู (ตั้งค่าเป็นเอกสารภายใน ไม่เผยแพร่สาธารณะ)",
-    Is_Public: false,
-    Downloads: 18,
-    Updated_At: "2569-11-10",
-  },
-];
+export const INITIAL_PORTFOLIO_WORKS: PortfolioWork[] = [];
 
-export const INITIAL_EXECUTIVE_FORMS: ExecutivePlanRecord[] = [
-  {
-    Exec_ID: "PLAN-EXEC-301",
-    Staff_ID: "HEAD-01",
-    Executive_Name: "หัวหน้าสาขาวิชาอิสลามศึกษา",
-    Department: "สาขาวิชาอิสลามศึกษา",
-    Academic_Year: 2570,
-    Curriculum_Status: "ผ่านการรับรองมาตรฐานหลักสูตรตามเกณฑ์ AUN-QA",
-    Faculty_Count: 8,
-    Total_Graduates: 95,
-    Quality_Score: 4.82,
-    Strategic_Plan_2570_2574: "ยกระดับอาจารย์ประจำหลักสูตรให้ผลิตสื่อ E-Book ครบทุกรายวิชาแกน และผลักดันผลงานวิจัยสู่ฐานข้อมูลระดับชาติ",
-    Budget_Needs: "งบประมาณสนับสนุนการตีพิมพ์วารสารวิชาการและการจัดอบรมเทคโนโลยีดิจิทัลเพื่อการสอน",
-    Issues_Found: "ต้องการระบบจัดเก็บและเผยแพร่ผลงานวิชาการดิจิทัลส่วนกลางของคณะ",
-    Updated_At: "2570-01-20",
-  },
-  {
-    Exec_ID: "PLAN-EXEC-302",
-    Staff_ID: "HEAD-02",
-    Executive_Name: "หัวหน้าสาขาวิชาภาษาอาหรับ",
-    Department: "สาขาวิชาภาษาอาหรับ",
-    Academic_Year: 2570,
-    Curriculum_Status: "ปรับปรุงหลักสูตรตามกรอบมาตรฐานคุณวุฒิระดับอุดมศึกษา",
-    Faculty_Count: 6,
-    Total_Graduates: 65,
-    Quality_Score: 4.70,
-    Strategic_Plan_2570_2574: "สร้างความร่วมมือทางวิชาการกับมหาวิทยาลัยในกลุ่มประเทศอาหรับ และพัฒนานวัตกรรมสื่อการสอนภาษาอาหรับเพื่อวิชาชีพครู",
-    Budget_Needs: "งบประมาณเชิญผู้เชี่ยวชาญภาษาอาหรับเจ้าของภาษามาบรรยายพิเศษ",
-    Issues_Found: "ไม่มี",
-    Updated_At: "2570-02-15",
-  },
-];
+export const INITIAL_EXECUTIVE_FORMS: ExecutivePlanRecord[] = [];
 
 export function createDefaultSurvey(teacher: TeacherInfo, isSubmitted = false): TeacherSurveyPlan {
   const highestDeg = teacher.degrees && teacher.degrees[0];
@@ -588,77 +372,35 @@ export function createDefaultSurvey(teacher: TeacherInfo, isSubmitted = false): 
     Degree_Level: degText,
 
     // หมวด 1: ข้อมูลด้านงานวิจัย
-    research_classroom: 2,
-    research_education: 1,
-    research_development: 1,
+    research_classroom: 0,
+    research_education: 0,
+    research_development: 0,
     research_other: 0,
     research_other_specify: "",
-    research_funding_sources: {
-      "ทุนคณะศึกษาศาสตร์": [2570, 2571],
-      "สำนักงานการวิจัยแห่งชาติ (วช.)": [2572, 2573],
-      "ทุนมหาวิทยาลัยฟาฏอนี": [2571],
-    },
+    research_funding_sources: {},
     research_funding_other_specify: "",
-    research_budgets: {
-      "2570": "50,001-300,000",
-      "2571": "300,001-500,000",
-      "2572": "300,001-500,000",
-      "2573": "500,001-1,000,000",
-      "2574": "300,001-500,000",
-    },
+    research_budgets: {},
 
     // หมวด 2: ข้อมูลด้านการเรียนการสอน
-    teaching_load: {
-      "1/2568": "10-12 ชั่วโมง/สัปดาห์",
-      "2/2568": "13-16 ชั่วโมง/สัปดาห์",
-      "1/2569": "10-12 ชั่วโมง/สัปดาห์",
-      "2/2569": "13-16 ชั่วโมง/สัปดาห์",
-    },
-    fieldwork_presence: {
-      "1/2568": "มี",
-      "2/2568": "มี",
-      "1/2569": "มี",
-      "2/2569": "มี",
-      "1/2570": "มี",
-      "2/2570": "มี",
-    },
-    fieldwork_agencies: {
-      "1/2568": "โรงเรียนของรัฐ",
-      "2/2568": "โรงเรียนเอกชน",
-      "1/2569": "โรงเรียนของรัฐ",
-      "2/2569": "โรงเรียนเอกชน",
-      "1/2570": "โรงเรียนของรัฐ",
-      "2/2570": "โรงเรียนเอกชน",
-    },
+    teaching_load: {},
+    fieldwork_presence: {},
+    fieldwork_agencies: {},
     fieldwork_agency_other_specify: "",
 
     // หมวด 3: ข้อมูลด้านบริการวิชาการ
-    academic_services_count: {
-      "2570": 2,
-      "2571": 3,
-      "2572": 2,
-      "2573": 3,
-      "2574": 2,
-    },
-    target_communities: {
-      "โรงเรียนรัฐบาล": [2570, 2571],
-      "โรงเรียนเอกชนสอนศาสนาอิสลาม": [2570, 2571, 2572],
-      "ครูและบุคลากรทางการศึกษา": [2570, 2571, 2572, 2573, 2574],
-      "โรงเรียนตาดีกา": [2572, 2574],
-    },
+    academic_services_count: {},
+    target_communities: {},
     target_community_other_specify: "",
-    selection_criteria_percentage: "70%",
+    selection_criteria_percentage: "",
 
     Is_Submitted: isSubmitted,
-    Updated_At: "2569-12-20",
+    Updated_At: "-",
   };
 }
 
-// ฐานข้อมูลเริ่มต้นสำหรับแบบสำรวจแผน 2570–2574 (สร้างให้คณาจารย์ทั้ง 67 ท่าน)
-export const INITIAL_TEACHER_SURVEYS: TeacherSurveyPlan[] = INITIAL_TEACHERS.map((teacher, index) => {
-  // ให้ EDU-001 และ EDU-003 ส่งแล้วล่วงหน้า เพื่อเป็นตัวอย่างผลลัพธ์
-  const isSubmitted = index === 0 || index === 2;
-  return createDefaultSurvey(teacher, isSubmitted);
+// ฐานข้อมูลเริ่มต้นสำหรับแบบสำรวจแผน 2570–2574 (สร้างให้คณาจารย์ทั้ง 67 ท่าน โดยสถานะเริ่มต้นยังไม่ส่ง เพื่อให้อาจารย์ยืนยันและกรอกตามจริง)
+export const INITIAL_TEACHER_SURVEYS: TeacherSurveyPlan[] = INITIAL_TEACHERS.map((teacher) => {
+  return createDefaultSurvey(teacher, false);
 });
 
 export function createDefaultExecutiveSurvey(
@@ -666,11 +408,6 @@ export function createDefaultExecutiveSurvey(
   index = 0,
   isSubmitted = false
 ): ExecutiveSurveyPlan {
-  const defaultWeights: { [k: string]: string } = {};
-  EXEC_SELECTION_CRITERIA_LIST.forEach((c, idx) => {
-    defaultWeights[c] = idx < 4 ? "90%" : idx < 8 ? "80%" : "70%";
-  });
-
   const isMaster = department.includes("ป.โท") || department.includes("บริหาร");
 
   return {
@@ -681,93 +418,41 @@ export function createDefaultExecutiveSurvey(
     Program_Level: isMaster ? "ปริญญาโท" : "ปริญญาตรี",
 
     // หมวด 1: ข้อมูลการรับนักศึกษาใหม่ (2570-2574)
-    student_intake_targets: {
-      "2570": 60,
-      "2571": 60,
-      "2572": 60,
-      "2573": 60,
-      "2574": 60,
-    },
+    student_intake_targets: {},
     student_intake_by_type: {
-      quota: 20,
-      portfolio: 20,
-      regular: 20,
+      quota: 0,
+      portfolio: 0,
+      regular: 0,
       other: 0,
     },
 
     // หมวด 2: ข้อมูลด้านงานวิจัยของสาขาวิชา (2570-2574)
-    research_classroom: 3,
-    research_education: 3,
-    research_development: 2,
+    research_classroom: 0,
+    research_education: 0,
+    research_development: 0,
     research_other: 0,
-    research_funding_sources: {
-      "ทุนคณะศึกษาศาสตร์": [2570, 2571, 2572, 2573, 2574],
-      "ทุนมหาวิทยาลัยฟาฏอนี": [2570, 2571, 2572],
-      "สำนักงานการวิจัยแห่งชาติ (วช.)": [2571, 2572, 2573],
-      "หน่วยบริหารและจัดการทุนพัฒนาระดับพื้นที่ (บพท.)": [2572, 2573, 2574],
-    },
-    research_budgets: {
-      "2570": "300,001-500,000",
-      "2571": "300,001-500,000",
-      "2572": "500,001-1,000,000",
-      "2573": "500,001-1,000,000",
-      "2574": "500,001-1,000,000",
-    },
+    research_funding_sources: {},
+    research_budgets: {},
 
     // หมวด 3: ข้อมูลด้านบริการวิชาการของสาขาวิชา (2570-2574)
-    academic_services_count: {
-      "2570": 2,
-      "2571": 3,
-      "2572": 3,
-      "2573": 3,
-      "2574": 4,
-    },
-    target_communities: {
-      "โรงเรียนรัฐบาล": [2570, 2571, 2572, 2573, 2574],
-      "โรงเรียนเอกชนสอนศาสนาอิสลาม": [2570, 2571, 2572, 2573, 2574],
-      "ครูและบุคลากรทางการศึกษา": [2570, 2571, 2572, 2573, 2574],
-      "โรงเรียนตาดีกา": [2571, 2572, 2573],
-    },
-    selection_criteria_weights: defaultWeights,
+    academic_services_count: {},
+    target_communities: {},
+    selection_criteria_weights: {},
 
     // หมวด 4: ด้านบุคลากรสายวิชาการ (แผนรับเพิ่ม 2570-2574)
-    staff_recruitment_total: {
-      "2570": 1,
-      "2571": 1,
-      "2572": 1,
-      "2573": 1,
-      "2574": 1,
-    },
-    staff_recruitment_master: {
-      "2570": 1,
-      "2571": 0,
-      "2572": 1,
-      "2573": 0,
-      "2574": 0,
-    },
-    staff_recruitment_doctoral: {
-      "2570": 0,
-      "2571": 1,
-      "2572": 0,
-      "2573": 1,
-      "2574": 1,
-    },
-    staff_recruitment_adjunct: {
-      "2570": 2,
-      "2571": 2,
-      "2572": 2,
-      "2573": 2,
-      "2574": 2,
-    },
+    staff_recruitment_total: {},
+    staff_recruitment_master: {},
+    staff_recruitment_doctoral: {},
+    staff_recruitment_adjunct: {},
 
     // หมวด 5: ข้อเสนอแนะ
-    suggestions: `ส่งเสริมการบูรณาการงานวิจัยและบริการวิชาการของ${department} ร่วมกับโรงเรียนเครือข่ายในพื้นที่ และสนับสนุนทุนพัฒนาตำรา/E-Book ประจำหลักสูตร`,
+    suggestions: "",
 
     Is_Submitted: isSubmitted,
-    Updated_At: "2570-01-20",
+    Updated_At: "-",
   };
 }
 
 export const INITIAL_EXECUTIVE_SURVEYS: ExecutiveSurveyPlan[] = EDUCATION_PROGRAMS.map(
-  (prog, idx) => createDefaultExecutiveSurvey(prog, idx, idx < 3)
+  (prog, idx) => createDefaultExecutiveSurvey(prog, idx, false)
 );

@@ -188,109 +188,143 @@ export function RepositoryPortalView({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredWorks.map((work) => {
-          const isPdf =
-            work.Work_Type === "PDF" ||
-            work.File_Or_Link_URL.toLowerCase().endsWith(".pdf") ||
-            work.File_Or_Link_URL.startsWith("data:application/pdf");
+      {filteredWorks.length === 0 ? (
+        <div
+          className={`rounded-3xl p-8 sm:p-12 text-center border flex flex-col items-center justify-center gap-3.5 transition-all ${
+            isDark
+              ? "bg-[#150D2A]/60 border-white/10 text-purple-200"
+              : "bg-white border-slate-200/90 text-slate-700"
+          }`}
+        >
+          <div className="w-14 h-14 rounded-2xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+            <FolderOpen className="w-7 h-7" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-extrabold text-base sm:text-lg">
+              {searchQuery || selectedDept !== "ALL" || selectedCategory !== "ALL" || selectedYear !== "ALL"
+                ? "ไม่พบผลงานที่ตรงตามเงื่อนไขการค้นหา"
+                : "ยังไม่มีผลงานหรือเอกสารวิชาการในคลังขณะนี้"}
+            </h3>
+            <p className="text-xs sm:text-sm opacity-70 max-w-md mx-auto">
+              {searchQuery || selectedDept !== "ALL" || selectedCategory !== "ALL" || selectedYear !== "ALL"
+                ? "ลองปรับคำค้นหาหรือเลือกหมวดหมู่อื่นเพื่อค้นหาเอกสาร"
+                : "อาจารย์สามารถกดปุ่ม 'อัปโหลดผลงานสู่คลังสาธารณะ' เพื่อเริ่มเผยแพร่ตำรา E-Book หรือเอกสารวิชาการได้ทันที"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenUploadModal}
+            className="mt-1 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-2 transition-all active:scale-95 shadow-sm"
+          >
+            <Upload className="w-4 h-4" />
+            <span>อัปโหลดผลงานแรก</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredWorks.map((work) => {
+            const isPdf =
+              work.Work_Type === "PDF" ||
+              work.File_Or_Link_URL.toLowerCase().endsWith(".pdf") ||
+              work.File_Or_Link_URL.startsWith("data:application/pdf");
 
-          return (
-            <div
-              key={work.Work_ID}
-              className={`rounded-3xl p-5 border flex flex-col justify-between gap-4 transition-all hover:shadow-lg ${
-                isDark
-                  ? "bg-[#150D2A]/90 border-white/10 hover:border-purple-500/40"
-                  : "bg-white border-slate-200/90 hover:border-purple-300"
-              }`}
-            >
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 ${
-                      isPdf
-                        ? "bg-purple-600 text-white"
-                        : "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
-                    }`}
-                  >
-                    {isPdf ? (
-                      <>
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>PDF เปิดอ่านได้</span>
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        <span>ลิงก์สื่อการสอน</span>
-                      </>
-                    )}
-                  </span>
-                  <span className="text-[11px] font-bold opacity-65">
-                    พ.ศ. {work.Academic_Year}
-                  </span>
-                </div>
+            return (
+              <div
+                key={work.Work_ID}
+                className={`rounded-3xl p-5 border flex flex-col justify-between gap-4 transition-all hover:shadow-lg ${
+                  isDark
+                    ? "bg-[#150D2A]/90 border-white/10 hover:border-purple-500/40"
+                    : "bg-white border-slate-200/90 hover:border-purple-300"
+                }`}
+              >
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 ${
+                        isPdf
+                          ? "bg-purple-600 text-white"
+                          : "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
+                      }`}
+                    >
+                      {isPdf ? (
+                        <>
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>PDF เปิดอ่านได้</span>
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>ลิงก์สื่อการสอน</span>
+                        </>
+                      )}
+                    </span>
+                    <span className="text-[11px] font-bold opacity-65">
+                      พ.ศ. {work.Academic_Year}
+                    </span>
+                  </div>
 
-                <h3 className="font-extrabold text-sm sm:text-base leading-snug line-clamp-2">
-                  {work.Title}
-                </h3>
+                  <h3 className="font-extrabold text-sm sm:text-base leading-snug line-clamp-2">
+                    {work.Title}
+                  </h3>
 
-                <p className="text-xs opacity-75 line-clamp-2 leading-relaxed">
-                  {work.Description}
-                </p>
-
-                <div className="pt-1 text-xs space-y-0.5">
-                  <p className="font-bold text-purple-600 dark:text-purple-300">
-                    {work.Instructor_Name}
+                  <p className="text-xs opacity-75 line-clamp-2 leading-relaxed">
+                    {work.Description}
                   </p>
-                  <p className="opacity-70 text-[11px]">{work.Department}</p>
+
+                  <div className="pt-1 text-xs space-y-0.5">
+                    <p className="font-bold text-purple-600 dark:text-purple-300">
+                      {work.Instructor_Name}
+                    </p>
+                    <p className="opacity-70 text-[11px]">{work.Department}</p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200/70 dark:border-white/10 flex items-center justify-between gap-2">
+                  <span className="text-[11px] opacity-70 flex items-center gap-1">
+                    <Eye className="w-3.5 h-3.5 text-purple-500" />
+                    <span>{work.Downloads} ครั้ง</span>
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onOpenPdfWork(work)}
+                      className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>{isPdf ? "เปิดอ่าน PDF บนเว็บ" : "เปิดดูผลงาน"}</span>
+                    </button>
+
+                    <a
+                      href={work.File_Or_Link_URL}
+                      download={
+                        work.File_Or_Link_URL.startsWith("data:")
+                          ? `${work.Title.replace(/\s+/g, "_")}.pdf`
+                          : undefined
+                      }
+                      target={
+                        work.File_Or_Link_URL.startsWith("data:")
+                          ? undefined
+                          : "_blank"
+                      }
+                      rel="noreferrer"
+                      onClick={() => onIncrementDownload(work.Work_ID)}
+                      className={`p-2 rounded-xl border transition-all ${
+                        isDark
+                          ? "border-white/15 bg-white/5 hover:bg-white/10"
+                          : "border-slate-200 bg-slate-100 hover:bg-slate-200"
+                      }`}
+                      title="ดาวน์โหลดไฟล์"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
+                  </div>
                 </div>
               </div>
-
-              <div className="pt-3 border-t border-slate-200/70 dark:border-white/10 flex items-center justify-between gap-2">
-                <span className="text-[11px] opacity-70 flex items-center gap-1">
-                  <Eye className="w-3.5 h-3.5 text-purple-500" />
-                  <span>{work.Downloads} ครั้ง</span>
-                </span>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onOpenPdfWork(work)}
-                    className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all active:scale-95"
-                  >
-                    <BookOpen className="w-3.5 h-3.5" />
-                    <span>{isPdf ? "เปิดอ่าน PDF บนเว็บ" : "เปิดดูผลงาน"}</span>
-                  </button>
-
-                  <a
-                    href={work.File_Or_Link_URL}
-                    download={
-                      work.File_Or_Link_URL.startsWith("data:")
-                        ? `${work.Title.replace(/\s+/g, "_")}.pdf`
-                        : undefined
-                    }
-                    target={
-                      work.File_Or_Link_URL.startsWith("data:")
-                        ? undefined
-                        : "_blank"
-                    }
-                    rel="noreferrer"
-                    onClick={() => onIncrementDownload(work.Work_ID)}
-                    className={`p-2 rounded-xl border transition-all ${
-                      isDark
-                        ? "border-white/15 bg-white/5 hover:bg-white/10"
-                        : "border-slate-200 bg-slate-100 hover:bg-slate-200"
-                    }`}
-                    title="ดาวน์โหลดไฟล์"
-                  >
-                    <Download className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
