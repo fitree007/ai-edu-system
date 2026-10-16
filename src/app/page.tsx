@@ -891,7 +891,7 @@ export default function FacultyEducationPortalApp() {
                 </button>
               ) : null}
 
-              {/* แสดงโลโก้เฉพาะหน้าหลักบนมือถือ หรือบนจอแท็บเล็ต/คอมพิวเตอร์ เพื่อไม่ให้ไอคอนจมเมื่อมีปุ่มหน้าหลัก */}
+              {/* แสดงโลโก้และชื่อ คณะศึกษาศาสตร์ ชัดเจนทุกอุปกรณ์ */}
               <div
                 onClick={() => {
                   setAdminEditingStaffId(null);
@@ -905,7 +905,7 @@ export default function FacultyEducationPortalApp() {
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center shrink-0 shadow-xs">
                   <GraduationCap className="w-4 h-4 shrink-0" />
                 </div>
-                <span className="hidden sm:inline font-bold text-xs sm:text-base tracking-tight whitespace-nowrap">
+                <span className="font-bold text-sm sm:text-base tracking-tight whitespace-nowrap">
                   คณะศึกษาศาสตร์
                 </span>
               </div>
