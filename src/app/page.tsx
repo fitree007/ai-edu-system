@@ -3279,22 +3279,24 @@ export default function FacultyEducationPortalApp() {
       {activeView === "EXECUTIVE" && currentUser && (
         <ExecutivePortalView
           isDark={isDark}
-          currentUser={currentUser}
-          teachersList={teachersList}
-          teacherSurveys={teacherSurveys}
-          portfolioWorks={portfolioWorks}
+          isSubmissionOpen={isSubmissionOpen}
+          teachers={staffList}
+          surveys={teacherSurveys}
           executiveSurveys={executiveSurveys}
-          staffAccounts={staffAccounts}
+          works={portfolioWorks}
+          currentTeacher={currentUser}
+          selectedExecDept={selectedExecDept}
+          onSelectExecDept={setSelectedExecDept}
           onSaveExecutiveSurvey={handleSaveExecutiveSurvey}
           onAssignDepartmentHead={handleAssignDepartmentHead}
-          onSwitchToInstructorMode={() => {
-            setAdminEditingStaffId(null);
+          onSwitchToInstructorMode={(teacherId: string) => {
+            setAdminEditingStaffId(teacherId || null);
             setEditingSection("NONE");
             setInstructorSubView("DASHBOARD");
             setActiveView("INSTRUCTOR");
           }}
-          onOpenWorkModal={(w) => setSelectedWorkModal(w)}
-          onViewTeacherSurvey={(s) => setAdminViewingSurvey(s)}
+          onOpenRepository={() => setActiveView("REPOSITORY")}
+          onOpenPdfWork={(w: PortfolioWork) => setSelectedWorkModal(w)}
         />
       )}
 
@@ -3327,7 +3329,7 @@ export default function FacultyEducationPortalApp() {
                   >
                     <button
                       type="button"
-                      onClick={decreaseFont}
+                      onClick={handleDecreaseFontSize}
                       disabled={fontStep === 0}
                       className="w-7 h-7 rounded-md font-black text-[11px] flex items-center justify-center disabled:opacity-30"
                       title="ลดขนาดตัวอักษร"
@@ -3336,8 +3338,8 @@ export default function FacultyEducationPortalApp() {
                     </button>
                     <button
                       type="button"
-                      onClick={increaseFont}
-                      disabled={fontStep === FONT_SCALES.length - 1}
+                      onClick={handleIncreaseFontSize}
+                      disabled={fontStep === 4}
                       className="w-7 h-7 rounded-md font-black text-[11px] flex items-center justify-center disabled:opacity-30"
                       title="เพิ่มขนาดตัวอักษร"
                     >
@@ -3971,13 +3973,13 @@ export default function FacultyEducationPortalApp() {
       />
 
       {/* Modal: อัปโหลดผลงานเข้าคลังข้อมูลสาธารณะ */}
-      {isUploadWorkModalOpen && activeTeacherProfile && (
+      {isUploadWorkModalOpen && (
         <UploadWorkModal
           isOpen={isUploadWorkModalOpen}
           isDark={isDark}
-          staffId={activeTeacherProfile.id}
-          instructorName={activeTeacherProfile.name}
-          department={activeTeacherProfile.program}
+          defaultStaffId={currentTeacherProfile?.id || currentUser?.Staff_ID || "EDU-001"}
+          defaultInstructorName={currentTeacherProfile?.name || currentUser?.Full_Name || "อาจารย์"}
+          defaultDepartment={currentTeacherProfile?.program || currentUser?.Department || EDUCATION_PROGRAMS[0]}
           onClose={() => setIsUploadWorkModalOpen(false)}
           onSaveWork={handleSaveNewWork}
         />
@@ -4026,25 +4028,17 @@ export default function FacultyEducationPortalApp() {
                 }`}
               >
                 <span className="font-bold text-purple-500 block">
-                  1. แผนศึกษาต่อและตำแหน่งทางวิชาการ
+                  1. แผนงานวิจัย พ.ศ. 2570–2574
                 </span>
-                <p>
-                  • แผนศึกษาต่อปริญญาเอก:{" "}
-                  <strong>{currentTeacherSurvey.phd_plan_status}</strong>
-                  {currentTeacherSurvey.phd_plan_year
-                    ? ` (พ.ศ. ${currentTeacherSurvey.phd_plan_year} • ${currentTeacherSurvey.phd_plan_field})`
-                    : ""}
-                </p>
-                <p>
-                  • ตำแหน่งทางวิชาการปัจจุบัน:{" "}
-                  <strong>{currentTeacherSurvey.acad_current_rank}</strong>
-                </p>
-                <p>
-                  • แผนขอตำแหน่งทางวิชาการ:{" "}
-                  <strong>{currentTeacherSurvey.acad_plan_status}</strong>
-                  {currentTeacherSurvey.acad_plan_year
-                    ? ` (พ.ศ. ${currentTeacherSurvey.acad_plan_year})`
-                    : ""}
+                <p>• วิจัยในชั้นเรียน: <strong>{currentTeacherSurvey.research_classroom || 0} เรื่อง</strong></p>
+                <p>• วิจัยเพื่อการศึกษา: <strong>{currentTeacherSurvey.research_education || 0} เรื่อง</strong></p>
+                <p>• วิจัยเพื่อการพัฒนา: <strong>{currentTeacherSurvey.research_development || 0} เรื่อง</strong></p>
+                <p>• วิจัยอื่นๆ: <strong>{currentTeacherSurvey.research_other || 0} เรื่อง</strong></p>
+                <p className="text-[11px] opacity-75 pt-1">
+                  แหล่งทุน: {Object.entries(currentTeacherSurvey.research_funding_sources || {})
+                    .filter(([, yrs]) => (yrs || []).length > 0)
+                    .map(([k, yrs]) => `${k} (ปี ${(yrs || []).join(", ")})`)
+                    .join(" • ") || "ระบุตามแผน"}
                 </p>
               </div>
 
@@ -4054,23 +4048,23 @@ export default function FacultyEducationPortalApp() {
                 }`}
               >
                 <span className="font-bold text-purple-500 block">
-                  2. แผนงานวิจัยและตำรา/หนังสือ (พ.ศ. 2570–2574)
+                  2. ข้อมูลการเรียนการสอนและการฝึกประสบการณ์
                 </span>
                 <p>
-                  • วิจัยในชั้นเรียน: <strong>{currentTeacherSurvey.research_classroom} เรื่อง</strong>{" "}
-                  | วิจัยการศึกษา: <strong>{currentTeacherSurvey.research_education} เรื่อง</strong>
+                  • ภาระงานสอน:{" "}
+                  <strong>
+                    {Object.entries(currentTeacherSurvey.teaching_load || {})
+                      .map(([sem, load]) => `${sem}: ${load}`)
+                      .join(" • ") || "ตามเกณฑ์มาตรฐาน"}
+                  </strong>
                 </p>
                 <p>
-                  • วิจัยเพื่อการพัฒนา:{" "}
-                  <strong>{currentTeacherSurvey.research_development} เรื่อง</strong> | อื่นๆ:{" "}
-                  <strong>{currentTeacherSurvey.research_other} เรื่อง</strong>
-                </p>
-                <p>
-                  • แผนผลิตหนังสือ/ตำรา:{" "}
-                  <strong>{currentTeacherSurvey.book_plan_status}</strong>
-                  {currentTeacherSurvey.book_plan_year
-                    ? ` (พ.ศ. ${currentTeacherSurvey.book_plan_year})`
-                    : ""}
+                  • แหล่งฝึกประสบการณ์:{" "}
+                  <strong>
+                    {Object.entries(currentTeacherSurvey.fieldwork_agencies || {})
+                      .map(([sem, ag]) => `${sem}: ${ag}`)
+                      .join(" • ") || "โรงเรียนเครือข่าย"}
+                  </strong>
                 </p>
               </div>
 
@@ -4080,32 +4074,31 @@ export default function FacultyEducationPortalApp() {
                 }`}
               >
                 <span className="font-bold text-purple-500 block">
-                  3. แผนบริการวิชาการ และแผนพัฒนาตนเอง
+                  3. ข้อมูลด้านบริการวิชาการ
                 </span>
                 <p>
-                  • โครงการบริการวิชาการที่รับผิดชอบ:{" "}
+                  • จำนวนกิจกรรมบริการวิชาการ:{" "}
                   <strong>
-                    {[
-                      currentTeacherSurvey.service_project_1,
-                      currentTeacherSurvey.service_project_2,
-                      currentTeacherSurvey.service_project_3,
-                    ]
-                      .filter(Boolean)
-                      .join(", ") || "-"}
+                    {Object.entries(currentTeacherSurvey.academic_services_count || {})
+                      .map(([yr, cnt]) => `พ.ศ. ${yr}: ${cnt} โครงการ`)
+                      .join(" • ") || "ตามแผนสาขาวิชา"}
                   </strong>
                 </p>
                 <p>
-                  • หัวข้ออบรม/พัฒนาตนเอง:{" "}
+                  • กลุ่มเป้าหมายชุมชน:{" "}
                   <strong>
-                    {[
-                      currentTeacherSurvey.dev_topic_1,
-                      currentTeacherSurvey.dev_topic_2,
-                      currentTeacherSurvey.dev_topic_3,
-                    ]
-                      .filter(Boolean)
-                      .join(", ") || "-"}
+                    {Object.entries(currentTeacherSurvey.target_communities || {})
+                      .filter(([, yrs]) => (yrs || []).length > 0)
+                      .map(([k, yrs]) => `${k} (ปี ${(yrs || []).join(", ")})`)
+                      .join(" • ") || "โรงเรียนและชุมชนในพื้นที่"}
                   </strong>
                 </p>
+                {currentTeacherSurvey.selection_criteria_percentage && (
+                  <p>
+                    • สัดส่วนเกณฑ์ความต้องการชุมชน:{" "}
+                    <strong>{currentTeacherSurvey.selection_criteria_percentage}</strong>
+                  </p>
+                )}
               </div>
             </div>
 
@@ -4165,34 +4158,49 @@ export default function FacultyEducationPortalApp() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
               <div className="p-3 rounded-xl border border-purple-500/20">
                 <span className="opacity-70 block">วิจัยในชั้นเรียน</span>
-                <strong className="text-base">{adminViewingSurvey.research_classroom} เรื่อง</strong>
+                <strong className="text-base">{adminViewingSurvey.research_classroom || 0} เรื่อง</strong>
               </div>
               <div className="p-3 rounded-xl border border-purple-500/20">
                 <span className="opacity-70 block">วิจัยเพื่อการศึกษา</span>
-                <strong className="text-base">{adminViewingSurvey.research_education} เรื่อง</strong>
+                <strong className="text-base">{adminViewingSurvey.research_education || 0} เรื่อง</strong>
               </div>
               <div className="p-3 rounded-xl border border-purple-500/20">
                 <span className="opacity-70 block">วิจัยเพื่อการพัฒนา</span>
-                <strong className="text-base">{adminViewingSurvey.research_development} เรื่อง</strong>
+                <strong className="text-base">{adminViewingSurvey.research_development || 0} เรื่อง</strong>
               </div>
               <div className="p-3 rounded-xl border border-purple-500/20">
                 <span className="opacity-70 block">อื่นๆ</span>
-                <strong className="text-base">{adminViewingSurvey.research_other} เรื่อง</strong>
+                <strong className="text-base">{adminViewingSurvey.research_other || 0} เรื่อง</strong>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
               <div className="p-3 rounded-xl border border-purple-500/20 space-y-1">
-                <span className="opacity-70 block">แผนศึกษาต่อ & ตำแหน่งวิชาการ</span>
-                <p>ป.เอก: <strong>{adminViewingSurvey.phd_plan_status}</strong></p>
-                <p>ตำแหน่งปัจจุบัน: <strong>{adminViewingSurvey.acad_current_rank}</strong></p>
-                <p>แผนขอตำแหน่ง: <strong>{adminViewingSurvey.acad_plan_status}</strong></p>
+                <span className="opacity-70 block font-bold text-purple-400">การเรียนการสอน</span>
+                <p className="truncate">
+                  ภาระสอน: {Object.entries(adminViewingSurvey.teaching_load || {})
+                    .map(([sem, load]) => `${sem}: ${load}`)
+                    .join(" • ") || "ตามเกณฑ์"}
+                </p>
+                <p className="truncate">
+                  แหล่งฝึก: {Object.entries(adminViewingSurvey.fieldwork_agencies || {})
+                    .map(([sem, ag]) => `${sem}: ${ag}`)
+                    .join(" • ") || "โรงเรียนเครือข่าย"}
+                </p>
               </div>
               <div className="p-3 rounded-xl border border-purple-500/20 space-y-1">
-                <span className="opacity-70 block">แผนผลิตตำรา & บริการวิชาการ</span>
-                <p>ผลิตตำรา: <strong>{adminViewingSurvey.book_plan_status}</strong></p>
-                <p>โครงการบริการวิชาการ: <strong>{adminViewingSurvey.service_project_1 || "-"}</strong></p>
-                <p>หัวข้อพัฒนาตนเอง: <strong>{adminViewingSurvey.dev_topic_1 || "-"}</strong></p>
+                <span className="opacity-70 block font-bold text-purple-400">บริการวิชาการ & ทุน</span>
+                <p className="truncate">
+                  บริการวิชาการ: {Object.entries(adminViewingSurvey.academic_services_count || {})
+                    .map(([yr, cnt]) => `${yr}:${cnt}`)
+                    .join(", ") || "-"}
+                </p>
+                <p className="truncate">
+                  ทุนวิจัย: {Object.entries(adminViewingSurvey.research_funding_sources || {})
+                    .filter(([, yrs]) => (yrs || []).length > 0)
+                    .map(([k]) => k)
+                    .join(", ") || "-"}
+                </p>
               </div>
             </div>
 
