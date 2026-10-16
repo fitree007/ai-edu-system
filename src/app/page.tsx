@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Download,
   ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   RefreshCw,
   Settings,
@@ -184,13 +185,34 @@ export default function FacultyEducationPortalApp() {
       const cachedFontStep = localStorage.getItem("edu_font_step_v1");
       const cachedSurveys = localStorage.getItem("edu_surveys_v2");
 
-      if (cachedStaff) setStaffList(JSON.parse(cachedStaff));
-      if (cachedTeachers) setTeachersList(JSON.parse(cachedTeachers));
-      if (cachedInst) setInstructorForms(JSON.parse(cachedInst));
-      if (cachedSurveys) setTeacherSurveys(JSON.parse(cachedSurveys));
-      if (cachedExecSurveys) setExecutiveSurveys(JSON.parse(cachedExecSurveys));
-      if (cachedWorks) setPortfolioWorks(JSON.parse(cachedWorks));
-      if (cachedExec) setExecutiveForms(JSON.parse(cachedExec));
+      if (cachedStaff) {
+        const p = JSON.parse(cachedStaff);
+        if (Array.isArray(p) && p.length > 0) setStaffList(p);
+      }
+      if (cachedTeachers) {
+        const p = JSON.parse(cachedTeachers);
+        if (Array.isArray(p) && p.length > 0) setTeachersList(p);
+      }
+      if (cachedInst) {
+        const p = JSON.parse(cachedInst);
+        if (Array.isArray(p)) setInstructorForms(p);
+      }
+      if (cachedSurveys) {
+        const p = JSON.parse(cachedSurveys);
+        if (Array.isArray(p) && p.length > 0) setTeacherSurveys(p);
+      }
+      if (cachedExecSurveys) {
+        const p = JSON.parse(cachedExecSurveys);
+        if (Array.isArray(p)) setExecutiveSurveys(p);
+      }
+      if (cachedWorks) {
+        const p = JSON.parse(cachedWorks);
+        if (Array.isArray(p)) setPortfolioWorks(p);
+      }
+      if (cachedExec) {
+        const p = JSON.parse(cachedExec);
+        if (Array.isArray(p)) setExecutiveForms(p);
+      }
       if (cachedSub !== null) setIsSubmissionOpen(JSON.parse(cachedSub));
       if (cachedTheme === "dark" || cachedTheme === "light") setThemeMode(cachedTheme);
       if (cachedFontStep !== null) {
@@ -712,15 +734,15 @@ export default function FacultyEducationPortalApp() {
       const matchTeacher =
         publicTeacherFilter === "ALL" ||
         t.name.trim().toLowerCase() === publicTeacherFilter.trim().toLowerCase();
-      const q = publicSearch.trim().toLowerCase();
+      const q = (publicSearch || "").trim().toLowerCase();
       const matchQuery =
         !q ||
-        t.name.toLowerCase().includes(q) ||
-        t.program.toLowerCase().includes(q) ||
-        t.degrees.some(
+        (t.name || "").toLowerCase().includes(q) ||
+        (t.program || "").toLowerCase().includes(q) ||
+        (t.degrees || []).some(
           (d) =>
-            d.major.toLowerCase().includes(q) ||
-            d.institution.toLowerCase().includes(q)
+            (d?.major || "").toLowerCase().includes(q) ||
+            (d?.institution || "").toLowerCase().includes(q)
         );
       return matchDept && matchTeacher && matchQuery;
     });
@@ -731,7 +753,7 @@ export default function FacultyEducationPortalApp() {
       const matchDept =
         adminTeacherDeptFilter === "ALL" || t.program === adminTeacherDeptFilter;
       const survey = teacherSurveys.find(
-        (s) => s.Staff_ID.trim().toUpperCase() === t.id.trim().toUpperCase()
+        (s) => (s?.Staff_ID || "").trim().toUpperCase() === (t?.id || "").trim().toUpperCase()
       );
       const isSubmitted = !!survey?.Is_Submitted;
       const matchStatus =
@@ -1630,10 +1652,10 @@ export default function FacultyEducationPortalApp() {
                     </div>
 
                     {/* กล่องสถานะผลงานของอาจารย์ท่านนี้ (กะทัดรัด สไตล์ Bento) */}
-                    {portfolioWorks.filter(
+                    {(portfolioWorks || []).filter(
                       (w) =>
-                        w.Staff_ID.toUpperCase() === currentTeacherProfile.id.toUpperCase() ||
-                        w.Instructor_Name.includes(currentTeacherProfile.name)
+                        (w?.Staff_ID || "").toUpperCase() === (currentTeacherProfile?.id || "").toUpperCase() ||
+                        (w?.Instructor_Name || "").includes(currentTeacherProfile?.name || "")
                     ).length === 0 ? (
                       <div
                         className={`p-3 rounded-2xl border text-xs text-center flex items-center justify-center gap-2 ${
@@ -1647,11 +1669,11 @@ export default function FacultyEducationPortalApp() {
                       </div>
                     ) : (
                       <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                        {portfolioWorks
+                        {(portfolioWorks || [])
                           .filter(
                             (w) =>
-                              w.Staff_ID.toUpperCase() === currentTeacherProfile.id.toUpperCase() ||
-                              w.Instructor_Name.includes(currentTeacherProfile.name)
+                              (w?.Staff_ID || "").toUpperCase() === (currentTeacherProfile?.id || "").toUpperCase() ||
+                              (w?.Instructor_Name || "").includes(currentTeacherProfile?.name || "")
                           )
                           .map((work) => (
                             <div
