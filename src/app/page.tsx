@@ -134,6 +134,9 @@ export default function FacultyEducationPortalApp() {
     "DASHBOARD" | "SURVEY_FORM" | "VERIFY_FIRST"
   >("DASHBOARD");
   const [isViewingSubmittedSurveyModal, setIsViewingSubmittedSurveyModal] = useState(false);
+  const [surveyHistoryTopic, setSurveyHistoryTopic] = useState<
+    "ALL" | "RESEARCH" | "TEACHING" | "SERVICE"
+  >("ALL");
 
   const [adminEditingStaffId, setAdminEditingStaffId] = useState<string | null>(null);
   const [adminViewingSurvey, setAdminViewingSurvey] = useState<TeacherSurveyPlan | null>(
@@ -1474,36 +1477,33 @@ export default function FacultyEducationPortalApp() {
              ==================================================================== */}
           {currentTeacherSurvey.Is_Submitted && instructorSubView === "DASHBOARD" && (
             <div className="space-y-5">
-              {/* 1. BENTO ชื่อและประวัติอาจารย์ (สีธีมม่วงหรูทันสมัย) */}
+              {/* 1. BENTO ชื่อและประวัติอาจารย์ (Apple macOS Sequoia Style - ปรับปรุง UI ให้ดูดี พรีเมียม คอนทราสต์สวยงาม) */}
               <div
-                className={`rounded-3xl p-5 sm:p-7 text-white border shadow-xl relative overflow-hidden ${
+                className={`rounded-3xl p-5 sm:p-7 text-white border shadow-xl relative overflow-hidden transition-all ${
                   isDark
-                    ? "bg-gradient-to-br from-[#5B21B6] via-[#3B0764] to-[#1E0938] border-purple-400/35"
-                    : "bg-gradient-to-br from-[#6D28D9] via-[#5B21B6] to-[#3B0764] border-purple-300/40 shadow-[0_14px_34px_rgba(109,40,217,0.24)]"
+                    ? "bg-gradient-to-br from-[#3B0764] via-[#240342] to-[#120224] border-purple-400/25 shadow-[0_18px_45px_rgba(0,0,0,0.5)]"
+                    : "bg-gradient-to-br from-[#6D28D9] via-[#5B21B6] to-[#3B0764] border-purple-300/35 shadow-[0_16px_40px_rgba(109,40,217,0.25)]"
                 }`}
               >
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-200 border border-emerald-300/30">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>ยืนยันข้อมูลแล้ว</span>
-                      </span>
-                      <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-white/15 border border-white/20">
-                        {currentTeacherProfile.id}
-                      </span>
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/15 border border-white/20">
-                        {currentTeacherProfile.program}
-                      </span>
-                    </div>
-
-                    <h2 className="text-xl sm:text-3xl font-black tracking-tight pt-1">
-                      {currentTeacherProfile.name}
-                    </h2>
+                {/* แถวบน: Badges สถานะอาจารย์ และปุ่มโหมดผู้บริหาร (Apple Gold Glass Pill หรูหรา ไม่ฉูดฉาด) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-200 border border-emerald-300/30 backdrop-blur-sm">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                      <span>ยืนยันข้อมูลแล้ว</span>
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-white/10 border border-white/20">
+                      {currentTeacherProfile.id}
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 border border-white/20">
+                      {currentTeacherProfile.program}
+                    </span>
                   </div>
 
-                  {/* ปุ่มจัดการส่วนตัว & ปุ่มสลับโหมดผู้บริหาร (กรณีหัวหน้าสาขา/ผู้บริหารสับเปลี่ยนตำแหน่ง) */}
-                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  {/* สิทธิ์ผู้บริหาร/หัวหน้าสาขา (Apple Gold Glass Pill) */}
+                  {(currentUser.Role === "EXECUTIVE" ||
+                    currentUser.Role === "ADMIN" ||
+                    currentUser.Is_Executive_Assigned) && (
                     <button
                       type="button"
                       onClick={() => {
@@ -1512,23 +1512,38 @@ export default function FacultyEducationPortalApp() {
                         );
                         setActiveView("EXECUTIVE");
                       }}
-                      className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                      className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400/20 via-yellow-400/15 to-amber-500/20 hover:from-amber-400/30 hover:to-amber-500/30 text-amber-200 border border-amber-300/35 backdrop-blur-md text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all active:scale-95 shrink-0"
                     >
-                      <Building2 className="w-4 h-4 shrink-0" />
+                      <Building2 className="w-3.5 h-3.5 text-amber-300 shrink-0" />
                       <span>
                         {currentUser.Is_Executive_Assigned
                           ? `โหมดผู้บริหาร (${currentUser.Executive_Position || "หัวหน้าสาขา"})`
-                          : "ดูแดชบอร์ดผู้บริหาร / สาขา"}
+                          : "ดูแดชบอร์ดผู้บริหาร"}
                       </span>
+                      <ArrowRight className="w-3 h-3 text-amber-300/80 ml-0.5" />
                     </button>
+                  )}
+                </div>
 
+                {/* แถวกลาง: ชื่ออาจารย์ และ Toolbar จัดการส่วนตัว */}
+                <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white">
+                      {currentTeacherProfile.name}
+                    </h2>
+                    <p className="text-xs text-purple-200/80 mt-0.5">
+                      อาจารย์ประจำคณะศึกษาศาสตร์ มหาวิทยาลัยฟาฏอนี
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={() => {
                         setInstructorSubView("SURVEY_FORM");
                         setEditingSection("PROFILE");
                       }}
-                      className="px-3.5 py-2 rounded-xl bg-white text-purple-950 hover:bg-purple-50 text-xs font-black flex items-center gap-1.5 shadow-md transition-all active:scale-95 shrink-0"
+                      className="px-3.5 py-2 rounded-xl bg-white text-purple-950 hover:bg-purple-50 text-xs font-black flex items-center gap-1.5 shadow-md transition-all active:scale-95"
                     >
                       <Edit3 className="w-3.5 h-3.5 text-purple-700" />
                       <span>แก้ไขประวัติ</span>
@@ -1537,7 +1552,7 @@ export default function FacultyEducationPortalApp() {
                     <button
                       type="button"
                       onClick={() => setShowPasswordModal(true)}
-                      className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold flex items-center gap-1.5 transition-all"
+                      className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-sm transition-all active:scale-95"
                     >
                       <KeyRound className="w-3.5 h-3.5 text-amber-300" />
                       <span>รหัสผ่าน</span>
@@ -1545,213 +1560,103 @@ export default function FacultyEducationPortalApp() {
                   </div>
                 </div>
 
-                {/* คุณวุฒิการศึกษาใน Bento ธีมม่วง */}
-                <div className="mt-5 pt-4 border-t border-white/15 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* คุณวุฒิการศึกษาใน Bento Glass Tiles */}
+                <div className="mt-5 pt-4 border-t border-white/15 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {currentTeacherProfile.degrees.map((deg, idx) => (
                     <div
                       key={idx}
-                      className="p-3 rounded-2xl bg-black/20 border border-white/15 backdrop-blur-xs"
+                      className="p-3.5 rounded-2xl bg-white/[0.08] hover:bg-white/[0.12] border border-white/15 backdrop-blur-md transition-all flex flex-col justify-between gap-2 shadow-xs"
                     >
-                      <div className="flex items-center justify-between text-[11px] text-purple-200 font-bold">
-                        <span>{deg.level}</span>
-                        {deg.year && <span>พ.ศ. {deg.year}</span>}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="px-2 py-0.5 rounded-lg bg-purple-300/20 text-purple-100 text-[11px] font-bold border border-purple-200/20">
+                          {deg.level}
+                        </span>
+                        {deg.year && (
+                          <span className="text-[11px] font-mono text-purple-200/80 font-semibold">
+                            พ.ศ. {deg.year}
+                          </span>
+                        )}
                       </div>
-                      <p className="font-bold text-xs sm:text-sm mt-0.5 text-white">
-                        {deg.degree} {deg.major ? `(${deg.major})` : ""}
-                      </p>
-                      <p className="text-[11px] text-purple-200/80 truncate mt-0.5">
-                        {deg.institution}
-                      </p>
+                      <div>
+                        <p className="font-extrabold text-xs sm:text-sm text-white leading-snug">
+                          {deg.degree} {deg.major ? `(${deg.major})` : ""}
+                        </p>
+                        <p className="text-[11px] text-purple-200/80 mt-0.5 line-clamp-1">
+                          {deg.institution}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* 2. BENTO ส่วนอื่นๆ (โทนสีเรียบสะอาดตา ไม่เน้นสีฉูดฉาด แบ่ง 2 การ์ดชัดเจน) */}
+              {/* 2. BENTO ส่วนอื่นๆ (ให้รูปแนบ 1 คลังข้อมูล มาก่อน รูปแนบ 2 แบบสำรวจ) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* การ์ด 2.1: แบบสำรวจแผนประจำปีการศึกษา 2570–2574 (แสดงปุ่มกรอกเมื่อแอดมินเปิด + ปุ่มดูข้อมูลที่กรอกไว้แล้ว) */}
+                {/* การ์ด 1 (รูปแนบ 1 มาก่อน): คลังข้อมูลและสื่อวิชาการสาธารณะ (Bento Style ข้อความสั้นกระชับ) */}
                 <div
-                  className={`rounded-3xl p-5 sm:p-6 border flex flex-col justify-between gap-5 ${
+                  className={`rounded-3xl p-5 sm:p-6 border flex flex-col justify-between gap-4 transition-all ${
                     isDark
-                      ? "bg-[#151026] border-white/10 text-slate-100"
-                      : "bg-white border-slate-200/90 text-slate-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+                      ? "bg-[#151026] border-white/10 text-slate-100 hover:border-purple-500/30"
+                      : "bg-white border-slate-200/90 text-slate-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:border-purple-300"
                   }`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
-                          isDark
-                            ? "bg-white/10 text-slate-200"
-                            : "bg-slate-100 text-slate-700"
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                          isDark ? "bg-white/10 text-purple-200" : "bg-purple-50 text-purple-800"
                         }`}
                       >
-                        แบบสำรวจอาจารย์ พ.ศ. 2570–2574
-                      </span>
-                      <span className="text-xs opacity-60">
-                        อัปเดตล่าสุด: {currentTeacherSurvey.Updated_At}
-                      </span>
-                    </div>
-
-                    <h3 className="text-base sm:text-lg font-extrabold leading-snug">
-                      แบบสำรวจข้อมูลเบื้องต้นเพื่อจัดทำแผนประจำปีการศึกษา 2570–2574 (อาจารย์ คณะศึกษาศาสตร์)
-                    </h3>
-
-                    {/* สรุปสั้นๆ สะอาดตา */}
-                    <div className="grid grid-cols-3 gap-2 pt-1 text-center">
-                      <div
-                        className={`p-2.5 rounded-2xl border ${
-                          isDark
-                            ? "bg-white/[0.03] border-white/10"
-                            : "bg-slate-50 border-slate-200/80"
-                        }`}
-                      >
-                        <span className="text-[11px] opacity-65 block">แผนงานวิจัยรวม</span>
-                        <span className="text-base font-black">
-                          {(Number(currentTeacherSurvey.research_classroom) || 0) +
-                            (Number(currentTeacherSurvey.research_education) || 0) +
-                            (Number(currentTeacherSurvey.research_development) || 0) +
-                            (Number(currentTeacherSurvey.research_other) || 0)}{" "}
-                          เรื่อง
-                        </span>
-                      </div>
-                      <div
-                        className={`p-2.5 rounded-2xl border ${
-                          isDark
-                            ? "bg-white/[0.03] border-white/10"
-                            : "bg-slate-50 border-slate-200/80"
-                        }`}
-                      >
-                        <span className="text-[11px] opacity-65 block">แหล่งทุนวิจัย</span>
-                        <span className="text-base font-black">
-                          {
-                            Object.values(
-                              currentTeacherSurvey.research_funding_sources || {}
-                            ).filter((arr) => Array.isArray(arr) && arr.length > 0)
-                              .length
-                          }{" "}
-                          แหล่งทุน
-                        </span>
-                      </div>
-                      <div
-                        className={`p-2.5 rounded-2xl border ${
-                          isDark
-                            ? "bg-white/[0.03] border-white/10"
-                            : "bg-slate-50 border-slate-200/80"
-                        }`}
-                      >
-                        <span className="text-[11px] opacity-65 block">บริการวิชาการ</span>
-                        <span className="text-base font-black">
-                          {SURVEY_YEARS.reduce(
-                            (acc, y) =>
-                              acc +
-                              (Number(
-                                currentTeacherSurvey.academic_services_count?.[
-                                  String(y)
-                                ]
-                              ) || 0),
-                            0
-                          )}{" "}
-                          กิจกรรม
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ปุ่มกดดูข้อมูลที่กรอกไว้แล้ว (จะได้ไม่รก) + ปุ่มกดกรอกข้อมูลเมื่อแอดมินเปิดระบบ */}
-                  <div className="pt-3 border-t border-slate-200/70 dark:border-white/10 flex flex-wrap items-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => setIsViewingSubmittedSurveyModal(true)}
-                      className={`flex-1 py-3 px-4 rounded-2xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95 ${
-                        isDark
-                          ? "border-white/15 bg-white/5 hover:bg-white/10 text-white"
-                          : "border-slate-300 bg-slate-100 hover:bg-slate-200/70 text-slate-800"
-                      }`}
-                    >
-                      <Eye className="w-4 h-4 shrink-0" />
-                      <span>ดูข้อมูลที่กรอกไว้แล้ว</span>
-                    </button>
-
-                    {canEditSurvey ? (
-                      <button
-                        type="button"
-                        onClick={() => setInstructorSubView("SURVEY_FORM")}
-                        className="flex-1 py-3 px-4 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/25 transition-all active:scale-95"
-                      >
-                        <Edit3 className="w-4 h-4 shrink-0" />
-                        <span>กรอก / แก้ไขแบบสำรวจ</span>
-                      </button>
-                    ) : (
-                      <div className="px-3.5 py-2.5 rounded-2xl border border-slate-300/60 dark:border-white/10 text-xs opacity-70 flex items-center gap-1.5">
-                        <Lock className="w-3.5 h-3.5 shrink-0" />
-                        <span>แอดมินปิดรับการกรอกชั่วคราว</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* การ์ด 2.2: อัปโหลดคลังข้อมูลสาธารณะ & ระบบอ่านไฟล์ PDF บนเว็บแอป (โทนสีเรียบสะอาดตา) */}
-                <div
-                  className={`rounded-3xl p-5 sm:p-6 border flex flex-col justify-between gap-5 ${
-                    isDark
-                      ? "bg-[#151026] border-white/10 text-slate-100"
-                      : "bg-white border-slate-200/90 text-slate-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
-                          isDark
-                            ? "bg-white/10 text-slate-200"
-                            : "bg-slate-100 text-slate-700"
-                        }`}
-                      >
-                        คลังข้อมูลและสื่อวิชาการสาธารณะ
+                        <FolderOpen className="w-3.5 h-3.5 text-purple-500" />
+                        <span>คลังข้อมูล & E-Book</span>
                       </span>
                       <button
                         type="button"
                         onClick={() => setActiveView("REPOSITORY")}
-                        className="text-xs font-bold underline opacity-75 hover:opacity-100"
+                        className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1"
                       >
-                        ไปหน้าคลังรวมข้อมูล →
+                        <span>ไปคลังรวม</span>
+                        <ArrowRight className="w-3 h-3" />
                       </button>
                     </div>
 
-                    <h3 className="text-base sm:text-lg font-extrabold leading-snug">
-                      เผยแพร่ผลงาน ตำรา E-Book และเอกสารวิชาการ (รองรับการเปิดอ่าน PDF บนเว็บแอป)
-                    </h3>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-black tracking-tight">
+                        เผยแพร่ผลงาน & ตำรา E-Book
+                      </h3>
+                      <p className="text-xs opacity-70 mt-0.5">
+                        แชร์เอกสารวิชาการ สื่อการสอน และเปิดอ่านไฟล์ PDF บนเว็บแอปได้ทันที
+                      </p>
+                    </div>
 
-                    {/* รายการผลงานของอาจารย์ท่านนี้ */}
-                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                      {portfolioWorks.filter(
-                        (w) =>
-                          w.Staff_ID.toUpperCase() ===
-                            currentTeacherProfile.id.toUpperCase() ||
-                          w.Instructor_Name.includes(currentTeacherProfile.name)
-                      ).length === 0 ? (
-                        <div
-                          className={`p-3.5 rounded-2xl border text-xs opacity-70 text-center ${
-                            isDark
-                              ? "bg-white/[0.02] border-white/10"
-                              : "bg-slate-50 border-slate-200/70"
-                          }`}
-                        >
-                          ยังไม่มีผลงานที่อัปโหลด กดปุ่มอัปโหลดด้านล่างเพื่อเผยแพร่ไฟล์ PDF หรือลิงก์สู่สาธารณะ
-                        </div>
-                      ) : (
-                        portfolioWorks
+                    {/* กล่องสถานะผลงานของอาจารย์ท่านนี้ (กะทัดรัด สไตล์ Bento) */}
+                    {portfolioWorks.filter(
+                      (w) =>
+                        w.Staff_ID.toUpperCase() === currentTeacherProfile.id.toUpperCase() ||
+                        w.Instructor_Name.includes(currentTeacherProfile.name)
+                    ).length === 0 ? (
+                      <div
+                        className={`p-3 rounded-2xl border text-xs text-center flex items-center justify-center gap-2 ${
+                          isDark
+                            ? "bg-white/[0.02] border-white/10 text-purple-200/70"
+                            : "bg-slate-50 border-slate-200/70 text-slate-600"
+                        }`}
+                      >
+                        <BookOpen className="w-4 h-4 opacity-50 shrink-0" />
+                        <span>ยังไม่มีผลงานที่เผยแพร่ • ร่วมอัปโหลดผลงานแรกได้ที่นี่</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                        {portfolioWorks
                           .filter(
                             (w) =>
-                              w.Staff_ID.toUpperCase() ===
-                                currentTeacherProfile.id.toUpperCase() ||
+                              w.Staff_ID.toUpperCase() === currentTeacherProfile.id.toUpperCase() ||
                               w.Instructor_Name.includes(currentTeacherProfile.name)
                           )
                           .map((work) => (
                             <div
                               key={work.Work_ID}
-                              className={`p-3 rounded-2xl border flex items-center justify-between gap-2 text-xs ${
+                              className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs ${
                                 isDark
                                   ? "bg-white/[0.03] border-white/10"
                                   : "bg-slate-50 border-slate-200/80"
@@ -1759,29 +1664,24 @@ export default function FacultyEducationPortalApp() {
                             >
                               <div className="min-w-0 flex-1">
                                 <p className="font-bold truncate">{work.Title}</p>
-                                <p className="text-[11px] opacity-65">
-                                  {work.Category} • พ.ศ. {work.Academic_Year} •{" "}
-                                  {work.Is_Public ? "เผยแพร่สาธารณะ" : "ส่วนตัว"}
+                                <p className="text-[11px] opacity-65 truncate">
+                                  {work.Category} • พ.ศ. {work.Academic_Year}
                                 </p>
                               </div>
                               <div className="flex items-center gap-1.5 shrink-0">
                                 <button
                                   type="button"
                                   onClick={() => setSelectedWorkModal(work)}
-                                  className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] border ${
-                                    isDark
-                                      ? "bg-white/10 border-white/15 text-white"
-                                      : "bg-white border-slate-300 text-slate-800"
-                                  }`}
+                                  className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-600 text-white hover:bg-purple-500 transition-colors"
                                 >
-                                  เปิดอ่าน PDF
+                                  เปิดอ่าน
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => toggleWorkVisibility(work)}
-                                  className={`px-2 py-1.5 rounded-xl font-bold text-[11px] ${
+                                  className={`px-2 py-1 rounded-lg text-[11px] font-bold ${
                                     work.Is_Public
-                                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+                                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
                                       : "bg-slate-500/15 text-slate-500"
                                   }`}
                                 >
@@ -1789,26 +1689,207 @@ export default function FacultyEducationPortalApp() {
                                 </button>
                               </div>
                             </div>
-                          ))
-                      )}
-                    </div>
+                          ))}
+                      </div>
+                    )}
                   </div>
 
-                  {/* ปุ่มอัปโหลดคลังข้อมูล */}
-                  <div className="pt-3 border-t border-slate-200/70 dark:border-white/10 flex flex-wrap items-center gap-2.5">
+                  {/* ปุ่ม Action สไตล์ Bento สั้นกระชับ */}
+                  <div className="pt-3 border-t border-slate-200/70 dark:border-white/10 flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setIsUploadWorkModalOpen(true)}
-                      className={`w-full py-3 px-4 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 ${
-                        isDark
-                          ? "bg-white text-slate-950 hover:bg-slate-200"
-                          : "bg-slate-900 text-white hover:bg-slate-800"
-                      }`}
+                      className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20 transition-all active:scale-95"
                     >
                       <Upload className="w-4 h-4 shrink-0" />
-                      <span>อัปโหลดผลงานสู่คลังข้อมูลสาธารณะ (PDF / ลิงก์)</span>
+                      <span>อัปโหลดผลงาน</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveView("REPOSITORY")}
+                      className={`py-2.5 px-3.5 rounded-xl border text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                        isDark
+                          ? "border-white/15 bg-white/5 hover:bg-white/10 text-white"
+                          : "border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800"
+                      }`}
+                    >
+                      <BookOpen className="w-4 h-4 shrink-0 text-purple-500" />
+                      <span>เปิดคลังข้อมูล</span>
                     </button>
                   </div>
+                </div>
+
+                {/* การ์ด 2 (รูปแนบ 2 มาทีหลัง): แบบสำรวจแผน 2570–2574 + ปุ่มประวัติการกรอกเล็กลงเป็นแบบรายการ */}
+                <div
+                  className={`rounded-3xl p-5 sm:p-6 border flex flex-col justify-between gap-4 transition-all ${
+                    isDark
+                      ? "bg-[#151026] border-white/10 text-slate-100 hover:border-purple-500/30"
+                      : "bg-white border-slate-200/90 text-slate-900 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:border-purple-300"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                          isDark ? "bg-white/10 text-purple-200" : "bg-purple-50 text-purple-800"
+                        }`}
+                      >
+                        <FileText className="w-3.5 h-3.5 text-purple-500" />
+                        <span>แบบสำรวจอาจารย์ พ.ศ. 2570–2574</span>
+                      </span>
+                      <span className="text-[11px] opacity-60">
+                        อัปเดต: {currentTeacherSurvey.Updated_At}
+                      </span>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-base sm:text-lg font-black tracking-tight leading-snug">
+                          แบบสำรวจแผนประจำปี 2570–2574
+                        </h3>
+                        <p className="text-xs opacity-70 mt-0.5">
+                          ข้อมูลแผนงานวิจัย การเรียนการสอน และบริการวิชาการ
+                        </p>
+                      </div>
+
+                      {canEditSurvey && (
+                        <button
+                          type="button"
+                          onClick={() => setInstructorSubView("SURVEY_FORM")}
+                          className="px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/20 whitespace-nowrap transition-all active:scale-95 shrink-0"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>กรอก / แก้ไขแบบสำรวจ</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* ปุ่มประวัติการกรอกเล็กลงเป็นแบบรายการ (สามารถกดเข้าไปดูเหมือนๆ กับในหน้าแบบฟอร์ม แต่ละหัวข้อ) */}
+                    <div className="pt-1 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold opacity-75">
+                          ประวัติข้อมูลที่กรอก (แตะรายการเพื่อดูข้อมูล):
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSurveyHistoryTopic("ALL");
+                            setIsViewingSubmittedSurveyModal(true);
+                          }}
+                          className="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline"
+                        >
+                          ดูทั้งหมด
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {/* รายการที่ 1: งานวิจัย */}
+                        <div
+                          onClick={() => {
+                            setSurveyHistoryTopic("RESEARCH");
+                            setIsViewingSubmittedSurveyModal(true);
+                          }}
+                          className={`p-2.5 rounded-xl border cursor-pointer flex items-center justify-between gap-2 text-xs transition-all ${
+                            isDark
+                              ? "bg-white/[0.03] border-white/10 hover:border-purple-400 hover:bg-purple-950/20"
+                              : "bg-slate-50 border-slate-200/80 hover:border-purple-300 hover:bg-purple-50/50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-6 h-6 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-300 flex items-center justify-center font-bold text-[11px] shrink-0">
+                              1
+                            </div>
+                            <div className="truncate">
+                              <p className="font-bold truncate">1. ข้อมูลด้านงานวิจัยและแหล่งทุน</p>
+                              <p className="text-[11px] opacity-65 truncate">
+                                แผนวิจัย {(Number(currentTeacherSurvey.research_classroom) || 0) +
+                                  (Number(currentTeacherSurvey.research_education) || 0) +
+                                  (Number(currentTeacherSurvey.research_development) || 0) +
+                                  (Number(currentTeacherSurvey.research_other) || 0)} เรื่อง • {
+                                  Object.values(currentTeacherSurvey.research_funding_sources || {}).filter(
+                                    (arr) => Array.isArray(arr) && arr.length > 0
+                                  ).length
+                                } แหล่งทุน
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center shrink-0">
+                            ดูข้อมูล <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                          </span>
+                        </div>
+
+                        {/* รายการที่ 2: การเรียนการสอน */}
+                        <div
+                          onClick={() => {
+                            setSurveyHistoryTopic("TEACHING");
+                            setIsViewingSubmittedSurveyModal(true);
+                          }}
+                          className={`p-2.5 rounded-xl border cursor-pointer flex items-center justify-between gap-2 text-xs transition-all ${
+                            isDark
+                              ? "bg-white/[0.03] border-white/10 hover:border-purple-400 hover:bg-purple-950/20"
+                              : "bg-slate-50 border-slate-200/80 hover:border-purple-300 hover:bg-purple-50/50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-6 h-6 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 flex items-center justify-center font-bold text-[11px] shrink-0">
+                              2
+                            </div>
+                            <div className="truncate">
+                              <p className="font-bold truncate">2. การเรียนการสอนและฝึกประสบการณ์</p>
+                              <p className="text-[11px] opacity-65 truncate">
+                                ภาระงานสอน 4 ภาคเรียน • แหล่งฝึกประสบการณ์
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center shrink-0">
+                            ดูข้อมูล <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                          </span>
+                        </div>
+
+                        {/* รายการที่ 3: บริการวิชาการ */}
+                        <div
+                          onClick={() => {
+                            setSurveyHistoryTopic("SERVICE");
+                            setIsViewingSubmittedSurveyModal(true);
+                          }}
+                          className={`p-2.5 rounded-xl border cursor-pointer flex items-center justify-between gap-2 text-xs transition-all ${
+                            isDark
+                              ? "bg-white/[0.03] border-white/10 hover:border-purple-400 hover:bg-purple-950/20"
+                              : "bg-slate-50 border-slate-200/80 hover:border-purple-300 hover:bg-purple-50/50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 flex items-center justify-center font-bold text-[11px] shrink-0">
+                              3
+                            </div>
+                            <div className="truncate">
+                              <p className="font-bold truncate">3. ข้อมูลด้านบริการวิชาการแก่ชุมชน</p>
+                              <p className="text-[11px] opacity-65 truncate">
+                                บริการวิชาการ {SURVEY_YEARS.reduce(
+                                  (acc, y) =>
+                                    acc +
+                                    (Number(
+                                      currentTeacherSurvey.academic_services_count?.[String(y)]
+                                    ) || 0),
+                                  0
+                                )} โครงการ • กลุ่มเป้าหมายชุมชน
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center shrink-0">
+                            ดูข้อมูล <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!canEditSurvey && (
+                    <div className="pt-2 border-t border-slate-200/70 dark:border-white/10 flex items-center gap-1.5 text-xs text-amber-500">
+                      <Lock className="w-3.5 h-3.5 shrink-0" />
+                      <span>แอดมินปิดรับการแก้ไขชั่วคราว (สามารถดูประวัติข้อมูลได้)</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -3977,141 +4058,465 @@ export default function FacultyEducationPortalApp() {
         />
       )}
 
-      {/* Modal: อาจารย์กดดูข้อมูลที่กรอกไว้แล้ว (ไม่รกหน้าแดชบอร์ด) */}
+      {/* Modal: อาจารย์กดดูข้อมูลที่กรอกไว้แล้ว (จัดรูปแบบเหมือนในหน้าแบบฟอร์ม แยกตามแต่ละหัวข้อ) */}
       {isViewingSubmittedSurveyModal && currentTeacherSurvey && (
         <div
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
           style={{ overscrollBehavior: "contain" }}
         >
           <div
-            className={`rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 border shadow-2xl space-y-4 ${
+            className={`rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 border shadow-2xl space-y-4 ${
               isDark
-                ? "bg-[#181030] border-white/15 text-white"
+                ? "bg-[#160E2E] border-white/15 text-white"
                 : "bg-white border-slate-200 text-slate-900"
             }`}
             style={{ overscrollBehavior: "contain" }}
           >
+            {/* Modal Header */}
             <div className="flex items-start justify-between gap-3 border-b pb-3 border-slate-200/70 dark:border-white/10">
               <div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/15 text-purple-500">
-                  สรุปข้อมูลแบบสำรวจแผน 2570–2574 ที่บันทึกไว้
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/15 text-purple-600 dark:text-purple-300">
+                    ข้อมูลแบบสำรวจที่บันทึกไว้
+                  </span>
+                  <span className="text-[11px] opacity-60">
+                    อัปเดต: {currentTeacherSurvey.Updated_At}
+                  </span>
+                </div>
                 <h3 className="text-base sm:text-lg font-black mt-1">
-                  {currentTeacherSurvey.Full_Name}
+                  {currentTeacherSurvey.Full_Name} ({currentTeacherSurvey.Staff_ID})
                 </h3>
-                <p className="text-xs opacity-70">
-                  {currentTeacherSurvey.Staff_ID} • {currentTeacherSurvey.Department} • อัปเดตล่าสุด{" "}
-                  {currentTeacherSurvey.Updated_At}
-                </p>
+                <p className="text-xs opacity-75">{currentTeacherSurvey.Department}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsViewingSubmittedSurveyModal(false)}
-                className="p-1.5 rounded-full hover:bg-purple-500/10"
+                className="p-1.5 rounded-full hover:bg-purple-500/10 text-slate-500 dark:text-purple-200"
+                aria-label="ปิดหน้าต่าง"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div
-                className={`p-3.5 rounded-2xl border space-y-1 ${
-                  isDark ? "bg-white/[0.03] border-white/10" : "bg-slate-50 border-slate-200"
-                }`}
-              >
-                <span className="font-bold text-purple-500 block">
-                  1. แผนงานวิจัย พ.ศ. 2570–2574
-                </span>
-                <p>• วิจัยในชั้นเรียน: <strong>{currentTeacherSurvey.research_classroom || 0} เรื่อง</strong></p>
-                <p>• วิจัยเพื่อการศึกษา: <strong>{currentTeacherSurvey.research_education || 0} เรื่อง</strong></p>
-                <p>• วิจัยเพื่อการพัฒนา: <strong>{currentTeacherSurvey.research_development || 0} เรื่อง</strong></p>
-                <p>• วิจัยอื่นๆ: <strong>{currentTeacherSurvey.research_other || 0} เรื่อง</strong></p>
-                <p className="text-[11px] opacity-75 pt-1">
-                  แหล่งทุน: {Object.entries(currentTeacherSurvey.research_funding_sources || {})
-                    .filter(([, yrs]) => (yrs || []).length > 0)
-                    .map(([k, yrs]) => `${k} (ปี ${(yrs || []).join(", ")})`)
-                    .join(" • ") || "ระบุตามแผน"}
-                </p>
-              </div>
-
-              <div
-                className={`p-3.5 rounded-2xl border space-y-1 ${
-                  isDark ? "bg-white/[0.03] border-white/10" : "bg-slate-50 border-slate-200"
-                }`}
-              >
-                <span className="font-bold text-purple-500 block">
-                  2. ข้อมูลการเรียนการสอนและการฝึกประสบการณ์
-                </span>
-                <p>
-                  • ภาระงานสอน:{" "}
-                  <strong>
-                    {Object.entries(currentTeacherSurvey.teaching_load || {})
-                      .map(([sem, load]) => `${sem}: ${load}`)
-                      .join(" • ") || "ตามเกณฑ์มาตรฐาน"}
-                  </strong>
-                </p>
-                <p>
-                  • แหล่งฝึกประสบการณ์:{" "}
-                  <strong>
-                    {Object.entries(currentTeacherSurvey.fieldwork_agencies || {})
-                      .map(([sem, ag]) => `${sem}: ${ag}`)
-                      .join(" • ") || "โรงเรียนเครือข่าย"}
-                  </strong>
-                </p>
-              </div>
-
-              <div
-                className={`p-3.5 rounded-2xl border space-y-1 sm:col-span-2 ${
-                  isDark ? "bg-white/[0.03] border-white/10" : "bg-slate-50 border-slate-200"
-                }`}
-              >
-                <span className="font-bold text-purple-500 block">
-                  3. ข้อมูลด้านบริการวิชาการ
-                </span>
-                <p>
-                  • จำนวนกิจกรรมบริการวิชาการ:{" "}
-                  <strong>
-                    {Object.entries(currentTeacherSurvey.academic_services_count || {})
-                      .map(([yr, cnt]) => `พ.ศ. ${yr}: ${cnt} โครงการ`)
-                      .join(" • ") || "ตามแผนสาขาวิชา"}
-                  </strong>
-                </p>
-                <p>
-                  • กลุ่มเป้าหมายชุมชน:{" "}
-                  <strong>
-                    {Object.entries(currentTeacherSurvey.target_communities || {})
-                      .filter(([, yrs]) => (yrs || []).length > 0)
-                      .map(([k, yrs]) => `${k} (ปี ${(yrs || []).join(", ")})`)
-                      .join(" • ") || "โรงเรียนและชุมชนในพื้นที่"}
-                  </strong>
-                </p>
-                {currentTeacherSurvey.selection_criteria_percentage && (
-                  <p>
-                    • สัดส่วนเกณฑ์ความต้องการชุมชน:{" "}
-                    <strong>{currentTeacherSurvey.selection_criteria_percentage}</strong>
-                  </p>
-                )}
-              </div>
+            {/* Topic Navigation Tabs (สลับดูทีละหัวข้อ หรือดูทั้งหมด) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200/60 dark:border-white/10 text-xs font-bold">
+              {[
+                { id: "ALL", label: "ดูทั้งหมด" },
+                { id: "RESEARCH", label: "1. ด้านงานวิจัย" },
+                { id: "TEACHING", label: "2. การเรียนการสอน" },
+                { id: "SERVICE", label: "3. บริการวิชาการ" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSurveyHistoryTopic(tab.id as typeof surveyHistoryTopic)}
+                  className={`px-3 py-1.5 rounded-xl whitespace-nowrap transition-all ${
+                    surveyHistoryTopic === tab.id
+                      ? "bg-purple-600 text-white shadow-xs"
+                      : isDark
+                      ? "bg-white/5 hover:bg-white/10 text-purple-200"
+                      : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            <div className="flex flex-wrap justify-end gap-2 pt-3 border-t border-slate-200/70 dark:border-white/10">
-              <button
-                type="button"
-                onClick={() => setIsViewingSubmittedSurveyModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-purple-500/30 text-xs font-bold"
-              >
-                ปิดหน้าต่าง
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsViewingSubmittedSurveyModal(false);
-                  setInstructorSubView("SURVEY_FORM");
-                }}
-                className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold"
-              >
-                แก้ไขข้อมูลแบบสำรวจ
-              </button>
+            {/* Modal Body: เลย์เอาต์เหมือนในหน้าแบบฟอร์ม */}
+            <div className="space-y-4">
+              {/* หัวข้อที่ 1: ด้านงานวิจัย */}
+              {(surveyHistoryTopic === "ALL" || surveyHistoryTopic === "RESEARCH") && (
+                <div
+                  className={`rounded-2xl p-4 sm:p-5 border space-y-3.5 ${
+                    isDark ? "bg-white/[0.02] border-white/10" : "bg-purple-50/30 border-purple-100"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 border-b pb-2 border-slate-200/70 dark:border-white/10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs">
+                        1
+                      </div>
+                      <h4 className="font-extrabold text-sm sm:text-base">
+                        ข้อมูลด้านงานวิจัย (พ.ศ. 2570–2574)
+                      </h4>
+                    </div>
+                    {canEditSurvey && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsViewingSubmittedSurveyModal(false);
+                          setEditingSection("RESEARCH");
+                          setInstructorSubView("SURVEY_FORM");
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-xs transition-all active:scale-95"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>แก้ไขหมวดนี้</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 1.1 จำนวนงานวิจัย 4 ประเภท */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold opacity-75">
+                      1. จำนวนงานวิจัยที่คาดว่าจะทำ (รวม 5 ปี):
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                      <div className={`p-2.5 rounded-xl border ${isDark ? "bg-white/5 border-white/10" : "bg-white border-slate-200"}`}>
+                        <span className="opacity-60 block text-[10px]">วิจัยในชั้นเรียน</span>
+                        <span className="font-black text-sm text-purple-600 dark:text-purple-300">
+                          {currentTeacherSurvey.research_classroom || 0} เรื่อง
+                        </span>
+                      </div>
+                      <div className={`p-2.5 rounded-xl border ${isDark ? "bg-white/5 border-white/10" : "bg-white border-slate-200"}`}>
+                        <span className="opacity-60 block text-[10px]">วิจัยการเรียนการสอน</span>
+                        <span className="font-black text-sm text-purple-600 dark:text-purple-300">
+                          {currentTeacherSurvey.research_education || 0} เรื่อง
+                        </span>
+                      </div>
+                      <div className={`p-2.5 rounded-xl border ${isDark ? "bg-white/5 border-white/10" : "bg-white border-slate-200"}`}>
+                        <span className="opacity-60 block text-[10px]">วิจัยและพัฒนา</span>
+                        <span className="font-black text-sm text-purple-600 dark:text-purple-300">
+                          {currentTeacherSurvey.research_development || 0} เรื่อง
+                        </span>
+                      </div>
+                      <div className={`p-2.5 rounded-xl border ${isDark ? "bg-white/5 border-white/10" : "bg-white border-slate-200"}`}>
+                        <span className="opacity-60 block text-[10px]">วิจัยสถาบัน/อื่นๆ</span>
+                        <span className="font-black text-sm text-purple-600 dark:text-purple-300">
+                          {currentTeacherSurvey.research_other || 0} เรื่อง
+                        </span>
+                        {currentTeacherSurvey.research_other_specify && (
+                          <span className="block text-[10px] opacity-75 truncate">
+                            ({currentTeacherSurvey.research_other_specify})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 1.2 แหล่งทุนวิจัย */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-xs font-bold opacity-75">
+                      2. แหล่งทุนวิจัยที่คาดว่าจะได้รับ:
+                    </span>
+                    {Object.entries(currentTeacherSurvey.research_funding_sources || {}).filter(
+                      ([, yrs]) => Array.isArray(yrs) && yrs.length > 0
+                    ).length === 0 ? (
+                      <p className="text-xs opacity-60 italic bg-slate-50 dark:bg-white/5 p-2 rounded-xl">
+                        ยังไม่ได้ระบุแหล่งทุนวิจัย
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {Object.entries(currentTeacherSurvey.research_funding_sources || {})
+                          .filter(([, yrs]) => Array.isArray(yrs) && yrs.length > 0)
+                          .map(([fund, yrs]) => (
+                            <div
+                              key={fund}
+                              className={`p-2.5 rounded-xl border flex flex-col justify-between gap-1.5 ${
+                                isDark ? "bg-white/5 border-white/10" : "bg-white border-slate-200"
+                              }`}
+                            >
+                              <span className="font-bold">{fund}</span>
+                              <div className="flex flex-wrap gap-1">
+                                {(yrs || []).map((y) => (
+                                  <span
+                                    key={y}
+                                    className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-600 text-white"
+                                  >
+                                    พ.ศ. {y}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 1.3 งบประมาณวิจัยรายปี */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-xs font-bold opacity-75">
+                      3. ช่วงงบประมาณวิจัยรายปี (พ.ศ. 2570–2574):
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-xs text-center">
+                      {SURVEY_YEARS.map((y) => {
+                        const budget = currentTeacherSurvey.research_budgets?.[String(y)];
+                        return (
+                          <div
+                            key={y}
+                            className={`p-2 rounded-xl border ${
+                              budget
+                                ? isDark
+                                  ? "bg-purple-950/40 border-purple-500/40 text-purple-200"
+                                  : "bg-purple-50 border-purple-200 text-purple-900"
+                                : isDark
+                                ? "bg-white/5 border-white/10 opacity-50"
+                                : "bg-slate-50 border-slate-200 opacity-60"
+                            }`}
+                          >
+                            <span className="font-bold text-[11px] block">พ.ศ. {y}</span>
+                            <span className="font-extrabold text-[11px] leading-tight block mt-0.5">
+                              {budget ? `${budget} บาท` : "ไม่ได้ระบุ"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* หัวข้อที่ 2: ด้านการเรียนการสอน */}
+              {(surveyHistoryTopic === "ALL" || surveyHistoryTopic === "TEACHING") && (
+                <div
+                  className={`rounded-2xl p-4 sm:p-5 border space-y-3.5 ${
+                    isDark ? "bg-white/[0.02] border-white/10" : "bg-indigo-50/30 border-indigo-100"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 border-b pb-2 border-slate-200/70 dark:border-white/10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+                        2
+                      </div>
+                      <h4 className="font-extrabold text-sm sm:text-base">
+                        ข้อมูลด้านการเรียนการสอนและฝึกประสบการณ์
+                      </h4>
+                    </div>
+                    {canEditSurvey && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsViewingSubmittedSurveyModal(false);
+                          setEditingSection("TEACHING");
+                          setInstructorSubView("SURVEY_FORM");
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-xs transition-all active:scale-95"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>แก้ไขหมวดนี้</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 2.1 ภาระงานสอน */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold opacity-75">
+                      1. โหลดชั่วโมงสอนระหว่างปีการศึกษา 2568–2569:
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                      {TEACHING_LOAD_SEMESTERS.map((sem) => {
+                        const load = currentTeacherSurvey.teaching_load?.[sem];
+                        return (
+                          <div
+                            key={sem}
+                            className={`p-2.5 rounded-xl border ${
+                              load
+                                ? isDark
+                                  ? "bg-indigo-950/30 border-indigo-500/40"
+                                  : "bg-white border-indigo-200"
+                                : isDark
+                                ? "bg-white/5 border-white/10 opacity-50"
+                                : "bg-slate-50 border-slate-200 opacity-60"
+                            }`}
+                          >
+                            <span className="opacity-60 block text-[10px]">ภาคเรียน {sem}</span>
+                            <span className="font-bold text-xs leading-snug block mt-0.5">
+                              {load || "ไม่ได้ระบุ"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 2.2 ฝึกประสบการณ์วิชาชีพ */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-xs font-bold opacity-75">
+                      2. การมีส่วนร่วมในการฝึกประสบการณ์วิชาชีพและแหล่งฝึก:
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                      {FIELDWORK_SEMESTERS.map((sem) => {
+                        const presence = currentTeacherSurvey.fieldwork_presence?.[sem];
+                        const agency = currentTeacherSurvey.fieldwork_agencies?.[sem];
+                        return (
+                          <div
+                            key={sem}
+                            className={`p-2.5 rounded-xl border ${
+                              presence === "มี"
+                                ? isDark
+                                  ? "bg-indigo-950/30 border-indigo-500/40"
+                                  : "bg-white border-indigo-200"
+                                : isDark
+                                ? "bg-white/5 border-white/10 opacity-60"
+                                : "bg-slate-50 border-slate-200 opacity-70"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between text-[11px] font-bold">
+                              <span>ภาค {sem}</span>
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-[10px] ${
+                                  presence === "มี"
+                                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                                    : "opacity-60"
+                                }`}
+                              >
+                                {presence || "ไม่มี"}
+                              </span>
+                            </div>
+                            <span className="text-[11px] opacity-75 block mt-1 truncate">
+                              {presence === "มี" ? agency || "โรงเรียนเครือข่าย" : "-"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* หัวข้อที่ 3: ด้านบริการวิชาการ */}
+              {(surveyHistoryTopic === "ALL" || surveyHistoryTopic === "SERVICE") && (
+                <div
+                  className={`rounded-2xl p-4 sm:p-5 border space-y-3.5 ${
+                    isDark ? "bg-white/[0.02] border-white/10" : "bg-emerald-50/30 border-emerald-100"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 border-b pb-2 border-slate-200/70 dark:border-white/10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
+                        3
+                      </div>
+                      <h4 className="font-extrabold text-sm sm:text-base">
+                        ข้อมูลด้านบริการวิชาการแก่ชุมชน (พ.ศ. 2570–2574)
+                      </h4>
+                    </div>
+                    {canEditSurvey && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsViewingSubmittedSurveyModal(false);
+                          setEditingSection("SERVICE");
+                          setInstructorSubView("SURVEY_FORM");
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-xs transition-all active:scale-95"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>แก้ไขหมวดนี้</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 3.1 จำนวนกิจกรรม */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold opacity-75">
+                      1. จำนวนกิจกรรมบริการวิชาการรายปี (พ.ศ. 2570–2574):
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-xs text-center">
+                      {SURVEY_YEARS.map((y) => {
+                        const cnt = currentTeacherSurvey.academic_services_count?.[String(y)] || 0;
+                        return (
+                          <div
+                            key={y}
+                            className={`p-2 rounded-xl border ${
+                              cnt > 0
+                                ? isDark
+                                  ? "bg-emerald-950/30 border-emerald-500/40 text-emerald-200"
+                                  : "bg-emerald-50 border-emerald-200 text-emerald-900"
+                                : isDark
+                                ? "bg-white/5 border-white/10 opacity-50"
+                                : "bg-slate-50 border-slate-200 opacity-60"
+                            }`}
+                          >
+                            <span className="font-bold text-[11px] block">พ.ศ. {y}</span>
+                            <span className="font-black text-sm block mt-0.5">{cnt} โครงการ</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 3.2 ชุมชนกลุ่มเป้าหมาย */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-xs font-bold opacity-75">
+                      2. ชุมชนหรือกลุ่มเป้าหมายที่คาดหวัง:
+                    </span>
+                    {Object.entries(currentTeacherSurvey.target_communities || {}).filter(
+                      ([, yrs]) => Array.isArray(yrs) && yrs.length > 0
+                    ).length === 0 ? (
+                      <p className="text-xs opacity-60 italic bg-slate-50 dark:bg-white/5 p-2 rounded-xl">
+                        ยังไม่ได้ระบุกลุ่มเป้าหมายชุมชน
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {Object.entries(currentTeacherSurvey.target_communities || {})
+                          .filter(([, yrs]) => Array.isArray(yrs) && yrs.length > 0)
+                          .map(([comm, yrs]) => (
+                            <div
+                              key={comm}
+                              className={`p-2.5 rounded-xl border flex flex-col justify-between gap-1.5 ${
+                                isDark ? "bg-white/5 border-white/10" : "bg-white border-slate-200"
+                              }`}
+                            >
+                              <span className="font-bold">{comm}</span>
+                              <div className="flex flex-wrap gap-1">
+                                {(yrs || []).map((y) => (
+                                  <span
+                                    key={y}
+                                    className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-600 text-white"
+                                  >
+                                    พ.ศ. {y}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3.3 เกณฑ์คัดเลือก */}
+                  {currentTeacherSurvey.selection_criteria_percentage && (
+                    <div className="pt-1 flex items-center gap-2 text-xs">
+                      <span className="font-bold opacity-75">
+                        3. สัดส่วนเกณฑ์ความต้องการชุมชน:
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black">
+                        {currentTeacherSurvey.selection_criteria_percentage}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-200/70 dark:border-white/10">
+              <span className="text-xs opacity-65">
+                แตะปุ่ม &quot;แก้ไขหมวดนี้&quot; เพื่อปรับปรุงข้อมูลในหัวข้อที่ต้องการ
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsViewingSubmittedSurveyModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-white/15 text-xs font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                >
+                  ปิดหน้าต่าง
+                </button>
+                {canEditSurvey && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsViewingSubmittedSurveyModal(false);
+                      setInstructorSubView("SURVEY_FORM");
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>ไปหน้าแบบฟอร์มเพื่อแก้ไข</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
